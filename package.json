@@ -1,0 +1,20 @@
+{
+  "name": "com.pluginset.core",
+  "displayName": "PluginSet Core",
+  "version": "0.0.1",
+  "unity": "2018.4",
+  "description": "The framework to manager plugin set. It provides a solution for building app and patches.",
+  "keywords": [
+    "pluginset",
+    "buildapp",
+    "pluginsetcore"
+  ],
+  "dependencies": {
+    "com.unity.scriptablebuildpipeline": "1.12.0",
+    "com.unity.modules.assetbundle": "1.0.0"
+  },
+  "author": {
+    "name": "LyneXiao",
+    "email": "lixonxs@icloud.com"
+  }
+}
