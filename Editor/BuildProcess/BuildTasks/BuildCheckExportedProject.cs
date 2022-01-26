@@ -30,7 +30,6 @@ namespace PluginSet.Core.Editor
             
             task = handler.AddNextTask(new BuildModifyAndroidProject(projectPath), task);
             task = handler.AddNextTask(new BuildModifyIOSProject(projectPath), task);
-            task = handler.AddNextTask(new BuildGenerateApp(), task);
 
             Unuse(task);
         }

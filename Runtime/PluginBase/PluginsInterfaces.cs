@@ -96,9 +96,31 @@ namespace PluginSet.Core
 
     public interface IUserSet : IPluginBase
     {
-        void SetUser(string userId);
-        void SetUserInfo(string key, object value);
-        void SetUserInfo(Dictionary<string, object> pairs);
+        /// <summary>
+        /// 设置玩家信息
+        /// </summary>
+        /// <param name="isNewUser">是否是新玩家</param>
+        /// <param name="userId">玩家ID</param>
+        /// <param name="pairs" desc = "玩家信息数据对，通用字段名称定义如下">
+        ///   <key name = "serverID">服务器ID（数字字符串）</key>
+        ///   <key name = "serverName">服务器名称</key>
+        ///   <key name = "gameRoleName">角色名称</key>
+        ///   <key name = "gameRoleID">角色ID</key>
+        ///   <key name = "gameRoleBalance">角色用户余额</key>
+        ///   <key name = "gameRoleLevel">角色用户等级</key>
+        ///   <key name = "partyName">公会社团</key>
+        ///   <key name = "roleCreateTime">角色创建时间(10位数的unix timestamp时间戳)</key>
+        ///   <key name = "partyId">帮派id</key>
+        ///   <key name = "gameRoleGender">角色性别</key>
+        ///   <key name = "gameRolePower">战力</key>
+        ///   <key name = "partyRoleId">角色在帮派中的id</key>
+        ///   <key name = "partyRoleName">角色在帮派中的名称</key>
+        ///   <key name = "professionId">角色职业id</key>
+        ///   <key name = "profession">角色职业名称</key>
+        ///   <key name = "friendList">好友关系列表</key>
+        /// </param>
+        void SetUserInfo(bool isNewUser, string userId, Dictionary<string, object> pairs = null);
+        
         void ClearUserInfo();
         void FlushUserInfo();
     }
@@ -120,7 +142,7 @@ namespace PluginSet.Core
         /// Get user info json representation.
         /// </summary>
         /// <returns></returns>
-        string GetUserInfo();
+        string GetUserLoginData();
     }
 
     public interface IPaymentPlugin : IPluginBase
@@ -254,11 +276,16 @@ namespace PluginSet.Core
 
     public interface IRealNamePlugin : IPluginBase
     {
+        bool IsEnableVerifyRealName { get; }
+
+        void VerifyRealName(Action<Result> callback = null);
     }
 
-    public interface ISystemPlugin : IPluginBase
+    public interface IExitPlugin : IPluginBase
     {
-        void OnAppQuit(Action<Result> callback = null);
+        bool HasExitDialog { get; }
+        
+        void ExitApplication();
     }
 
     /// <summary>

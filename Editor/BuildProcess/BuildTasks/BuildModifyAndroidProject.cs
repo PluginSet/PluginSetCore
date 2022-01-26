@@ -36,14 +36,9 @@ namespace PluginSet.Core.Editor
                     AppendMetaData(metadatas, kv.Key, kv.Value, typeName);
                 }
             }
-
-            string mainPath = Path.Combine(AndroidProjectPath, "unityLibrary", "src", "main");
-            context.Set("mainPath", mainPath);
             
-            string manifestPath = Path.Combine(AndroidProjectPath, "launcher", "src", "main");
-            XmlDocument doc = new XmlDocument();
-            string fileName = Path.Combine(manifestPath, "AndroidManifest.xml");
-            doc.Load(fileName);
+            var projectManager = new AndroidProjectManager(AndroidProjectPath);
+            XmlDocument doc = projectManager.LauncherManifest;
             foreach (var info in metadatas.Values)
             {
                 string value = info.Value;
@@ -52,15 +47,8 @@ namespace PluginSet.Core.Editor
                 doc.SetMetaData(info.Key, value, $"Set in {info.Source}");
             }
 
-            Global.CallCustomMethods<AndroidManifestModifyAttribute, BuildToolsAttribute>(context, doc);
-            doc.Save(fileName);
-
-            // 打包必要的混淆
-            var proguard = new StringBuilder();
-            Global.AppendProguardInLib(proguard, "PluginSet.Core");
-            Global.CallCustomMethods<AndroidProguardModifyAttribute, BuildToolsAttribute>(context, proguard);
-            var proguardPath = Path.Combine(mainPath, "proguard-user.txt");
-            File.WriteAllText(proguardPath, proguard.ToString());
+            Global.CallCustomOrderMethods<AndroidProjectModifyAttribute, BuildToolsAttribute>(context, projectManager);
+            projectManager.Save();
 #endif
         }
 

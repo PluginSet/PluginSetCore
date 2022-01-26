@@ -49,8 +49,6 @@ namespace PluginSet.Core.Editor
                 project.WorkSpaceSettings.root.values.Remove("BuildSystemType");
 
             project.Save();
-            
-            Global.CallCustomOrderMethods<iOSXCodeProjectModifyCompletedAttribute, BuildToolsAttribute>(context, IOSProjectPath);
 #endif
         }
 

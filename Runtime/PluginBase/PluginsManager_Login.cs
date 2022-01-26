@@ -133,7 +133,7 @@ namespace PluginSet.Core
             });
         }
 
-        public string GetUserInfo()
+        public string GetUserLoginData()
         {
             var sb = new StringBuilder();
             sb.Append("{");
@@ -141,13 +141,23 @@ namespace PluginSet.Core
             for (var i = 0; i < keys.Length; i++)
             {
                 var pluginName = keys[i];
-                sb.Append($"\"{pluginName}\":{LoginPlugins[pluginName].GetUserInfo()}");
+                sb.Append($"\"{pluginName}\":{LoginPlugins[pluginName].GetUserLoginData()}");
                 if (i < keys.Length - 1)
                     sb.Append(",");
             }
 
             sb.Append("}");
             return sb.ToString();
+        }
+
+        public string GetUserLoginDataWith(string pluginName)
+        {
+            if (LoginPlugins.TryGetValue(pluginName, out var plugin))
+            {
+                return plugin.GetUserLoginData();
+            }
+
+            return "{}";
         }
     }
 }

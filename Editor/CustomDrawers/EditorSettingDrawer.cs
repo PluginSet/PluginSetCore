@@ -199,56 +199,11 @@ namespace PluginSet.Core.Editor
                 }
             }
 
-            var setBuildNumber = GUILayout.Button("获取当前Build号");
             var syncSettings = GUILayout.Button("同步设置");
 
-            if (setBuildNumber || syncSettings)
+            if (syncSettings)
             {
-                var currentBuild = GetLocalBuildNumber();
-                var editorSetting = target as EditorSetting;
-                Debug.Assert(editorSetting != null, nameof(editorSetting) + " != null");
-                if (editorSetting.Build != currentBuild)
-                {
-                    editorSetting.Build = currentBuild;
-                    EditorUtility.SetDirty(editorSetting);
-                }
-
-//                var currentBuildChannel = EditorSetting.CurrentBuildChannel;
-//                if (currentBuildChannel.BuildTarget == BuildTarget.Android)
-//                {
-//                    var versionCode = 0;
-//                    var versionParts = editorSetting.versionName.Split('.');
-//                    for (var i = versionParts.Length - 1; i >= 0; i--)
-//                    {
-//                        int.TryParse(versionParts[i], out var p);
-//                        versionCode += p * (int) Mathf.Pow(10, (versionParts.Length - i - 1) * 2);
-//                    }
-//
-//                    versionCode = versionCode * 10000 + editorSetting.Build % 10000;
-//                    if (versionCode != editorSetting.versionCode)
-//                    {
-//                        editorSetting.versionCode = versionCode;
-//                        EditorUtility.SetDirty(editorSetting);
-//                    }
-//                }
-
-                if (syncSettings)
-                {
-//                    SaveLocalBuildNumber(currentBuild + 1);
-//                    switch (currentBuildChannel.BuildTarget)
-//                    {
-//                        case BuildTarget.Android:
-//                            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
-//                            break;
-//                        case BuildTarget.iOS:
-//                            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.iOS, BuildTarget.iOS);
-//                            break;
-//                        default:
-//                            throw new Exception($"Unknown build target {currentBuildChannel.BuildTarget}");
-//                    }
-
-                    BuildHelper.SyncPluginsConfig();
-                }
+                BuildHelper.SyncPluginsConfig();
             }
 
             AssetDatabase.SaveAssets();

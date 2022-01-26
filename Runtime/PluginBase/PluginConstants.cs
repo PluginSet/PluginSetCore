@@ -2,14 +2,14 @@ namespace PluginSet.Core
 {
     public static class PluginConstants
     {
+        public const int SuccessCode = 0;
+        public const int CancelCode = -1;
+        public const int FailDefaultCode = 9999;
+        
         public const string NOTIFY_RESTART = "NOTIFY_RESTART";
 
         public const string NOTIFY_REPORT = "NOTIFY_REPORT";
         
-        public const string NOTIFY_USER_ID = "NOTIFY_USER_ID";
-        public const string NOTIFY_USER_INFO = "NOTIFY_USER_INFO";
-        public const string NOTIFY_CLEAR_USER_INFO = "NOTIFY_CLEAR_USER_INFO";
-
         public const string NOTIFY_CHOOSE_BANNER_TYPE = "NOTIFY_CHOOSE_BANNER_TYPE";
         public const string NOTIFY_CHOOSE_LOAD_REWARD_AD_TYPE = "NOTIFY_CHOOSE_LOAD_REWARD_AD_TYPE";
         public const string NOTIFY_CHOOSE_SHOW_REWARD_AD_TYPE = "NOTIFY_CHOOSE_SHOW_REWARD_AD_TYPE";

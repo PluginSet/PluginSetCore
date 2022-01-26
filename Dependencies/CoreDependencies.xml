@@ -1,0 +1,12 @@
+<!-- Copyright (C) 2018 Google Inc. All Rights Reserved.
+
+FirebaseApp iOS and Android Dependencies.
+-->
+
+<dependencies>
+  <androidPackages>
+    <androidPackage spec="androidx.core:core:1.3.0">
+    </androidPackage>
+  </androidPackages>
+</dependencies>
+

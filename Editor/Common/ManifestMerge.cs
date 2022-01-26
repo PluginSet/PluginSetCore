@@ -60,6 +60,23 @@ namespace PluginSet.Core.Editor
                 node.insertComment(msg);
         }
 
+        public static XmlElement FindOrAddActivity(this XmlDocument main, string activityName)
+        {
+            var list = main.findElements(AndroidConst.ACTIVITY_PATH, AndroidConst.NS_PREFIX, "name", activityName);
+            XmlElement element;
+            if (list.Count <= 0)
+            {
+                element = main.createElementWithPath(AndroidConst.ACTIVITY_PATH);
+                element.SetAttribute("name", AndroidConst.NS_URI, activityName);
+            }
+            else
+            {
+                element = list[0];
+            }
+
+            return element;
+        }
+
         private static void insertComment(this XmlElement node, string msg)
         {
             var parent = node.ParentNode;

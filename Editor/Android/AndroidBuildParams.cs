@@ -32,11 +32,11 @@ namespace PluginSet.Core.Editor
         [VisibleCaseBoolValue("UseCustomKeystore", true)]
         public string KeyAliasPassword;
 
-        [Tooltip("Manifest中的application的name属性")]
-        public string ApplicationName;
-
-        [Tooltip("Manifest中的application的theme属性")]
-        public string ApplicationTheme;
+//        [Tooltip("Manifest中的application的name属性")]
+//        public string ApplicationName;
+//
+//        [Tooltip("Manifest中的application的theme属性")]
+//        public string ApplicationTheme;
 
 
         [OnSyncEditorSetting]
@@ -68,22 +68,6 @@ namespace PluginSet.Core.Editor
             PlayerSettings.Android.keyaliasPass = setting.KeyAliasPassword;
             
             AssetDatabase.Refresh();
-        }
-
-        [AndroidManifestModify]
-        public static void OnManifestModify(BuildProcessorContext context, XmlDocument main)
-        {
-            if (context.BuildTarget != BuildTarget.Android)
-                return;
-            
-            var asset = context.BuildChannels;
-            var setting = asset.Get<AndroidBuildParams>("Android");
-            var element = main.findOrCreateElemet(AndroidConst.META_DATA_PARENT);
-            if (!string.IsNullOrEmpty(setting.ApplicationName))
-                element.SetAttribute("name", AndroidConst.NS_URI, setting.ApplicationName);
-            
-            if (!string.IsNullOrEmpty(setting.ApplicationTheme))
-                element.SetAttribute("theme", AndroidConst.NS_URI, setting.ApplicationTheme);
         }
     }
 }

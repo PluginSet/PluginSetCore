@@ -11,6 +11,7 @@ namespace PluginSet.Core.Editor
         
         public static readonly string META_DATA_PARENT = $"/{ROOT_NAME}/application";
         public static readonly string META_DATA_PATH = $"{META_DATA_PARENT}/meta-data";
+        public static readonly string ACTIVITY_PATH = $"{META_DATA_PARENT}/activity";
         
         public static readonly string USES_PERMISSION_PARENT = $"/{ROOT_NAME}";
         public static readonly string USES_PERMISSION_PATH = $"{USES_PERMISSION_PARENT}/uses-permission";

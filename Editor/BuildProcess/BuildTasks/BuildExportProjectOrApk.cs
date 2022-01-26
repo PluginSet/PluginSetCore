@@ -33,12 +33,12 @@ namespace PluginSet.Core.Editor
 
 			var target = context.BuildTarget;
 			var buildPath = context.ProjectPath;
-			string locationPathName = buildPath;
+			string locationPath = buildPath;
 			if (target == BuildTarget.iOS)
 			{
 				// 导出目录保持一致
 #if !UNITY_2020_1_OR_NEWER
-				locationPathName = Path.Combine(buildPath , PlayerSettings.productName);
+				locationPath = Path.Combine(buildPath , PlayerSettings.productName);
 #endif
 				EditorUserBuildSettings.iOSBuildConfigType = debugMode ? iOSBuildType.Debug : iOSBuildType.Release;
 			}
@@ -46,7 +46,7 @@ namespace PluginSet.Core.Editor
 			{
 				if (!context.ExportProject)
 				{
-					locationPathName = Path.Combine(buildPath, "android.apk");
+					locationPath = Path.Combine(buildPath, "android.apk");
 				}
 				EditorUserBuildSettings.androidBuildType =
 					debugMode ? AndroidBuildType.Debug : AndroidBuildType.Release;
@@ -57,13 +57,13 @@ namespace PluginSet.Core.Editor
 				throw new BuildException($"Unsupported build target {target}");
 			}
 			
-			Debug.Log("local path::::::::::: " + locationPathName);
+			Debug.Log("local path::::::::::: " + locationPath);
 			
 			if (context.ExportProject)
 			{
-				Global.CheckAndDeletePath(locationPathName);
-				if (!Directory.Exists(locationPathName))
-					Directory.CreateDirectory(locationPathName);
+				Global.CheckAndDeletePath(locationPath);
+				if (!Directory.Exists(locationPath))
+					Directory.CreateDirectory(locationPath);
 			}
 
 			//关闭unity logo
@@ -72,10 +72,24 @@ namespace PluginSet.Core.Editor
 #if UNITY_2018_4_OR_NEWER && (!UNITY_2019_1_OR_NEWER || UNITY_2019_2_OR_NEWER)
 			EditorUserBuildSettings.androidCreateSymbolsZip = context.ProductMode;
 #endif
-			BuildPipeline.BuildPlayer(EditorBuildSettings.scenes, locationPathName, target, buildOption);
+			BuildPipeline.BuildPlayer(EditorBuildSettings.scenes, locationPath, target, buildOption);
 			
 			if (context.ExportProject)
 			{
+#if UNITY_ANDROID
+#if UNITY_EDITOR_OSX
+				const string gradlewFileName = "gradlew";
+#else
+				const string gradlewFileName = "gradlew.bat";
+#endif
+				string command = Path.Combine(locationPath, gradlewFileName);
+				if (!File.Exists(command))
+				{
+					var corePath = Global.GetPackageFullPath("com.pluginset.core");
+					Global.CopyFilesTo( locationPath, Path.Combine(corePath, "Editor", "Android", "Tools~"), "*");
+				}
+#endif
+				
 				var md5FileName = context.TryGet<string>("md5FileName", null);
 				var md5Context = context.TryGet<string>("md5Context", null);
 				if (!string.IsNullOrEmpty(md5FileName) && !string.IsNullOrEmpty(md5Context))

@@ -246,6 +246,13 @@ namespace PluginSet.Core.Editor
             node.m_parent = this;
         }
 
+        public void InsertChildNode(GradleNode node, int insertIndex = 0)
+        {
+            if (m_children == null) m_children = new List<GradleNode>();
+            m_children.Insert(insertIndex, node);
+            node.m_parent = this;
+        }
+
         /// <summary>
         /// 节点路径索引
         /// </summary>
@@ -482,41 +489,6 @@ namespace PluginSet.Core.Editor
         public string GetComment()
         {
             return m_name;
-        }
-    }
-
-    public class TestGradleParser
-    {
-        [MenuItem("Test/Gradle parser")]
-        public static void Test()
-        {
-            var projectPath = "../client/Temp/gradleOut/unityLibrary";
-            var projRootDir = Path.Combine(projectPath, "..");
-
-            var unityGradle = Path.Combine(projRootDir, "unityLibrary", "build.gradle");
-            if (!File.Exists(unityGradle))
-                throw new BuildException($"Project {unityGradle} does not have build.gradle");
-            var gradle = new GradleConfig(unityGradle);
-            // 1.1 添加 SDK 到工程中（有更新）
-            // 我们的接入文档里有提供一个 libs 目录，将 libs 中所有 aar、jar 包引入到自己项目中
-            // SDK 中还要确保引入了以下的库（库版本请确保在 27.1.1 以上）：
-            var node = gradle.ROOT.TryGetNode("dependencies");
-            node.AppendContentNode("implementation 'com.android.support:support-v4:28.0.0'", "implementation 'com.android.support:support-v4:{0}'");
-            node.AppendContentNode("implementation 'com.android.support:recyclerview-v7:28.0.0'", "implementation 'com.android.support:recyclerview-v7:{0}'");
-            node.AppendContentNode("implementation 'com.android.support:appcompat-v7:28.0.0'", "implementation 'com.android.support:appcompat-v7:{0}'");
-            node = gradle.ROOT.TryGetNode("android");
-            node.AppendChildNode(new GradleNode("packagingOptions").AppendContentNode("doNotStrip \"*/armeabi/libvsecbox.so\"").PARENT);
-            node.AppendChildNode(new GradleNode("packagingOptions").AppendContentNode("doNotStrip \"*/armeabi-v7a/libvsecbox.so\"").PARENT);
-            node.AppendChildNode(new GradleNode("packagingOptions").AppendContentNode("doNotStrip \"*/arm64-v8a/libvsecbox.so\"").PARENT);
-            File.WriteAllText(unityGradle, gradle.Print());
-
-            var mainGradle = Path.Combine(projRootDir, "build.gradle");
-            if (!File.Exists(mainGradle))
-                throw new BuildException($"{mainGradle} does not exist");
-            gradle = new GradleConfig(mainGradle);
-            node = gradle.ROOT.TryGetNode("allprojects/buildscript/dependencies");
-            node.AppendContentNode("classpath 'com.android.tools.build:gradle:3.4.3'", "classpath 'com.android.tools.build:gradle:{0}'");
-            File.WriteAllText(mainGradle, gradle.Print());
         }
     }
 }

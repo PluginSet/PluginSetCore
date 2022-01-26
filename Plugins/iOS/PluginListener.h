@@ -5,6 +5,10 @@
 @protocol PluginListener<AppDelegateListener>
 @optional
 
+#define ERROR_CODE_CANCEL  -1
+#define ERROR_CODE_SUCCESS  0
+#define ERROR_CODE_FAIL_DEFAULT 9999
+
 // when application called continueUserActivity
 - (void) onContinueUserActivity:(NSNotification *)notification;
 

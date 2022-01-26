@@ -47,63 +47,9 @@ namespace PluginSet.Core.Editor
     public class AndroidDependLibsAttribute : Attribute
     {
     }
-
-    // 安卓项目设定AndroidManifest.xml时调用该接口 unityLibrary目录下的
-    // 该接口无序调用，接收BuildProccessorContext, XmlDocument
-    [AttributeUsage(AttributeTargets.Method)]
-    public class AndroidManifestModifyAttribute : Attribute
-    {
-    }
-
-    // 安卓项目设定launcher目录下的AndroidManifest.xml时调用该接口
-    // 该接口无序调用，接收BuildProccessorContext, XmlDocument
-    [AttributeUsage(AttributeTargets.Method)]
-    public class AndroidLauncherManifestModifyAttribute : Attribute
-    {
-    }
-
-    // 苹果项目设定XCode工程时调用该接口
-    // 该接口无序调用，接收BuildProccessorContext, PBXProject
-    [AttributeUsage(AttributeTargets.Method)]
-    public class iOSXCodeProjectModifyAttribute : OrderCallBack
-    {
-        public iOSXCodeProjectModifyAttribute()
-            : base(0)
-        {
-        }
-
-        public iOSXCodeProjectModifyAttribute(int order)
-            : base(order)
-        {
-        }
-    }
     
-    // 苹果项目设定XCode工程完成时调用该接口
-    // 该接口无序调用，接收BuildProccessorContext, string projectPath
-    [AttributeUsage(AttributeTargets.Method)]
-    public class iOSXCodeProjectModifyCompletedAttribute : OrderCallBack
-    {
-        public iOSXCodeProjectModifyCompletedAttribute()
-            : base(0)
-        {
-        }
-
-        public iOSXCodeProjectModifyCompletedAttribute(int order)
-            : base(order)
-        {
-        }
-    }
-
-    // 安卓项目中需要加入Metadata的数据
-    // 属性需要加在静态方法上，方法接受一个BuildProcessorContext参数
-    // 方法需要返回一个Dict<key:string, value:string>结果
-    [AttributeUsage(AttributeTargets.Method)]
-    public class AndroidMetadataAttribute : Attribute
-    {
-    }
-
-    // 安卓项目导出后对项目进行更改
-    // 该接口按序调用，接收BuildProccessorContext, projectPath: string
+    // 安卓项目设定工程时调用该接口
+    // 该接口有序调用，接收BuildProccessorContext, AndroidProjectManager
     [AttributeUsage(AttributeTargets.Method)]
     public class AndroidProjectModifyAttribute : OrderCallBack
     {
@@ -117,12 +63,29 @@ namespace PluginSet.Core.Editor
         {
         }
     }
+    
 
-    /// 安卓项目设定 proguard-user.txt 时调用该接口
-    /// 该接口无序调用，接收BuildProccessorContext, StringBuilder
-    /// 你需要填充 StringBuilder 的内容，最好结尾加个换行，免得字符串拼接出现问题
+    // 苹果项目设定XCode工程时调用该接口
+    // 该接口有序调用，接收BuildProccessorContext, PBXProject
     [AttributeUsage(AttributeTargets.Method)]
-    public class AndroidProguardModifyAttribute : Attribute
+    public class iOSXCodeProjectModifyAttribute : OrderCallBack
+    {
+        public iOSXCodeProjectModifyAttribute()
+            : base(0)
+        {
+        }
+
+        public iOSXCodeProjectModifyAttribute(int order)
+            : base(order)
+        {
+        }
+    }
+
+    // 安卓项目中需要加入Metadata的数据
+    // 属性需要加在静态方法上，方法接受一个BuildProcessorContext参数
+    // 方法需要返回一个Dict<key:string, value:string>结果
+    [AttributeUsage(AttributeTargets.Method)]
+    public class AndroidMetadataAttribute : Attribute
     {
     }
 
@@ -196,21 +159,6 @@ namespace PluginSet.Core.Editor
         }
 
         public OnBuildBundlesCompletedAttribute(int order)
-            : base(order)
-        {
-        }
-    }
-
-    // 打包APP完成后调用方法
-    [AttributeUsage(AttributeTargets.Method)]
-    public class OnBuildAppCompletedAttribute : OrderCallBack
-    {
-        public OnBuildAppCompletedAttribute()
-            : base(0)
-        {
-        }
-
-        public OnBuildAppCompletedAttribute(int order)
             : base(order)
         {
         }

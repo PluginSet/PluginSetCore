@@ -4,9 +4,6 @@ namespace PluginSet.Core
 {
     public partial class PluginsManager : IUserSet
     {
-        private string _userId = string.Empty;
-        private Dictionary<string, object> _userInfo = new Dictionary<string, object>();
-
         private Dictionary<string, IUserSet> _userSetPlugins;
 
         private Dictionary<string, IUserSet> UserSetPlugins
@@ -26,74 +23,27 @@ namespace PluginSet.Core
             }
         }
 
-        private bool SetUserInternal(string userId)
+//        public void SetUserInfo(Dictionary<string, object> pairs)
+        public void SetUserInfo(bool isNewUser, string userId, Dictionary<string, object> pairs = null)
         {
-            if (_userId.Equals(userId))
-                return false;
-
-            _userId = userId;
-            _userInfo.Clear();
-            SendNotification(PluginConstants.NOTIFY_USER_ID, _userId);
-
-            return true;
-        }
-
-        public void SetUser(string userId)
-        {
-            SetUserInternal(userId);
-        }
-
-        public void SetUserInfo(string key, object value)
-        {
-            if (_userInfo.TryGetValue(key, out var oldValue))
+            foreach (var plugin in UserSetPlugins.Values)
             {
-                if (oldValue.Equals(value))
-                    return;
+                plugin.SetUserInfo(isNewUser, userId, pairs);
             }
-
-            _userInfo[key] = value;
-            SendNotification(PluginConstants.NOTIFY_USER_INFO, _userInfo);
-        }
-
-        public void SetUserInfo(Dictionary<string, object> pairs)
-        {
-            var dirty = false;
-            foreach (var kv in pairs)
-            {
-                if (_userInfo.TryGetValue(kv.Key, out var oldValue))
-                    if (oldValue.Equals(kv.Value))
-                        continue;
-
-                _userInfo[kv.Key] = kv.Value;
-                dirty = true;
-            }
-
-            if (dirty)
-                SendNotification(PluginConstants.NOTIFY_USER_INFO, _userInfo);
         }
 
         public void ClearUserInfo()
         {
-            _userInfo.Clear();
-            SendNotification(PluginConstants.NOTIFY_CLEAR_USER_INFO);
+            foreach (var plugin in UserSetPlugins.Values)
+            {
+                plugin.ClearUserInfo();
+            }
         }
 
-        public void SetUserWith(string pluginName, string userId)
+        public void SetUserInfoWith(string pluginName, bool isNewUser, string userId, Dictionary<string, object> pairs = null)
         {
             if (UserSetPlugins.TryGetValue(pluginName, out var plugin))
-                plugin.SetUser(userId);
-        }
-
-        public void SetUserInfoWith(string pluginName, string key, object value)
-        {
-            if (UserSetPlugins.TryGetValue(pluginName, out var plugin))
-                plugin.SetUserInfo(key, value);
-        }
-
-        public void SetUserInfoWith(string pluginName, Dictionary<string, object> pairs)
-        {
-            if (UserSetPlugins.TryGetValue(pluginName, out var plugin))
-                plugin.SetUserInfo(pairs);
+                plugin.SetUserInfo(isNewUser, userId, pairs);
         }
 
         public void ClearUserInfoWith(string pluginName)

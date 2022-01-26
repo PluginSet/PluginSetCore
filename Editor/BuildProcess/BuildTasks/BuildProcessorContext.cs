@@ -195,7 +195,7 @@ namespace PluginSet.Core.Editor
                     throw new ArgumentOutOfRangeException(nameof(target), target, $"BuildTarget:{target} is not support");
             }
 
-            BuildPath = Path.Combine(Application.dataPath, "Build");
+            BuildPath = Path.Combine(Application.dataPath, "..", "Build");
             DebugMode = false;
             ProductMode = false;
             PatchFiles = null;
