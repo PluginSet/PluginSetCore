@@ -9,6 +9,7 @@ using UnityEngine.Rendering;
 
 namespace PluginSet.Core.Editor
 {
+    [Serializable]
     public class PatchFiles
     {
         public string[] AddFiles;

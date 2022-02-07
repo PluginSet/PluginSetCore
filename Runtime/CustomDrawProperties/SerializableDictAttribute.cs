@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
@@ -8,10 +9,62 @@ using UnityEngine;
 namespace PluginSet.Core
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class DictStringStringAttribute: DrawablePropertyAttribute
+    public class SerializableDictAttribute: DrawablePropertyAttribute
     {
+        private object EmptyKey = null;
+        private Func<SerializedProperty, object> KeyValueGetter;
+        
+        public SerializableDictAttribute(string keyPropName, object emptyValue = null)
+        {
+            EmptyKey = emptyValue;
+
+            if ("enumValue".Equals(keyPropName))
+            {
+                EmptyKey = emptyValue?.ToString();
+                
+                KeyValueGetter = delegate(SerializedProperty property)
+                {
+                    var index = property.enumValueIndex;
+                    if (index < 0 || index >= property.enumNames.Length)
+                        return EmptyKey;
+
+                    return property.enumNames[index];
+                };
+            }
+            else
+            {
+                var propertyInfo = typeof(SerializedProperty).GetProperty(keyPropName);
+                KeyValueGetter = property => propertyInfo?.GetValue(property);
+            }
+        }
+        
 #if UNITY_EDITOR
         private bool _layouted = false;
+        
+        private List<object> keys = new List<object>();
+
+        private void CheckKeysStart()
+        {
+            keys.Clear();
+        }
+
+        private bool CheckKeyIsValid(SerializedProperty key)
+        {
+            var value = GetKeyValue(key);
+            if (value.Equals(EmptyKey))
+                return false;
+
+            if (keys.Contains(value))
+                return false;
+            
+            keys.Add(value);
+            return true;
+        }
+
+        private object GetKeyValue(SerializedProperty key)
+        {
+            return KeyValueGetter?.Invoke(key);
+        }
         
         public override void DrawProperty(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -42,7 +95,7 @@ namespace PluginSet.Core
                 }
                 
                 EditorGUI.BeginChangeCheck();
-                var containsKeys = new List<string>();
+                CheckKeysStart();
                 for (int i = 0; i < size; i++)
                 {
                     EditorGUILayout.BeginHorizontal();
@@ -50,17 +103,8 @@ namespace PluginSet.Core
                     
                     var item = pairs.GetArrayElementAtIndex(i);
                     var key = item.FindPropertyRelative("Key");
-                    bool isRepeated = false;
-                    if (!string.IsNullOrEmpty(key.stringValue))
-                    {
-                        if (containsKeys.Contains(key.stringValue))
-                            isRepeated = true;
-                        else
-                            containsKeys.Add(key.stringValue);
-                    }
-
                     var color = GUI.contentColor;
-                    if (isRepeated)
+                    if (!CheckKeyIsValid(key))
                         GUI.contentColor = Color.red;
                     EditorGUILayout.PropertyField(key, GUIContent.none);
                     GUI.contentColor = color;

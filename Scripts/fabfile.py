@@ -25,13 +25,11 @@ log = logging.Logger('fabric', level=logging.DEBUG)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def SUCCESS(tip):
-    print("SUCCESS:%s" % tip)
+def SUCESS(tip):
     raise Exit(code=0, message="SUCCESS:%s" % tip)
 
 
 def FAILURE(err, code=1):
-    print("FAILURE:%s" % err)
     raise Exit(code=code, message="FAILURE:%s" % err)
 
 
@@ -534,7 +532,7 @@ def build_patches(platform, version_name, build_number, out_path, root, debug, c
 
 @task(help={"path": "新项目名称"})
 def create(context, path):
-    return execall(" ".join([
+    execall(" ".join([
         UNITY_PATH
         , "-batchmode"
         , "-quit"
@@ -562,7 +560,7 @@ def prebuild(context, platform):
     if call_unity_func(build_target, "PluginSet.Core.Editor.BuildHelper.PreBuild", "./prebuildLog"):
         return FAILURE("Prebuild Failed")
     else:
-        return SUCCESS("Prebuild Completed")
+        return SUCESS("Prebuild Completed")
 
 
 @task(help={
@@ -579,7 +577,7 @@ def buildApp(context, platform, channel, version_name, build_number, out_path, d
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
     build_one(platform, channel, version_name, build_number, temp_path, out_path, debug, log, product)
-    return SUCCESS("Build Completed")
+    return SUCESS("Build Completed")
 
 
 @task(help={
@@ -597,7 +595,7 @@ def buildMultiApp(context, platform, channels, version_name, build_number, out_p
     rm_dir(temp_path)
     for c in channels.split(','):
         build_one(platform, c.strip(), version_name, build_number, temp_path, out_path, debug, log, product)
-    return SUCCESS("Build Completed")
+    return SUCESS("Build Completed")
 
 
 @task(help={
@@ -615,7 +613,7 @@ def buildPatches(context, platform, version_name, build_number, out_path, root, 
         return FAILURE("暂不支持该平台(%s)导出" % platform)
     out_path = os.path.abspath(out_path)
     build_patches(platform, version_name, build_number, out_path, root, debug, log)
-    return SUCCESS("Build Patches Success in :" + out_path)
+    return SUCESS("Build Patches Success in :" + out_path)
 
 
 @task(help={
@@ -643,6 +641,8 @@ def addPatchTag(context, platform, version_name, commit_id, root):
     'file': "需要上传的本地文件目录",
     'key': "需要上传至的路径（包括文件名）",
     'endpoint': "oss域名，默认为杭州点",
+    'cname': "自定义域名（该域名可能没有写入权限）",
+    'qrcode': "不为空时会上传下载地址的二维码",
 })
 def uploadFile(context, id, secret, bucketname, file, key, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
     auth = oss2.AuthV2(id, secret)
@@ -658,7 +658,7 @@ def uploadFile(context, id, secret, bucketname, file, key, endpoint="https://oss
     'key': "需要上传至的目录，如果不以.apk结尾，则文件名与原文件名相同",
     'endpoint': "oss域名，默认为杭州点",
     'cname': "自定义域名（该域名可能没有写入权限）",
-    'qrpath': "不为空时会上传下载地址的二维码",
+    'qrcode': "不为空时会上传下载地址的二维码",
 })
 def uploadApk(context, id, secret, bucketname, file, key
               , endpoint="https://oss-cn-hangzhou.aliyuncs.com"
@@ -689,7 +689,7 @@ def uploadApk(context, id, secret, bucketname, file, key
         img.save(filename)
         bucket.put_object_from_file(qrpath, filename)
         rm_file(filename)
-    return SUCCESS("上传文件%s成功" % file)
+    return SUCESS("上传文件%s成功" % file)
 
 
 @task(help={
@@ -699,12 +699,14 @@ def uploadApk(context, id, secret, bucketname, file, key
     'file': "需要上传的本地文件目录",
     'key': "需要上传至的目录",
     'endpoint': "oss域名，默认为杭州点",
+    'cname': "自定义域名（该域名可能没有写入权限）",
+    'qrcode': "不为空时会上传下载地址的二维码",
 })
 def uploadApks(context, id, secret, bucketname, file, key, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
     auth = oss2.AuthV2(id, secret)
     bucket = oss2.Bucket(auth, endpoint, bucketname)
     uploadDirToOss(file, key, bucket, types=[".apk"])
-    return SUCCESS("上传文件%s成功" % file)
+    return SUCESS("上传文件%s成功" % file)
 
 
 @task(help={
@@ -722,7 +724,7 @@ def uploadPatches(context, version_name, id, secret, bucketname, file, key, buil
     auth = oss2.AuthV2(id, secret)
     bucket = oss2.Bucket(auth, endpoint, bucketname)
     uploadDirToOss(file, key, bucket, exclude=[".meta", ".manifest"])
-    return SUCCESS("上传文件夹%s成功" % file)
+    return SUCESS("上传文件夹%s成功" % file)
 
 
 def writeVersion(name, version_name, id, secret, bucketname, upload_keys, key
@@ -807,13 +809,4 @@ def sendDingTalk(content, webhook, title, markdown, atmobiles=None, isatall=Fals
     # code = resp.get('errcode')
     # if code != 200:
     #     return FAILURE(resp.get("errmsg", "Unknow Error"))
-    return SUCCESS("发送成功")
-
-
-@task(help={
-    'cmd': "命令",
-})
-def ExeCmd(content, cmd):
-    if execall(cmd):
-        return FAILURE("执行失败")
-    return SUCCESS("执行完成")
+    return SUCESS("发送成功")

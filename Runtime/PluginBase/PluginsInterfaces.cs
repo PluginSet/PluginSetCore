@@ -346,4 +346,21 @@ namespace PluginSet.Core
     {
         void OnPrivacyAuthorization();
     }
+    
+    public interface IMultipleLanguage : IPluginBase
+    {
+        LanguageType CurrentLanguage { get; }
+
+        /// <summary>
+        /// change language and return is changed
+        /// </summary>
+        /// <param name="language"></param>
+        /// <returns>changed</returns>
+        bool SetCurrentLanguage(LanguageType language);
+    }
+
+    public interface ILanguageObserver : IPluginBase
+    {
+        IEnumerator OnLanguageChanged();
+    }
 }

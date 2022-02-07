@@ -18,7 +18,6 @@ namespace PluginSet.Core
         private Action<string> _onGranted;
         private Action<string> _onDenied;
         private Action<string> _onDeniedAlways;
-        private Action _onCompleted;
 
         public int Result { get; private set; }
 
