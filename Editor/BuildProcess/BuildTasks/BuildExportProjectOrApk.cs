@@ -86,7 +86,7 @@ namespace PluginSet.Core.Editor
 				if (!File.Exists(command))
 				{
 					var corePath = Global.GetPackageFullPath("com.pluginset.core");
-					Global.CopyFilesTo( locationPath, Path.Combine(corePath, "Editor", "Android", "Tools~"), "*");
+					Global.CopyFilesTo( locationPath, Path.Combine(corePath, "AndroidTools~"), "*");
 				}
 #endif
 				

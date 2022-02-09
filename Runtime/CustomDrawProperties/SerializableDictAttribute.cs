@@ -12,12 +12,15 @@ namespace PluginSet.Core
     public class SerializableDictAttribute: DrawablePropertyAttribute
     {
         private object EmptyKey = null;
+#if UNITY_EDITOR
         private Func<SerializedProperty, object> KeyValueGetter;
+#endif
         
         public SerializableDictAttribute(string keyPropName, object emptyValue = null)
         {
             EmptyKey = emptyValue;
 
+#if UNITY_EDITOR
             if ("enumValue".Equals(keyPropName))
             {
                 EmptyKey = emptyValue?.ToString();
@@ -36,6 +39,7 @@ namespace PluginSet.Core
                 var propertyInfo = typeof(SerializedProperty).GetProperty(keyPropName);
                 KeyValueGetter = property => propertyInfo?.GetValue(property);
             }
+#endif
         }
         
 #if UNITY_EDITOR
