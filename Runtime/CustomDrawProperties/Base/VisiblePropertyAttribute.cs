@@ -38,28 +38,36 @@ namespace PluginSet.Core
 
         private static bool IsVisibleInternal(MemberInfo fieldInfo, ScriptableObject asset)
         {
-            foreach (var attr in fieldInfo.GetCustomAttributes(typeof(VisiblePropertyAttribute), true))
+            var attrs = fieldInfo.GetCustomAttributes(typeof(VisiblePropertyAttribute), true);
+            if (attrs.Length <= 0)
+                return true;
+            
+            foreach (var attr in attrs)
             {
-                if (!((VisiblePropertyAttribute) attr).IsVisible(asset))
+                if (((VisiblePropertyAttribute) attr).IsVisible(asset))
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
         
         private static bool IsVisibleInternal(MemberInfo fieldInfo, SerializedObject sObject)
         {
+            var attrs = fieldInfo.GetCustomAttributes(typeof(VisiblePropertyAttribute), true);
+            if (attrs.Length <= 0)
+                return true;
+            
             foreach (var attr in fieldInfo.GetCustomAttributes(typeof(VisiblePropertyAttribute), true))
             {
-                if (!((VisiblePropertyAttribute) attr).IsVisible(sObject))
+                if (((VisiblePropertyAttribute) attr).IsVisible(sObject))
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
         public static bool IsVisible(MemberInfo fieldInfo, SerializedObject sObject)
