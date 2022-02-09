@@ -81,7 +81,7 @@ namespace PluginSet.Core.Editor
                 if (self.TryGet<ScriptableObject>(info.Key, null) == null)
                 {
                     ResetProps();
-                    return;
+                    break;
                 }
             }
 
@@ -99,7 +99,6 @@ namespace PluginSet.Core.Editor
             if (dataItemsProp == null)
             {
                 ResetProps();
-                return;
             }
 
             if (dataItemsProp.hasMultipleDifferentValues)
