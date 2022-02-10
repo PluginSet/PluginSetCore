@@ -10,6 +10,21 @@ namespace PluginSet.Core.Editor
 {
     public class PluginFilter : IShouldIncludeInBuildCallback
     {
+        public static Func<string, BuildProcessorContext, bool> IsBuildParamsEnable<T>() where T : ScriptableObject
+        {
+            return delegate(string s, BuildProcessorContext context)
+            {
+                var @params = context.BuildChannels.Get<T>();
+                var fieldInfo = typeof(T).GetField("Enable");
+                if (fieldInfo == null)
+                    throw new BuildException($"Expect type {typeof(T)} to have field Enable, got null");
+                var notEnable = !(bool) fieldInfo.GetValue(@params);
+                if (notEnable)
+                    Debug.Log($"Filter lib file ::::::: {s}");
+                return notEnable;
+            };
+        }
+        
         /// <summary>
         /// 推荐 PluginFilter.RegisterFilterExpress
         /// </summary>
@@ -23,37 +38,6 @@ namespace PluginSet.Core.Editor
         public static void RegisterFilter(string packageName, Dictionary<string, Func<string, BuildProcessorContext, bool>> filters)
         {
             BuildUtilities.RegisterShouldIncludeInBuildCallback(new PluginFilter(packageName, filters));
-        }
-
-        /// <summary>
-        /// 打包的时候忽略 package 下面的某个目录
-        /// </summary>
-        /// <param name="packageName"></param>
-        /// <param name="excludePath"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <exception cref="BuildException"></exception>
-        public static void RegisterFilterExpress<T>(string packageName, string excludePath) where T : ScriptableObject
-        {
-            bool FilterFunc(string s, BuildProcessorContext context)
-            {
-                var @params = context.BuildChannels.Get<T>();
-                var fieldInfo = typeof(T).GetField("Enable");
-                if (fieldInfo == null)
-                    throw new BuildException($"Expect type {typeof(T)} to have field Enable, got null");
-                var notEnable = !(bool) fieldInfo.GetValue(@params);
-                if (notEnable)
-                    Debug.Log($"Filter lib file ::::::: {s}");
-                return notEnable;
-            }
-
-            var packageDirReplacePath = Global.GetPackageFullPath(packageName);
-            var allSubDirs = DirectoryExtension.GetAllDirectoriesAndSubDirectories($"{packageDirReplacePath}/{excludePath}");
-            allSubDirs.Add($"{packageName}/{excludePath}");
-            foreach (var subDir in allSubDirs)
-            {
-                var packageDir = subDir.Replace(packageDirReplacePath, packageName);
-                BuildUtilities.RegisterShouldIncludeInBuildCallback(new PluginFilter(packageDir, FilterFunc));
-            }
         }
 
         public string PackageName { get; private set; }
