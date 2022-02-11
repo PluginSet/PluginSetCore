@@ -94,23 +94,12 @@ namespace PluginSet.Core
 
         public void Logout(Action<Result> callback = null)
         {
-            var context = PluginsEventContext.Get(this);
-            context.Confirm = delegate
+            foreach (var plugin in LoginPlugins.Values)
             {
-                LogoutWith((string) context.Data, callback);
-                PluginsEventContext.Return(context);
-            };
-
-            if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_LOGOUT_TYPE, context))
-            {
-                callback?.Invoke(new Result
+                if (plugin.IsLoggedIn)
                 {
-                    Success = false,
-                    Error = "Logout api need point to a plugin with name",
-                    PluginName = string.Empty,
-                });
-
-                PluginsEventContext.Return(context);
+                    plugin.Logout(callback);
+                }
             }
         }
 
