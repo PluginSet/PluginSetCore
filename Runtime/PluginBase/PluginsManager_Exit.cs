@@ -40,7 +40,11 @@ namespace PluginSet.Core
         
         public void ExitApplication()
         {
-            ExitPlugins.Values.First()?.ExitApplication();
+            var pluginName = GetExitDialogPlugin();
+            if (string.IsNullOrEmpty(pluginName))
+                return;
+            
+            ExitApplicationWith(pluginName);
         }
 
         public void ExitApplicationWith(string pluginName)
