@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace PluginSet.Core
 {
@@ -124,19 +125,16 @@ namespace PluginSet.Core
 
         public string GetUserLoginData()
         {
-            var sb = new StringBuilder();
-            sb.Append("{");
-            var keys = LoginPlugins.Keys.ToArray();
-            for (var i = 0; i < keys.Length; i++)
+            var list = new List<string>();
+            foreach (var plugin in LoginPlugins.Values)
             {
-                var pluginName = keys[i];
-                sb.Append($"\"{pluginName}\":{LoginPlugins[pluginName].GetUserLoginData()}");
-                if (i < keys.Length - 1)
-                    sb.Append(",");
+                if (plugin.IsLoggedIn)
+                {
+                    list.Add($"\"{plugin.Name}\":{plugin.GetUserLoginData()}");
+                }
             }
-
-            sb.Append("}");
-            return sb.ToString();
+            
+            return $"{{{string.Join(",", list)}}}";
         }
 
         public string GetUserLoginDataWith(string pluginName)
