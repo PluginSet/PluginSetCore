@@ -9,8 +9,8 @@ namespace PluginSet.Core
     {
         private static Dictionary<string, Logger> _loggers = new Dictionary<string, Logger>();
 
-#if UNITY_ANDROID && !UNITY_EDITOR
-        private static Type LoggerType = typeof(AndroidLogger);
+#if !UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS)
+        private static Type LoggerType = typeof(PlatformLogger);
 #else
         private static Type LoggerType = typeof(UnityLogger);
 #endif

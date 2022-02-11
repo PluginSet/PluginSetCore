@@ -51,9 +51,9 @@ namespace PluginSet.Core
                 return;
             
             if (args != null && args.Length > 0)
-                DoLogDebug(msg, args);
+                DoLogDebug(AddPrefixTag(msg), args);
             else
-                DoLogDebug(msg);
+                DoLogDebug(AddPrefixTag(msg));
         }
 
         public void Warn(string msg, params object[] args)
@@ -62,17 +62,17 @@ namespace PluginSet.Core
                 return;
             
             if (args != null && args.Length > 0)
-                DoLogWarn(msg, args);
+                DoLogWarn(AddPrefixTag(msg), args);
             else
-                DoLogWarn(msg);
+                DoLogWarn(AddPrefixTag(msg));
         }
 
         public void Error(string msg, params object[] args)
         {
             if (args != null && args.Length > 0)
-                DoLogError(msg, args);
+                DoLogError(AddPrefixTag(msg), args);
             else
-                DoLogError(msg);
+                DoLogError(AddPrefixTag(msg));
         }
 
         public void Info(string msg, params object[] args)
@@ -81,9 +81,14 @@ namespace PluginSet.Core
                 return;
            
             if (args != null && args.Length > 0)
-                DoLogInfo(msg, args);
+                DoLogInfo(AddPrefixTag(msg), args);
             else
-                DoLogInfo(msg);
+                DoLogInfo(AddPrefixTag(msg));
+        }
+
+        protected virtual string AddPrefixTag(string msg)
+        {
+            return $"{Tag}::{msg}";
         }
     }
 }

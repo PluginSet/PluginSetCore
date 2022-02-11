@@ -1,28 +1,38 @@
 #if !UNITY_EDITOR
-#define USE_ANDROID_LOG
+#define USE_PLATFORM_LOG
 #endif
+
+using System.Runtime.InteropServices;
 
 #if UNITY_ANDROID
 namespace PluginSet.Core
 {
-    public class AndroidLogger: UnityLogger
+    public class PlatformLogger: UnityLogger
     {
+#if UNITY_IOS
+        [DllImport("__Internal")]
+        private static extern void _PlatformLog(string log);
+#endif
+        
         private void DoLog(bool showStack, string msg, params object[] args)
         {
-#if USE_ANDROID_LOG
+#if USE_PLATFORM_LOG
             DoLog(showStack, string.Format(msg, args));
 #endif
         }
         
         private void DoLog(bool showStack, string msg)
         {
-#if USE_ANDROID_LOG
+#if USE_PLATFORM_LOG
             if (showStack)
             {
                 msg += "\n" + UnityEngine.StackTraceUtility.ExtractStackTrace();
             }
-            
-            AndroidHelper.Log(Tag, msg);
+#if UNITY_ANDROID
+            AndroidHelper.Log("Unity", msg);
+#elif UNITY_IOS
+            _PlatformLog(msg);
+#endif
 #endif
         }
         

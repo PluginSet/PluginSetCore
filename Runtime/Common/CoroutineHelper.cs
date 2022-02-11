@@ -1,5 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace PluginSet.Core
@@ -44,6 +47,19 @@ namespace PluginSet.Core
             {
                 yield return routine;
             }
+        }
+        
+        public static IEnumerator ContactRoutine(IEnumerable<YieldInstruction> routines)
+        {
+            foreach (var routine in routines)
+            {
+                yield return routine;
+            }
+        }
+
+        public static IEnumerator WaitAllRoutine(params IEnumerator[] routines)
+        {
+            yield return ContactRoutine(routines.Select(routine => Instance.StartCoroutine(routine)));
         }
     }
 }
