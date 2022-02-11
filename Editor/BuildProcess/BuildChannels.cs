@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Android;
+using UnityEditor.iOS;
 using UnityEngine;
 
 namespace PluginSet.Core.Editor
@@ -58,6 +60,9 @@ namespace PluginSet.Core.Editor
 
         [Tooltip("包名")]
         public string PackageName;
+
+        [Tooltip("图标贴图")]
+        public Texture2D IconTexture;
 
         [Tooltip("加入link文件防止代码裁剪的模块")]
         public string[] LinkModules;
@@ -165,6 +170,16 @@ namespace PluginSet.Core.Editor
             }
         }
 
+        private static void SetPlatformIcons(BuildTargetGroup platform, PlatformIconKind kind, Texture2D texture)
+        {
+            var icons = PlayerSettings.GetPlatformIcons(platform, kind);
+            foreach (var icon in icons)
+            {
+                icon.SetTexture(texture);
+            }
+            PlayerSettings.SetPlatformIcons(BuildTargetGroup.Android, AndroidPlatformIconKind.Round, icons);
+        }
+
         [OnSyncEditorSetting(int.MinValue)]
         public static void OnSyncEditorSetting_base(BuildProcessorContext context)
         {
@@ -195,6 +210,20 @@ namespace PluginSet.Core.Editor
                 scenes[i] = new EditorBuildSettingsScene(path, info.enable);
             }
 
+            if (asset.IconTexture != null)
+            {
+                var icon = asset.IconTexture;
+                if (context.BuildTarget == BuildTarget.Android)
+                {
+                    SetPlatformIcons(BuildTargetGroup.Android, AndroidPlatformIconKind.Legacy, icon);
+                    SetPlatformIcons(BuildTargetGroup.Android, AndroidPlatformIconKind.Round, icon);
+                }
+                else if (context.BuildTarget == BuildTarget.iOS)
+                {
+                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Application, icon);
+                }
+            }
+            
             EditorBuildSettings.scenes = scenes;
 
             if (asset.LinkModules != null)
