@@ -49,12 +49,24 @@ namespace PluginSet.Core
 
         public override void onSuccess(string result)
         {
-            OnSuccess?.Invoke(result);
+            if (OnSuccess == null)
+                return;
+            
+            MainThread.Run(delegate
+            {
+                OnSuccess.Invoke(result);
+            });
         }
 
         public override void onFailed(int code, string message)
         {
-            OnFailed?.Invoke(code, message);
+            if (OnFailed == null)
+                return;
+            
+            MainThread.Run(delegate
+            {
+                OnFailed.Invoke(code, message);
+            });
         }
     }
 }
