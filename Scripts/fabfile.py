@@ -307,7 +307,7 @@ BUILD_TARGETS = {
 
 
 def call_unity_func(build_target, func_name, log_name, channel=None
-                    , out_path=None, version_name=None
+                    , channelId=None, out_path=None, version_name=None
                     , build_number=None, patch_data=None, debug=False, product=False):
     buf = [
         UNITY_PATH
@@ -328,6 +328,9 @@ def call_unity_func(build_target, func_name, log_name, channel=None
     if channel is not None:
         buf.append("-channel")
         buf.append(channel)
+    if channelId is not None:
+        buf.append("-channelId")
+        buf.append(channelId)
     if out_path is not None:
         buf.append("-path")
         buf.append(out_path)
@@ -346,8 +349,9 @@ def call_unity_func(build_target, func_name, log_name, channel=None
         buf.append("-debug")
     if product:
         buf.append("-product")
-    return execall(" ".join(buf))
 
+    cmd = " ".join(buf)
+    return execall(cmd)
 
 def build_unity(platform, log_path, **kwargs):
     build_target = BUILD_TARGETS.get(platform.lower(), None)
@@ -381,17 +385,31 @@ def build_unity_patches(platform, log_path, **kwargs):
         return FAILURE("Unity build fail!")
 
 
-def build_ipa():
+def generateApk(android_project_path, debug):
+    cmd = [
+        "./gradlew",
+        "-p",
+        ".",
+        "assembleDebug" if debug else "assembleRelease"
+    ]
+    execall("cd %s && %s" % (android_project_path, " ".join(cmd)))
+    mode = "debug" if debug else "release"
+    apk_name = "launcher-%s.apk" % mode
+    build_apk_file = os.path.join(android_project_path, "launcher", "build", "outputs", "apk", mode, apk_name)
+    return build_apk_file
+
+
+def generateIpa():
     pass
 
 
-def build_one(platform, channel, version_name, build_number, temp_path, out_path, debug, cache_log, product):
+def build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, cache_log, product):
     check_path(temp_path)
     platform = platform.lower()
     try:
         build_unity(platform, temp_path if cache_log else None, version_name=version_name
                     , build_number=build_number, out_path=temp_path
-                    , channel=channel, debug=debug, product=product)
+                    , channel=channel, debug=debug, product=product, channelId=channelId)
     except Exit as e:
         error_path = os.path.join(out_path, "errors")
         check_path(error_path)
@@ -401,15 +419,16 @@ def build_one(platform, channel, version_name, build_number, temp_path, out_path
         return FAILURE(e.message)
     except Exception as err:
         return FAILURE(err)
+    
     if platform == 'android':
-        apk_file_name = os.path.join(temp_path, "android.apk")
+        apk_file_name = generateApk(os.path.join(temp_path, channel), debug)
         if not os.path.exists(apk_file_name):
             return FAILURE("找不到构建的安卓APK")
         if out_path.endswith(".apk"):
             out_file = out_path
             (out_path, _) = os.path.split(out_file)
         else:
-            apk_name = "v%s-%s-%s.apk" % (version_name.replace(".", "_"), build_number, channel)
+            apk_name = "%s-v%s-%s.apk" % (channel, version_name.replace(".", "_"), build_number)
             out_file = os.path.join(out_path, apk_name)
         check_path(out_path)
         rm_file(out_file)
@@ -541,31 +560,10 @@ def create(context, path):
     ]))
 
 
-@task(help={"platform": "编译目标平台，目前支持ios与android"})
-def change(context, platform):
-    build_target = BUILD_TARGETS.get(platform.lower(), None)
-    if build_target is None:
-        return FAILURE("暂不支持该平台(%s)导出" % platform)
-    if call_unity_func(build_target, None, None) == 0:
-        return FAILURE("Change Completed")
-    else:
-        return FAILURE("Change Failed")
-
-
-@task(help={})
-def prebuild(context, platform):
-    build_target = BUILD_TARGETS.get(platform.lower(), None)
-    if build_target is None:
-        return FAILURE("暂不支持该平台(%s)导出" % platform)
-    if call_unity_func(build_target, "PluginSet.Core.Editor.BuildHelper.PreBuild", "./prebuildLog"):
-        return FAILURE("Prebuild Failed")
-    else:
-        return SUCESS("Prebuild Completed")
-
-
 @task(help={
     "platform": "编译目标平台，目前支持ios与android",
     "channel": "目标渠道",
+    "channelId": "目标渠道ID",
     "version_name": "版本号名称",
     "build_number": "build号",
     "out_path": "输出目录",
@@ -573,16 +571,17 @@ def prebuild(context, platform):
     "log": "保存log文件",
     "product": "是否为生产模式",
 })
-def buildApp(context, platform, channel, version_name, build_number, out_path, debug=False, log=True, product=False):
+def buildApp(context, platform, channel, channelId, version_name, build_number, out_path, debug=False, log=True, product=False):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
-    build_one(platform, channel, version_name, build_number, temp_path, out_path, debug, log, product)
+    build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, log, product)
     return SUCESS("Build Completed")
 
 
 @task(help={
     "platform": "编译目标平台，目前支持ios与android",
-    "channels": "目标渠道，多渠道以逗号','隔开",
+    "channel": "目标渠道",
+    "channelIds": "目标渠道ID，多渠道ID以逗号','隔开",
     "version_name": "版本号名称",
     "build_number": "build号",
     "out_path": "输出目录",
@@ -590,11 +589,11 @@ def buildApp(context, platform, channel, version_name, build_number, out_path, d
     "log": "保存log文件",
     "product": "是否为生产模式",
 })
-def buildMultiApp(context, platform, channels, version_name, build_number, out_path, debug=False, log=True, product=False):
+def buildMultiApp(context, platform, channel, channelIds, version_name, build_number, out_path, debug=False, log=True, product=False):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
-    for c in channels.split(','):
-        build_one(platform, c.strip(), version_name, build_number, temp_path, out_path, debug, log, product)
+    for c in channelIds.split(','):
+        build_one(platform, channel, c.strip(), version_name, build_number, temp_path, out_path, debug, log, product)
     return SUCESS("Build Completed")
 
 
@@ -641,8 +640,6 @@ def addPatchTag(context, platform, version_name, commit_id, root):
     'file': "需要上传的本地文件目录",
     'key': "需要上传至的路径（包括文件名）",
     'endpoint': "oss域名，默认为杭州点",
-    'cname': "自定义域名（该域名可能没有写入权限）",
-    'qrcode': "不为空时会上传下载地址的二维码",
 })
 def uploadFile(context, id, secret, bucketname, file, key, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
     auth = oss2.AuthV2(id, secret)
@@ -658,7 +655,7 @@ def uploadFile(context, id, secret, bucketname, file, key, endpoint="https://oss
     'key': "需要上传至的目录，如果不以.apk结尾，则文件名与原文件名相同",
     'endpoint': "oss域名，默认为杭州点",
     'cname': "自定义域名（该域名可能没有写入权限）",
-    'qrcode': "不为空时会上传下载地址的二维码",
+    'qrpath': "不为空时会上传下载地址的二维码",
 })
 def uploadApk(context, id, secret, bucketname, file, key
               , endpoint="https://oss-cn-hangzhou.aliyuncs.com"
@@ -699,8 +696,6 @@ def uploadApk(context, id, secret, bucketname, file, key
     'file': "需要上传的本地文件目录",
     'key': "需要上传至的目录",
     'endpoint': "oss域名，默认为杭州点",
-    'cname': "自定义域名（该域名可能没有写入权限）",
-    'qrcode': "不为空时会上传下载地址的二维码",
 })
 def uploadApks(context, id, secret, bucketname, file, key, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
     auth = oss2.AuthV2(id, secret)
@@ -744,6 +739,7 @@ def writeVersion(name, version_name, id, secret, bucketname, upload_keys, key
     for upload_key in upload_keys:
         uploadFileToOss(file, upload_key, bucket, True)
     rm_file(file)
+    
 
 @task(help={
     'platform': "平台",

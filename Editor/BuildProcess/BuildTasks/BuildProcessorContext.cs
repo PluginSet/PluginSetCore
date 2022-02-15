@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using PluginSet.Core.MiniJSON;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -158,8 +159,11 @@ namespace PluginSet.Core.Editor
             ForceExportProject = true;
             ExportProject = true;
             DebugMode = false;
-            
-            InitDataWithCommand(Environment.GetCommandLineArgs());
+
+            var args = Environment.GetCommandLineArgs();
+            var list = new List<string>(args);
+            list.RemoveAt(0);
+            InitDataWithCommand(list.ToArray());
             return this;
         }
 
@@ -174,6 +178,7 @@ namespace PluginSet.Core.Editor
             VersionCode = CommandArgs.TryGet("versioncode", VersionCode);
             PatchFiles = JsonUtility.FromJson<PatchFiles>(CommandArgs.TryGet("patchdata", "{}"));
             Build = CommandArgs.TryGet("build", Build);
+            Debug.Log("InitDataWithCommand::: build commands:: " + Json.Serialize(CommandArgs));
         }
 
         private void Reset()

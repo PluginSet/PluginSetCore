@@ -75,7 +75,7 @@ namespace PluginSet.Core.Editor
         {
             var handler = new BuildTaskHandler();
             handler.AddNextTask(new BuildInitialize());
-//            handler.AddNextTask(new BuildSyncEditorSettings());
+            handler.AddNextTask(new BuildSyncEditorSettings());
             handler.AddNextTask(new BuildPrepareGradleTemplates());
             handler.AddNextTask(new BuildCheckExportedProject());
             handler.AddNextTask(new BuildEnd());

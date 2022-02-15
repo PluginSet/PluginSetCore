@@ -18,7 +18,7 @@ namespace PluginSet.Core.Editor
         [VisibleCaseBoolValue("UseCustomKeystore", true)]
         public string KeyStorePath;
         
-        [Password]
+//        [Password]
         [Tooltip("已设定的KeyStore密码")]
         [VisibleCaseBoolValue("UseCustomKeystore", true)]
         public string KeyStorePassword;
@@ -27,7 +27,7 @@ namespace PluginSet.Core.Editor
         [VisibleCaseBoolValue("UseCustomKeystore", true)]
         public string KeyAliasName;
         
-        [Password]
+//        [Password]
         [Tooltip("已设定的KeyStore别名密码")]
         [VisibleCaseBoolValue("UseCustomKeystore", true)]
         public string KeyAliasPassword;
@@ -61,13 +61,8 @@ namespace PluginSet.Core.Editor
 #endif
             PlayerSettings.Android.keystoreName = setting.KeyStorePath;
             PlayerSettings.Android.keyaliasName = setting.KeyAliasName;
-            
-            PlayerSettings.keystorePass = setting.KeyStorePassword;
             PlayerSettings.Android.keystorePass = setting.KeyStorePassword;
-            PlayerSettings.keyaliasPass = setting.KeyAliasPassword;
             PlayerSettings.Android.keyaliasPass = setting.KeyAliasPassword;
-            
-            AssetDatabase.Refresh();
         }
     }
 }
