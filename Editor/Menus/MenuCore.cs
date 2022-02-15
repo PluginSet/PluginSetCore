@@ -13,10 +13,14 @@ namespace PluginSet.Core.Editor
             Global.CallCustomOrderMethods<OnFrameworkInitAttribute>(BuildProcessorContext.Default());
         }
 
-        [MenuItem("PluginSet/Sync PluginsConfig")]
-        public static void SyncPluginsConfig()
+        [MenuItem("PluginSet/Copy fabric file")]
+        public static void CopyFabricFile()
         {
-            BuildHelper.SyncPluginsConfig();
+            var libPath = Global.GetPackageFullPath("com.pluginset.core");
+            if (string.IsNullOrEmpty(libPath))
+                return;
+            
+            File.Copy(Path.Combine(libPath, "Scripts", "fabfile.py"), "fabfile.py");
         }
 
 #if UNITY_ANDROID
