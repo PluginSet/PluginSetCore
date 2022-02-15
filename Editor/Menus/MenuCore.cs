@@ -20,7 +20,7 @@ namespace PluginSet.Core.Editor
             if (string.IsNullOrEmpty(libPath))
                 return;
             
-            File.Copy(Path.Combine(libPath, "Scripts", "fabfile.py"), "fabfile.py");
+            File.Copy(Path.Combine(libPath, "Scripts", "fabfile.py"), "fabfile.py", true);
         }
 
 #if UNITY_ANDROID
