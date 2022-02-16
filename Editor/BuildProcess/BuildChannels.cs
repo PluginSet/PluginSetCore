@@ -127,12 +127,7 @@ namespace PluginSet.Core.Editor
 
         public static BuildChannels GetAsset(string channel)
         {
-            return GetAsset(EditorUserBuildSettings.activeBuildTarget, channel);
-        }
-
-        public static BuildChannels GetAsset(BuildTarget target, string channel)
-        {
-            return assetLoader.GetMain<BuildChannels>(GetFileName(target, channel));
+            return assetLoader.GetMain<BuildChannels>(GetFileNameInternal(channel));
         }
 
         private static string[] GetAllFileNames()
@@ -141,19 +136,6 @@ namespace PluginSet.Core.Editor
             {
                 GetFileNameInternal("default")
             };
-        }
-
-        private static string GetFileName(BuildTarget target, string channel)
-        {
-            var fileName = GetFileNameInternal(channel);
-            if (File.Exists(assetLoader.GetFullName(fileName)))
-                return fileName;
-
-            fileName = GetFileNameInternal(target.ToString().ToLower());
-            if (File.Exists(assetLoader.GetFullName(fileName)))
-                return fileName;
-
-            return GetFileNameInternal("default");
         }
 
         internal static string GetFileNameInternal(string channel)
