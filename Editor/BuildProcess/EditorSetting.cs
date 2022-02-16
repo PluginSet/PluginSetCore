@@ -54,7 +54,8 @@ namespace PluginSet.Core.Editor
                     {
                         var paramAttr = (EditorParamsAttribute) attr;
                         orders.Add(paramAttr.Key, paramAttr.Order);
-                        editorSettingSerializedTypes.Add(SerializedType.Create(paramAttr.Key, type, paramAttr.ToolTips));
+                        editorSettingSerializedTypes.Add(SerializedType.Create(paramAttr.Key, type,
+                            paramAttr.ToolTips));
                     }
                 }
 
@@ -74,7 +75,15 @@ namespace PluginSet.Core.Editor
 
         public static EditorSetting Asset => assetLoader.GetMain<EditorSetting>("EditorSetting");
 
-        public static BuildChannels CurrentBuildChannel => BuildChannels.GetAsset(Asset.CurrentChannel);
+        public static BuildChannels CurrentBuildChannel
+        {
+            get
+            {
+                if (Application.isBatchMode)
+                    throw new BuildException("Don't use this value in batch mode");
+                return BuildChannels.GetAsset(Asset.CurrentChannel);
+            }
+        }
 
         [OnFrameworkInit]
         public static void OnPluginsInit(BuildProcessorContext context)

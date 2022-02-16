@@ -29,6 +29,8 @@ namespace PluginSet.Core.Editor
 
         public static BuildProcessorContext Default()
         {
+            if (Application.isBatchMode)
+                throw new BuildException("Don't use this value in batch mode");
             return Current = new BuildProcessorContext().LoadFromDefault();
         }
 
