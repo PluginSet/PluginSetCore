@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 namespace PluginSet.Core.Editor
 {
@@ -23,7 +24,7 @@ namespace PluginSet.Core.Editor
             context.Symbols.Sort(string.CompareOrdinal);
             var symbols = string.Join(";", context.Symbols.Distinct());
             var curSymbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(context.BuildTargetGroup);
-            Debug.Log($"SymbolsForGroup change current:{curSymbols} new:{symbols} isContains:{curSymbols.Contains(symbols)}");
+            Debug.Log($"SymbolsForGroup change current:{curSymbols} new:{symbols} isEquals:{curSymbols.Equals(symbols)}");
             if (!curSymbols.Equals(symbols))
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(context.BuildTargetGroup, symbols);
 

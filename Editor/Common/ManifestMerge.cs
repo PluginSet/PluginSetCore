@@ -19,6 +19,7 @@ namespace PluginSet.Core.Editor
 
         public static void SetMetaData(this XmlDocument main, string name, string value, string msg = null)
         {
+            Debug.Log($"SetMetaData:::::::::::: {name} = {value} ::: {msg ?? string.Empty}");
             var parent = main.findOrCreateElemet(AndroidConst.META_DATA_PARENT);
 
             var nodes = main.findElements(AndroidConst.META_DATA_PATH, AndroidConst.NS_PREFIX, "name", name);
