@@ -440,7 +440,7 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
             out_file = out_path
             (out_path, _) = os.path.split(out_file)
         else:
-            apk_name = "%s-v%s-%s.apk" % (channel, version_name.replace(".", "_"), build_number)
+            apk_name = "%s-%s-v%s-%s.apk" % (channel, channelId, version_name.replace(".", "_"), build_number)
             out_file = os.path.join(out_path, apk_name)
         check_path(out_path)
         rm_file(out_file)
