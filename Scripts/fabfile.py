@@ -25,11 +25,20 @@ log = logging.Logger('fabric', level=logging.DEBUG)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 
+LogFiles = []
+
+
 def SUCESS(tip):
     raise Exit(code=0, message="SUCCESS:%s" % tip)
 
 
 def FAILURE(err, code=1):
+    file = LogFiles.pop()
+    if os.path.exists(file):
+        print('start print log file:: ', file)
+        with open(file, 'r', encoding='UTF-8') as f:
+            print("\n".join(f.readlines()))
+        print('ended print log file:: ', file)
     raise Exit(code=code, message="FAILURE:%s" % err)
 
 
@@ -325,6 +334,7 @@ def call_unity_func(build_target, func_name, log_name, channel=None
     if log_name is not None:
         buf.append("-logFile")
         buf.append(log_name)
+        LogFiles.append(log_name)
     if channel is not None:
         buf.append("-channel")
         buf.append(channel)
@@ -420,6 +430,7 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
     except Exception as err:
         return FAILURE(err)
     
+    LogFiles.clear()
     if platform == 'android':
         apk_file_name = generateApk(os.path.join(temp_path, channel), debug)
         if not os.path.exists(apk_file_name):
