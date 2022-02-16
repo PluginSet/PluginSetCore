@@ -33,12 +33,13 @@ def SUCESS(tip):
 
 
 def FAILURE(err, code=1):
-    file = LogFiles.pop()
-    if os.path.exists(file):
-        print('start print log file:: ', file)
-        with open(file, 'r', encoding='UTF-8') as f:
-            print("\n".join(f.readlines()))
-        print('ended print log file:: ', file)
+    if len(LogFiles) > 0:
+        file = LogFiles.pop()
+        if os.path.exists(file):
+            print('start print log file:: ', file)
+            with open(file, 'r', encoding='UTF-8') as f:
+                print("\n".join(f.readlines()))
+            print('ended print log file:: ', file)
     raise Exit(code=code, message="FAILURE:%s" % err)
 
 
