@@ -435,7 +435,7 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
     if platform == 'android':
         apk_file_name = generateApk(os.path.join(temp_path, channel), debug)
         if not os.path.exists(apk_file_name):
-            return FAILURE("找不到构建的安卓APK")
+            return FAILURE("找不到构建的安卓APK" + apk_file_name)
         if out_path.endswith(".apk"):
             out_file = out_path
             (out_path, _) = os.path.split(out_file)
