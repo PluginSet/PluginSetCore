@@ -128,7 +128,7 @@ namespace PluginSet.Core
 
         public static int GetBatteryLevel()
         {
-            return (int) SystemInfo.batteryLevel;
+            return (int) (SystemInfo.batteryLevel * 100);
         }
 
         public static bool IsBatteryCharging()
