@@ -79,6 +79,8 @@ namespace PluginSet.Core
         public const string PATCH_NOTIFY_REQUEST_DOWNLOAD_APP = "PATCH_NOTIFY_REQUEST_DOWNLOAD_APP";
         public const string PATCH_NOTIFY_NET_ERROR = "PATCH_NOTIFY_NET_ERROR";
 
+        public const string PLUGIN_INIT_ERROR = "PLUGIN_INIT_ERROR";
+
         /// <summary>
         /// 事件接收一个List<IPaymentProduct>参数
         /// </summary>
