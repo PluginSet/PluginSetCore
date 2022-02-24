@@ -79,29 +79,32 @@ namespace PluginSet.Core
 
         public static string GetDeviceUniqueId()
         {
-            if (!RequestAdvertisingTracking())
-                Logger.Warn("GetDeviceUniqueId has not permission to get device id");
-            
-#if UNITY_ANDROID && !UNITY_EDITOR
-            var imei = AndroidHelper.GetIMEI();
-            if (!string.IsNullOrEmpty(imei))
-                return imei;
-            return SystemInfo.deviceUniqueIdentifier;
-#elif UNITY_IOS && !UNITY_EDITOR
-            var idfa = UnityEngine.iOS.Device.advertisingIdentifier;
-            if (idfa.Equals("00000000-0000-0000-0000-000000000000") || string.IsNullOrEmpty(idfa))
+            var deviceId = string.Empty;
+            if (RequestAdvertisingTracking())
             {
-                idfa = SystemInfo.deviceUniqueIdentifier;
-                string services = iOSHelper._ReadInfoPlist("KeyChainServices", "com.pluginset.core");
-                if (string.IsNullOrEmpty(services))
-                    services = "com.pluginset.core";
-                idfa = iOSHelper._GetOrSaveKeyChain(services, "SystemInfo.deviceUniqueIdentifier", idfa);
+#if UNITY_ANDROID && !UNITY_EDITOR
+                deviceId = AndroidHelper.GetIMEI();
+#elif UNITY_IOS && !UNITY_EDITOR
+                deviceId = UnityEngine.iOS.Device.advertisingIdentifier;
+                if (deviceId.Equals("00000000-0000-0000-0000-000000000000"))
+                    deviceId = string.Empty;
+#endif
+            }
+            else
+            {
+                Logger.Warn("GetDeviceUniqueId has not permission to get device id");
             }
 
-            return idfa;
-#else
-            return SystemInfo.deviceUniqueIdentifier;
+            if (string.IsNullOrEmpty(deviceId))
+                deviceId = SystemInfo.deviceUniqueIdentifier;
+                
+#if UNITY_IOS && !UNITY_EDITOR
+            string services = iOSHelper._ReadInfoPlist("KeyChainServices", "com.pluginset.core");
+            if (string.IsNullOrEmpty(services))
+                services = "com.pluginset.core";
+            deviceId = iOSHelper._GetOrSaveKeyChain(services, "SystemInfo.deviceUniqueIdentifier", deviceId);
 #endif
+            return deviceId;
         }
 
         public static void SetClipboardText(string text)
