@@ -8,14 +8,14 @@ public class PluginSetBaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("AndroidPluginManager", "PluginSetBaseApplication onCreate");
+        Log.i("AndroidPluginManager", "PluginSetBaseApplication onCreate");
         AndroidPluginManager.GetInstance().onApplicationCreate(this);
     }
 
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        Log.d("AndroidPluginManager", "PluginSetBaseApplication attachBaseContext");
+        Log.i("AndroidPluginManager", "PluginSetBaseApplication attachBaseContext");
         AndroidPluginManager.GetInstance().attachBaseContext(this, base);
     }
 }

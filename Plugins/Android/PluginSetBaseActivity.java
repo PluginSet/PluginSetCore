@@ -13,14 +13,14 @@ public class PluginSetBaseActivity extends UnityPlayerActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("AndroidPluginManager", "PluginSetBaseActivity attachBaseContext");
+        Log.i("AndroidPluginManager", "PluginSetBaseActivity attachBaseContext");
         AndroidPluginManager.GetInstance().onCreate(this, savedInstanceState);
     }
 
     @Override
     public void onUnityPlayerUnloaded() {
         super.onUnityPlayerUnloaded();
-        Log.d("AndroidPluginManager", "PluginSetBaseActivity onUnityPlayerUnloaded");
+        Log.i("AndroidPluginManager", "PluginSetBaseActivity onUnityPlayerUnloaded");
         AndroidPluginManager.GetInstance().onUnityPlayerUnloaded(this);
     }
 
