@@ -159,7 +159,7 @@ namespace PluginSet.Core.Editor
             {
                 icon.SetTexture(texture);
             }
-            PlayerSettings.SetPlatformIcons(BuildTargetGroup.Android, AndroidPlatformIconKind.Round, icons);
+            PlayerSettings.SetPlatformIcons(BuildTargetGroup.Android, kind, icons);
         }
 
         [OnSyncEditorSetting(int.MinValue)]
