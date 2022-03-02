@@ -40,6 +40,12 @@ namespace PluginSet.Core
             yield return routine;
             callback?.Invoke();
         }
+        
+        public static IEnumerator RoutineCallback(YieldInstruction routine, Action callback)
+        {
+            yield return routine;
+            callback?.Invoke();
+        }
 
         public static IEnumerator ContactRoutine(params IEnumerator[] routines)
         {

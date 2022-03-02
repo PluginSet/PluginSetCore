@@ -201,6 +201,11 @@ namespace PluginSet.Core
         /// <returns></returns>
         public T Get<T>(string key) where T: ItemObjectType
         {
+            if (ItemsMap == null)
+            {
+                return default(T);
+            }
+            
             if (ItemsMap.TryGetValue(key, out var existItem))
             {
                 return (T) existItem.Data;

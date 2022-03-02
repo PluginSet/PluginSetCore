@@ -94,6 +94,8 @@ namespace PluginSet.Core
         }
 
         public abstract bool ExistsBundle(string bundleName);
+        
+        public abstract bool ExistsAsset(string bundleName, string assetName);
 
         public virtual T Load<T>(string path) where T : Object
         {

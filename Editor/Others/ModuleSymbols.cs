@@ -9,12 +9,7 @@ namespace PluginSet.Core.Editor
     {
         private static bool IncludePackage(string packageName)
         {
-            var result = Client.Search(packageName);
-            while (!result.IsCompleted)
-            {
-                EditorApplication.Step();
-            }
-            return result.Status == StatusCode.Success;
+            return !string.IsNullOrEmpty(Global.GetPackageFullPath(packageName));
         }
         
         [OnSyncEditorSetting]
