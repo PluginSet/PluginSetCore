@@ -28,31 +28,37 @@ namespace PluginSet.Core
 #if UNITY_EDITOR
         public override void BeginProperty(Rect position, SerializedProperty property, GUIContent label)
         {
-            if (Event.current.type == EventType.DragExited
-                && position.Contains(Event.current.mousePosition))
+            if (Event.current.type != EventType.DragUpdated && Event.current.type != EventType.DragPerform)
+                return;
+
+            if (!position.Contains(Event.current.mousePosition))
+                return;
+            
+            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+
+            if (Event.current.type != EventType.DragPerform)
+                return;
+            
+            if (DragAndDrop.paths != null && DragAndDrop.paths.Length > 0)
             {
-                DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-                if (DragAndDrop.paths != null && DragAndDrop.paths.Length > 0)
+                var path = DragAndDrop.paths[0];
+                if (!string.IsNullOrEmpty(_validExtension))
                 {
-                    var path = DragAndDrop.paths[0];
-                    if (!string.IsNullOrEmpty(_validExtension))
+                    if (!_validExtension.Equals(Path.GetExtension(path)))
                     {
-                        if (!_validExtension.Equals(Path.GetExtension(path)))
-                        {
-                            return;
-                        }
+                        return;
                     }
-
-                    var fullPath = path;
-                    if (path.StartsWith("Assets"))
-                    {
-                        fullPath = Path.Combine(".", path);
-                    }
-
-                    path = Global.GetRelativePath(_parentPath, fullPath);
-                    property.stringValue = path;
-                    property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
                 }
+
+                var fullPath = path;
+                if (path.StartsWith("Assets"))
+                {
+                    fullPath = Path.Combine(".", path);
+                }
+
+                path = Global.GetRelativePath(_parentPath, fullPath);
+                property.stringValue = path;
+                property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
             }
         }
 #endif
