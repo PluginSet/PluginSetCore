@@ -13,6 +13,8 @@ namespace PluginSet.Core.Editor
         public PlistDocument WorkSpaceSettings;
         public PlistDocument Entitlements;
 
+        public string ProjectPath => m_PbxProjectPath;
+
         private string m_PbxProjectPath;
         
 #if UNITY_2019_3_OR_NEWER

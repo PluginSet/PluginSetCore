@@ -79,6 +79,10 @@ namespace PluginSet.Core
             DontDestroyOnLoad(o);
 
             MainThread.Init();
+            
+#if UNITY_IOS
+            ObjectCCallbackListener.InitListener();
+#endif
 
             _mainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
             Application.logMessageReceivedThreaded += OnLoggerErrorHandle;

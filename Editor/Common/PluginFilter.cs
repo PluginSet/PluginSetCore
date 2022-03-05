@@ -10,18 +10,28 @@ namespace PluginSet.Core.Editor
 {
     public class PluginFilter : IShouldIncludeInBuildCallback
     {
-        public static Func<string, BuildProcessorContext, bool> IsBuildParamsEnable<T>() where T : ScriptableObject
+        public static Func<string, BuildProcessorContext, bool> IsBuildParamsEnable<T>(params string[] names) where T : ScriptableObject
         {
             return delegate(string s, BuildProcessorContext context)
             {
+                if (names == null || names.Length <= 0)
+                    names = new[] {"Enable"};
+                
                 var @params = context.BuildChannels.Get<T>();
-                var fieldInfo = typeof(T).GetField("Enable");
-                if (fieldInfo == null)
-                    throw new BuildException($"Expect type {typeof(T)} to have field Enable, got null");
-                var notEnable = !(bool) fieldInfo.GetValue(@params);
-                if (notEnable)
-                    Debug.Log($"Filter lib file ::::::: {s}");
-                return notEnable;
+                foreach (var name in names)
+                {
+                    var fieldInfo = typeof(T).GetField(name);
+                    if (fieldInfo == null)
+                        throw new BuildException($"Expect type {typeof(T)} to have field {name}, got null");
+                    var notEnable = !(bool) fieldInfo.GetValue(@params);
+                    if (notEnable)
+                    {
+                        Debug.Log($"Filter lib file ::::::: {s}");
+                        return true;
+                    }
+                }
+
+                return false;
             };
         }
         

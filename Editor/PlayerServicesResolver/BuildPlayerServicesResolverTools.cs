@@ -45,9 +45,9 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
         }
 
         [iOSXCodeProjectModify(int.MaxValue)]
-        public static void OnIOSXCodeProjectModifyCompleted(BuildProcessorContext context, string projectPath)
+        public static void OnIOSXCodeProjectModifyCompleted(BuildProcessorContext context, PBXProjectManager projectManager)
         {
-            RemoveUnityIphoneTargetInPodFile(projectPath);
+            RemoveUnityIphoneTargetInPodFile(projectManager.ProjectPath);
         }
 
         private static void RemoveUnityIphoneTargetInPodFile(string projectPath)

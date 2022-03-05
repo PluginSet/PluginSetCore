@@ -672,11 +672,15 @@ namespace PluginSet.Core
             importer.SaveAndReimport();
         }
 
-        public static void AppendProguardInLib(StringBuilder proguard, string libName)
+        public static void AppendProguardInLib(StringBuilder proguard, string libName, string subPath = null)
         {
             var path = GetPackageFullPath(libName);
             if (string.IsNullOrEmpty(path)) return;
-            path = Path.Combine(path, "Plugins", "Android", "proguard-user.txt");
+            path = Path.Combine(path, "Plugins", "Android");
+            if (!string.IsNullOrEmpty(subPath))
+                path = Path.Combine(path, subPath);
+            path = Path.Combine(path, "proguard-user.txt");
+            
             if (!File.Exists(path)) return;
             proguard.AppendLine(File.ReadAllText(path));
         }

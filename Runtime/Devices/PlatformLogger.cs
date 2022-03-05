@@ -4,7 +4,6 @@
 
 using System.Runtime.InteropServices;
 
-#if UNITY_ANDROID
 namespace PluginSet.Core
 {
     public class PlatformLogger: UnityLogger
@@ -85,4 +84,3 @@ namespace PluginSet.Core
         }
     }
 }
-#endif

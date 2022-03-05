@@ -115,11 +115,9 @@ namespace PluginSet.Core.Editor
                 {
                     var aorder = orders[a.Key];
                     var border = orders[b.Key];
-                    if (aorder > border)
-                        return 1;
-                    if (aorder < border)
-                        return -1;
-                    return string.CompareOrdinal(a.Key, b.Key);
+                    if (aorder == border)
+                        return string.CompareOrdinal(a.Key, b.Key);
+                    return aorder - border;
                 });
                 return buildChannelSerializedTypes;
             }
@@ -159,7 +157,7 @@ namespace PluginSet.Core.Editor
             {
                 icon.SetTexture(texture);
             }
-            PlayerSettings.SetPlatformIcons(BuildTargetGroup.Android, kind, icons);
+            PlayerSettings.SetPlatformIcons(platform, kind, icons);
         }
 
         [OnSyncEditorSetting(int.MinValue)]
