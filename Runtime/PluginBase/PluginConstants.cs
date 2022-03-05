@@ -4,6 +4,7 @@ namespace PluginSet.Core
     {
         public const int SuccessCode = 0;
         public const int CancelCode = -1;
+        public const int InvalidCode = 404;
         public const int FailDefaultCode = 9999;
         
         public const string NOTIFY_RESTART = "NOTIFY_RESTART";

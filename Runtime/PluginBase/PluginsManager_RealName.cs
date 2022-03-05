@@ -51,9 +51,9 @@ namespace PluginSet.Core
             
             callback?.Invoke(new Result()
             {
-                Code = 0,
                 Error = "Invalid pluginName",
                 PluginName = pluginName,
+                Code = PluginConstants.InvalidCode,
                 Success = false
             });
         }

@@ -77,6 +77,7 @@ namespace PluginSet.Core
                 Success = false,
                 Error = "Invalid plugin name",
                 PluginName = pluginName,
+                Code = PluginConstants.InvalidCode,
                 Data = $"{{\"productId\":\"{productId}\"}}",
             });
         }
