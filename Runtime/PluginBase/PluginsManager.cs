@@ -121,7 +121,7 @@ namespace PluginSet.Core
         public void Restart()
         {
             Logger.Debug("准备重启");
-            if (_needRestart)
+            if (_isStarting)
             {
                 Logger.Debug($"重启游戏失败 {_isStarting} {_needRestart}");
                 _needRestart = true;
@@ -212,6 +212,9 @@ namespace PluginSet.Core
 
         private IEnumerator RestartIEnumerator()
         {
+            if (_isStarting)
+                yield break;
+            
             Logger.Debug("开始重启");
             _isStarting = true;
             yield return null;
