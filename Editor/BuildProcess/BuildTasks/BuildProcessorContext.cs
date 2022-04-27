@@ -338,5 +338,13 @@ namespace PluginSet.Core.Editor
                 });
             }
         }
+        
+        public List<string> CollectAssetBundleFilePaths(string bundleName)
+        {
+            var list = new List<string>();
+            if (!string.IsNullOrEmpty(bundleName))
+                Global.CallCustomOrderMethods<AssetBundleFilePathsCollectorAttribute, BuildToolsAttribute>(this, bundleName, list);
+            return list;
+        }
     }
 }

@@ -81,6 +81,22 @@ namespace PluginSet.Core.Editor
         }
     }
 
+    [AttributeUsage(AttributeTargets.Method)]
+    public class AssetBundleFilePathsCollectorAttribute : OrderCallBack
+    {
+        public AssetBundleFilePathsCollectorAttribute()
+            : base(0)
+        {
+            
+        }
+
+        public AssetBundleFilePathsCollectorAttribute(int order)
+            : base(order)
+        {
+            
+        }
+    }
+
     // 安卓项目中需要加入Metadata的数据
     // 属性需要加在静态方法上，方法接受一个BuildProcessorContext参数
     // 方法需要返回一个Dict<key:string, value:string>结果
