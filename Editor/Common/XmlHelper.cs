@@ -84,7 +84,7 @@ namespace PluginSet.Core.Editor
                 node = CFBundleURLTypes.AddDict();
             }
             
-            node.SetString("CFBundleURLName", role);
+            node.SetString("CFBundleTypeRole", role);
             node.SetString("CFBundleURLName", id);
 
             PlistElementArray schemeList = node.FindOrCreateArray("CFBundleURLSchemes");
