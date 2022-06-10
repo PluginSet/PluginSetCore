@@ -7,7 +7,9 @@ using System.Text;
 using System.Xml;
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEditor.iOS;
 using UnityEngine;
+using UnityEngine.VFX;
 using Debug = UnityEngine.Debug;
 
 namespace PluginSet.Core.Editor
@@ -50,6 +52,63 @@ namespace PluginSet.Core.Editor
 //            handler.AddNextTask(new BuildMergeAndroidManifest());
 
             handler.Execute(context);
+        }
+
+        public static void BuildIpaInstallerInternal(string ipa, string output, string remote)
+        {
+            var libPath = Global.GetPackageFullPath("com.pluginset.core");
+            var templatePath = Path.Combine(libPath, "IosTools~");
+
+            var ipaName = string.Empty;
+            if (!string.IsNullOrEmpty(ipa))
+                ipaName = Path.GetFileName(ipa).ToLower();  // oss在上传时将所有url改成了全小写，所以这里需要同步修改为全小写
+
+            if (!Directory.Exists(output))
+                Directory.CreateDirectory(output);
+
+            var index = File.ReadAllText(Path.Combine(templatePath, "index.html"));
+            var manifest = File.ReadAllText(Path.Combine(templatePath, "manifest.plist"));
+
+            index = index.Replace("{{DISPLAY_NAME}}", PlayerSettings.productName);
+            manifest = manifest.Replace("{{DISPLAY_NAME}}", PlayerSettings.productName);
+            
+            index = index.Replace("{{BUNDLE_ID}}", PlayerSettings.applicationIdentifier);
+            manifest = manifest.Replace("{{BUNDLE_ID}}", PlayerSettings.applicationIdentifier);
+            
+            index = index.Replace("{{VERSION_NAME}}", PlayerSettings.bundleVersion);
+            manifest = manifest.Replace("{{VERSION_NAME}}", PlayerSettings.bundleVersion);
+            
+            index = index.Replace("{{VERSION_CODE}}", PlayerSettings.iOS.buildNumber);
+            manifest = manifest.Replace("{{VERSION_CODE}}", PlayerSettings.iOS.buildNumber);
+            
+            index = index.Replace("{{ICON_URL}}", $"{remote}/app.png");
+            manifest = manifest.Replace("{{ICON_URL}}", $"{remote}/app.png");
+            
+            index = index.Replace("{{MANIFEST_URL}}", $"{remote}/manifest.plist");
+            manifest = manifest.Replace("{{MANIFEST_URL}}", $"{remote}/manifest.plist");
+            
+            index = index.Replace("{{IPA_URL}}", $"{remote}/{ipaName}");
+            manifest = manifest.Replace("{{IPA_URL}}", $"{remote}/{ipaName}");
+            
+            File.WriteAllText(Path.Combine(output, "index.html"), index);
+            File.WriteAllText(Path.Combine(output, "manifest.plist"), manifest);
+            if (!string.IsNullOrEmpty(ipa))
+                File.Copy(ipa, Path.Combine(output, ipaName), true);
+
+            var appIconPath = Path.Combine(templatePath, "app.png");
+            
+            var icons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Application);
+            if (icons != null && icons.Length > 0)
+            {
+                var icon = icons[0].GetTexture();
+                if (icon != null)
+                {
+                    var path = AssetDatabase.GetAssetPath(icon);
+                    if (!string.IsNullOrEmpty(path))
+                        appIconPath = path;
+                }
+            }
+            File.Copy(appIconPath, Path.Combine(output, "app.png"), true);
         }
 
         public static void PreBuildWithContext(BuildProcessorContext context)
@@ -190,6 +249,17 @@ namespace PluginSet.Core.Editor
                 throw new BuildException("Application is not in batch mode");
 
             BuildPatchesWithContext(BuildProcessorContext.BatchMode());
+        }
+
+        public static void BuildIpaInstaller()
+        {
+            if (!Application.isBatchMode)
+                throw new BuildException("Application is not in batch mode");
+
+            var context = BuildProcessorContext.BatchMode();
+            var args = context.CommandArgs;
+            Debug.Log("BuildIpaInstaller args::: " + string.Join(";", args.Select(kv => $"{kv.Key}={kv.Value}")));
+            BuildIpaInstallerInternal(args["ipa"], args["output"], args["remote"]);
         }
 
         private static string AppendSpaces(string text, int targetLen)
