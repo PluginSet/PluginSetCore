@@ -821,7 +821,7 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
     elif platform == 'ios':
         ipa_file_name = generateIpa(os.path.join(temp_path, channel), version_name, build_number, debug, "adHoc")
         if not os.path.exists(ipa_file_name):
-            return FAILURE("找不到构建的IPA:" + apk_file_name)
+            return FAILURE("找不到构建的IPA:" + ipa_file_name)
         if out_path.endswith(".ipa"):
             out_file = out_path
             (out_path, _) = os.path.split(out_file)
@@ -1106,8 +1106,7 @@ def buildIpaInstaller(context, id, secret, bucketname, file, key, cname=None
     auth = oss2.AuthV2(id, secret)
     bucket = oss2.Bucket(auth, endpoint, bucketname)
     uploadDirToOss(temp_path, key, bucket)
-
-    # shutil.rmtree(temp_path)
+    shutil.rmtree(temp_path)
 
 
 @task(help={
