@@ -201,6 +201,10 @@ namespace PluginSet.Core.Editor
                 else if (context.BuildTarget == BuildTarget.iOS)
                 {
                     SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Application, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Marketing, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Settings, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Notification, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Spotlight, icon);
                 }
             }
             
