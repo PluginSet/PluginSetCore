@@ -69,10 +69,10 @@ namespace PluginSet.Core.Editor
             if (EditorApplication.isCompiling || EditorApplication.isUpdating)
                 return;
 
-            if (Event.current.type == EventType.Repaint && !_layouted)
-                return;
-
-            _layouted = Event.current.type == EventType.Layout;
+//            if (Event.current.type == EventType.Repaint && !_layouted)
+//                return;
+//
+//            _layouted = Event.current.type == EventType.Layout;
 
             // check props
             SerializedDataSet self = (SerializedDataSet) target;
