@@ -203,7 +203,7 @@ namespace PluginSet.Core
             if (_startPlugins == null || _startPlugins.Length <= 0)
                 return;
 
-            foreach (var plugin in _startPlugins)
+            foreach (var plugin in _startPlugins.Reverse())
             {
                 if (plugin.IsRunning)
                     plugin.DisposePlugin(isAppQuit);
