@@ -40,7 +40,11 @@ namespace PluginSet.Core.Editor
 #if !UNITY_2020_1_OR_NEWER
 				locationPath = Path.Combine(buildPath , PlayerSettings.productName);
 #endif
+#if UNITY_2021_3_OR_NEWER
 				EditorUserBuildSettings.iOSXcodeBuildConfig = debugMode ? XcodeBuildConfig.Debug : XcodeBuildConfig.Release;
+#else
+				EditorUserBuildSettings.iOSBuildConfigType = debugMode ? iOSBuildType.Debug : iOSBuildType.Release;
+#endif
 			}
 			else if (target == BuildTarget.Android)
 			{
