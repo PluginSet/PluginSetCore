@@ -390,6 +390,19 @@ namespace PluginSet.Core.Editor
             return elements;
         }
 
+        public static void addQueries(this XmlDocument doc, string packageName)
+        {
+            const string path = "/manifest/queries/package";
+            const string attrName = "name";
+            var list = doc.findElements(path, AndroidConst.NS_PREFIX, attrName, packageName);
+            if (list.Count <= 0)
+            {
+                var elem = doc.createElementWithPath(path);
+                elem.SetAttribute(attrName, AndroidConst.NS_URI, packageName);
+            }
+        }
+        
+
         public static bool compareNode(this XmlNode e1, XmlNode e2, bool nextSiblings)
         {
             while (true)
