@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.iOS.Xcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -829,6 +830,40 @@ namespace PluginSet.Core
             //这个开了之后 会让ipa里面所一些swift的文件 会导致拒审
             //project.SetBuildProperty(xcodeTarget, "EMBEDDED_CONTENT_CONTAINS_SWIFT", "YES");
             project.SetBuildProperty(xcodeTarget, "SWIFT_VERSION", "4.0");
+        }
+        
+        public static bool CheckGitLibImported(string libName, string gitHttpAddress)
+        {
+
+            var added = IncludePackage(libName);
+            if (added)
+                return true;
+
+            var request = Client.Add(gitHttpAddress);
+            EditorUtility.DisplayProgressBar($"import {libName}", "loading...", 0);
+            while (!request.IsCompleted)
+            {
+                EditorApplication.Step();
+            }
+
+            EditorUtility.ClearProgressBar();
+            if (request.Status == StatusCode.Success)
+            {
+                Debug.LogFormat("Add {0} package success!", libName);
+                return true;
+            }
+            
+            if (Application.isBatchMode)
+                throw new Exception($"{libName} package need!");
+            
+            Debug.LogWarning($"Add {libName} package fail!");
+
+            return false;
+        }
+        
+        public static bool IncludePackage(string packageName)
+        {
+            return !string.IsNullOrEmpty(GetPackageFullPath(packageName));
         }
 
         static int getOrderMethodOrder<T>(MethodBase info) where T : OrderCallBack

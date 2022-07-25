@@ -85,13 +85,7 @@ namespace PluginSet.Core
                 }
             }
 
-            callback?.Invoke(new Result
-            {
-                Success = false,
-                Code = PluginConstants.InvalidCode,
-                Error = "Invalid plugin name" + pluginName,
-                PluginName = pluginName,
-            });
+            InvalidCallback(callback, pluginName);
         }
 
         public void Logout(Action<Result> callback = null)
@@ -116,13 +110,7 @@ namespace PluginSet.Core
                 }
             }
 
-            callback?.Invoke(new Result
-            {
-                Success = false,
-                Error = "Invalid plugin name",
-                PluginName = pluginName,
-                Code = PluginConstants.InvalidCode,
-            });
+            InvalidCallback(callback, pluginName);
         }
 
         public string GetUserLoginData()

@@ -363,4 +363,123 @@ namespace PluginSet.Core
     {
         IEnumerator OnLanguageChanged();
     }
+
+    public interface IChatBase : IPluginBase
+    {
+        void LoginChat(string json, Action<Result> callback = null);
+
+        void LogoutChat(Action<Result> callback = null);
+
+        void AddNewMessageReceiveCallback(Action<Result> callback);
+        
+        void RemoveNewMessageReceiveCallback(Action<Result> callback);
+    }
+
+    public interface IChatConv : IChatBase
+    {
+        void DeleteConv(string convId, Action<Result> callback = null);
+        
+        void GetConvList(Action<Result> callback);
+
+        string SendConvTextMessage(string userId, string content, Action<Result> callback = null);
+
+        string SendConvCustomMessage(string userId, string customType, string content, Action<Result> callback = null);
+
+        void CancelSendConvMessage(string userId, string messageId, Action<Result> callback = null);
+        
+        void RevokeConvMessage(string userId, string messageId, Action<Result> callback = null);
+
+        void DeleteConvMessage(string userId, string messageId, Action<Result> callback = null);
+
+        void GetConvMessageList(string userId, Action<Result> callback);
+        
+        void GetConvMessageList(string userId, uint maxCount, Action<Result> callback);
+        
+        void GetConvMessageList(string userId, uint maxCount, string lastMessageId, Action<Result> callback);
+
+        void ClearConvHistoryMessage(string userId, Action<Result> callback = null);
+    }
+
+    public interface IChatGroup : IChatBase
+    {
+        void CreateGroup(string groupId, string jsonParams, Action<Result> callback = null);
+
+        void DeleteGroup(string groupId, Action<Result> callback = null);
+        
+        void DeleteGroupConv(string groupId, Action<Result> callback = null);
+
+        void JoinGroup(string groupId, Action<Result> callback = null);
+        
+        void JoinGroup(string groupId, string hello, Action<Result> callback = null);
+
+        void QuitGroup(string groupId, Action<Result> callback = null);
+        
+        string SendGroupTextMessage(string groupId, string content, Action<Result> callback = null);
+
+        string SendGroupCustomMessage(string groupId, string customType, string content, Action<Result> callback = null);
+
+        void CancelSendGroupMessage(string groupId, string messageId, Action<Result> callback = null);
+        
+        void RevokeGroupMessage(string groupId, string messageId, Action<Result> callback = null);
+
+        void DeleteGroupMessage(string groupId, string messageId, Action<Result> callback = null);
+
+        void GetGroupMessageList(string groupId, Action<Result> callback);
+        
+        void GetGroupMessageList(string groupId, uint maxCount, Action<Result> callback);
+        
+        void GetGroupMessageList(string groupId, uint maxCount, string lastMessageId, Action<Result> callback);
+
+        void ClearGroupHistoryMessage(string groupId, Action<Result> callback = null);
+    }
+
+    public interface IChatAudio : IChatBase
+    {
+        
+    }
+
+    public interface IProfile : IPluginBase
+    {
+        void GetUserProfileList(List<string> userIds, Action<Result> callback);
+        void GetUserProfileList(string jsonUserIds, Action<Result> callback);
+    }
+
+    public interface IFriendShip : IPluginBase
+    {
+        void ModifySelfUserProfile(string json, Action<Result> callback = null);
+
+        void ModifyFriendProfile(string userId, string json, Action<Result> callback = null);
+
+        void GetFriendProfileList(Action<Result> callback);
+
+        void GetFriendsInfo(List<string> userIds, Action<Result> callback);
+        void GetFriendsInfo(string jsonUserIds, Action<Result> callback);
+
+        void AddFriend(string userId, string json, Action<Result> callback = null);
+
+        void DeleteFriend(List<string> userIds, bool both, Action<Result> callback = null);
+        void DeleteFriend(string jsonUserIds, bool both, Action<Result> callback = null);
+
+        void CheckFriendType(List<string> userIds, bool both, Action<Result> callback);
+        void CheckFriendType(string jsonUserIds, bool both, Action<Result> callback);
+
+        void AddToBlackList(List<string> userIds, Action<Result> callback = null);
+        void AddToBlackList(string jsonUserIds, Action<Result> callback = null);
+
+        void GetBlackList(Action<Result> callback);
+
+        void DeleteFromBlackList(List<string> userIds, Action<Result> callback = null);
+        void DeleteFromBlackList(string jsonUserIds, Action<Result> callback = null);
+
+        void GetRequestList(Action<Result> callback);
+
+        void DeleteRequest(List<string> requestIds, Action<Result> callback = null);
+        void DeleteRequest(string jsonRequestIds, Action<Result> callback = null);
+
+        void HandleAgreeRequest(string userId, string json, Action<Result> callback = null);
+        
+        void HandleAgreeAndAddRequest(string userId, string json, Action<Result> callback = null);
+        
+        void HandleRejectRequest(string userId, string json, Action<Result> callback = null);
+    }
 }

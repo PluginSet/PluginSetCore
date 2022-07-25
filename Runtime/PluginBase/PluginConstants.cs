@@ -99,5 +99,10 @@ namespace PluginSet.Core
 
         //同意隐私协议
         public const string NOTIFY_AGREE_PRIVACY = "NOTIFY_AGREE_PRIVACY";
+
+        public const string CHAT_LOGIN            = "CHAT_LOGIN";
+        public const string CHAT_LOGOUT           = "CHAT_LOGOUT";
+        public const string CHAT_NETWORK_ONLINE   = "CHAT_NETWORK_ONLINE";
+        public const string CHAT_NETWORK_OFFLINE  = "CHAT_NETWORK_OFFLINE";
     }
 }

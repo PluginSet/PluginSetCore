@@ -72,14 +72,7 @@ namespace PluginSet.Core
                 }
             }
 
-            callback?.Invoke(new Result
-            {
-                Success = false,
-                Error = "Invalid plugin name",
-                PluginName = pluginName,
-                Code = PluginConstants.InvalidCode,
-                Data = $"{{\"productId\":\"{productId}\"}}",
-            });
+            InvalidCallback(callback, pluginName, $"{{\"productId\":\"{productId}\"}}");
         }
 
         public void InitWithProducts(Dictionary<string, int> products)

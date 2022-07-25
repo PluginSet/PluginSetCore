@@ -278,5 +278,18 @@ namespace PluginSet.Core
                 SendNotification(PluginConstants.NOTIFY_APPLICATION_ENTER_FOREGROUND);
             }
         }
+
+        private void InvalidCallback(Action<Result> callback, string pluginName, string data = null)
+        {
+            callback?.Invoke(new Result
+            {
+                Success = false,
+                Code = PluginConstants.InvalidCode,
+                Error = "Invalid plugin name" + pluginName,
+                PluginName = pluginName,
+                Data = data,
+            });
+        }
+        
     }
 }

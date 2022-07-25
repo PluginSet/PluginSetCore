@@ -49,13 +49,7 @@ namespace PluginSet.Core
                 return;
             }
             
-            callback?.Invoke(new Result()
-            {
-                Error = "Invalid pluginName",
-                PluginName = pluginName,
-                Code = PluginConstants.InvalidCode,
-                Success = false
-            });
+            InvalidCallback(callback, pluginName);
         }
     }
 }
