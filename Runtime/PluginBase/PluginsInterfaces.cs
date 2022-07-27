@@ -435,7 +435,25 @@ namespace PluginSet.Core
 
     public interface IChatAudio : IChatBase
     {
+        void AddRemoteStateChangeCallback(Action<Result> callback);
         
+        void RemoveRemoteStateChangeCallback(Action<Result> callback);
+        
+        void StartLocalAudio(string json);
+        
+        void StopLocalAudio();
+
+        void MuteRemoteAudio(string userId, bool enable);
+        
+        void MuteAllRemoteAudio(bool enable);
+
+        int GetAudioCaptureVolume();
+
+        void SetAudioCaptureVolume(int volume);
+
+        int GetAudioPlayVolume();
+
+        void SetAudioPlayVolume(int volume);
     }
 
     public interface IProfile : IPluginBase

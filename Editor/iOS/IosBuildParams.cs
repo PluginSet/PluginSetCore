@@ -67,6 +67,7 @@ namespace PluginSet.Core.Editor
             
             var xcodeTarget = project.UnityFramework;
             project.Project.AddBuildProperty(xcodeTarget, "CLANG_ENABLE_MODULES", "YES");
+            project.Project.AddBuildProperty(xcodeTarget, "LD_RUNPATH_SEARCH_PATHS", "$(inherited)");
         }
 
 
