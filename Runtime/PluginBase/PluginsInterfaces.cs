@@ -377,6 +377,10 @@ namespace PluginSet.Core
 
     public interface IChatConv : IChatBase
     {
+        void AddNewConvCallback(Action<Result> callback);
+        
+        void RemoveNewConvCallback(Action<Result> callback);
+        
         void DeleteConv(string convId, Action<Result> callback = null);
         
         void GetConvList(Action<Result> callback);

@@ -25,6 +25,17 @@ namespace PluginSet.Core
         }
 
 #region NotImplementedException
+
+        public void AddNewConvCallback(Action<Result> callback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveNewConvCallback(Action<Result> callback)
+        {
+            throw new NotImplementedException();
+        }
+
         public void DeleteConv(string convId, Action<Result> callback = null)
         {
             throw new NotImplementedException();
@@ -82,6 +93,27 @@ namespace PluginSet.Core
 #endregion
         
         
+        public void AddNewConvCallbackWith(string pluginName, Action<Result> callback)
+        {
+            if (ChatConvs.TryGetValue(pluginName, out var plugin))
+            {
+                plugin.AddNewConvCallback(callback);
+                return;
+            }
+
+            InvalidCallback(callback, pluginName);
+        }
+
+        public void RemoveNewConvCallbackWith(string pluginName, Action<Result> callback)
+        {
+            if (ChatConvs.TryGetValue(pluginName, out var plugin))
+            {
+                plugin.RemoveNewConvCallback(callback);
+                return;
+            }
+
+            InvalidCallback(callback, pluginName);
+        }
         
         public void DeleteConvWith(string pluginName, string convId, Action<Result> callback = null)
         {

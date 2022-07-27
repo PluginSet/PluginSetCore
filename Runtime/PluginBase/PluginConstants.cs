@@ -104,5 +104,11 @@ namespace PluginSet.Core
         public const string CHAT_LOGOUT           = "CHAT_LOGOUT";
         public const string CHAT_NETWORK_ONLINE   = "CHAT_NETWORK_ONLINE";
         public const string CHAT_NETWORK_OFFLINE  = "CHAT_NETWORK_OFFLINE";
+
+        public const string FRIEND_PREPARED = "FRIEND_PREPARED";
+        public const string FRIEND_ADD_FRIEND = "FRIEND_ADD_FRIEND";
+        public const string FRIEND_DELETE_FRIEND = "FRIEND_DELETE_FRIEND";
+        public const string FRIEND_UPDATE_PROFILE = "FRIEND_UPDATE_PROFILE";
+        public const string FRIEND_ADD_REQUEST = "FRIEND_ADD_REQUEST";
     }
 }
