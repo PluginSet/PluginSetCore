@@ -50,6 +50,11 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
+        public void SearchFriends(string json, Action<Result> callback)
+        {
+            throw new NotImplementedException();
+        }
+
         public void AddFriend(string userId, string json, Action<Result> callback = null)
         {
             throw new NotImplementedException();
@@ -169,6 +174,17 @@ namespace PluginSet.Core
             if (FriendShips.TryGetValue(pluginName, out var plugin))
             {
                 plugin.GetFriendsInfo(userIds, callback);
+                return;
+            }
+
+            InvalidCallback(callback, pluginName);
+        }
+        
+        public void SearchFriendsWith(string pluginName, string json, Action<Result> callback)
+        {
+            if (FriendShips.TryGetValue(pluginName, out var plugin))
+            {
+                plugin.SearchFriends(json, callback);
                 return;
             }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace PluginSet.Core
 {
@@ -476,6 +477,7 @@ namespace PluginSet.Core
 
         void GetFriendsInfo(List<string> userIds, Action<Result> callback);
         void GetFriendsInfo(string jsonUserIds, Action<Result> callback);
+        void SearchFriends(string json, Action<Result> callback);
 
         void AddFriend(string userId, string json, Action<Result> callback = null);
 
@@ -497,7 +499,7 @@ namespace PluginSet.Core
 
         void DeleteRequest(List<string> requestIds, Action<Result> callback = null);
         void DeleteRequest(string jsonRequestIds, Action<Result> callback = null);
-
+        
         void HandleAgreeRequest(string userId, string json, Action<Result> callback = null);
         
         void HandleAgreeAndAddRequest(string userId, string json, Action<Result> callback = null);
