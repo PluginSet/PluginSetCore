@@ -100,7 +100,12 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
-#endregion
+        public void ReportReadGroupMessage(string convId, string messageId, Action<Result> callback = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
         
         public void CreateGroupWith(string pluginName, string groupId, string jsonParams, Action<Result> callback = null)
         {
@@ -261,6 +266,17 @@ namespace PluginSet.Core
             if (ChatGroups.TryGetValue(pluginName, out var plugin))
             {
                 plugin.ClearGroupHistoryMessage(groupId, callback);
+                return;
+            }
+
+            InvalidCallback(callback, pluginName);
+        }
+        
+        public void ReportReadGroupMessageWith(string pluginName, string convId, string messageId, Action<Result> callback = null)
+        {
+            if (ChatGroups.TryGetValue(pluginName, out var plugin))
+            {
+                plugin.ReportReadGroupMessage(convId, messageId, callback);
                 return;
             }
 

@@ -90,7 +90,13 @@ namespace PluginSet.Core
         {
             throw new NotImplementedException();
         }
-#endregion
+
+        public void ReportReadConvMessage(string convId, string messageId, Action<Result> callback = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
         
         
         public void AddNewConvCallbackWith(string pluginName, Action<Result> callback)
@@ -230,6 +236,17 @@ namespace PluginSet.Core
             if (ChatConvs.TryGetValue(pluginName, out var plugin))
             {
                 plugin.ClearConvHistoryMessage(userId, callback);
+                return;
+            }
+
+            InvalidCallback(callback, pluginName);
+        }
+        
+        public void ReportReadConvMessageWith(string pluginName, string convId, string messageId, Action<Result> callback = null)
+        {
+            if (ChatConvs.TryGetValue(pluginName, out var plugin))
+            {
+                plugin.ReportReadConvMessage(convId, messageId, callback);
                 return;
             }
 

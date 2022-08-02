@@ -403,6 +403,8 @@ namespace PluginSet.Core
         void GetConvMessageList(string userId, uint maxCount, string lastMessageId, Action<Result> callback);
 
         void ClearConvHistoryMessage(string userId, Action<Result> callback = null);
+
+        void ReportReadConvMessage(string convId, string messageId, Action<Result> callback = null);
     }
 
     public interface IChatGroup : IChatBase
@@ -436,6 +438,8 @@ namespace PluginSet.Core
         void GetGroupMessageList(string groupId, uint maxCount, string lastMessageId, Action<Result> callback);
 
         void ClearGroupHistoryMessage(string groupId, Action<Result> callback = null);
+        
+        void ReportReadGroupMessage(string convId, string messageId, Action<Result> callback = null);
     }
 
     public interface IChatAudio : IChatBase
