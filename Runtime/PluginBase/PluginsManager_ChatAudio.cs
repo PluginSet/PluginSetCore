@@ -46,6 +46,11 @@ namespace PluginSet.Core
             throw new System.NotImplementedException();
         }
 
+        public bool IsRemoteMute(string userId)
+        {
+            throw new NotImplementedException();
+        }
+
         public void MuteRemoteAudio(string userId, bool enable)
         {
             throw new System.NotImplementedException();
@@ -113,6 +118,16 @@ namespace PluginSet.Core
             {
                 plugin.StopLocalAudio();
             }
+        }
+        
+        public bool IsRemoteMuteWith(string pluginName, string userId)
+        {
+            if (ChatAudios.TryGetValue(pluginName, out var plugin))
+            {
+                return plugin.IsRemoteMute(userId);
+            }
+
+            return false;
         }
 
         public void MuteRemoteAudioWith(string pluginName, string userId, bool enable)

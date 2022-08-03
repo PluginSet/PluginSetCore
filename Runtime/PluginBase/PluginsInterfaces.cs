@@ -452,6 +452,8 @@ namespace PluginSet.Core
         
         void StopLocalAudio();
 
+        bool IsRemoteMute(string userId);
+
         void MuteRemoteAudio(string userId, bool enable);
         
         void MuteAllRemoteAudio(bool enable);
