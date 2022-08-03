@@ -75,7 +75,31 @@ namespace PluginSet.Core
 
             return true;
         }
-        
+
+        public static bool IsMicrophoneEnable()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return AndroidHelper.IsPermissionGranted(AndroidHelper.PERMISSION_RECORD_AUDIO);
+#elif UNITY_IOS && !UNITY_EDITOR
+            return iOSHelper._IsMicrophoneGranted();
+#else
+            return true;
+#endif
+        }
+
+        public static bool RequestMicrophoneAuth()
+        {
+            if (!IsMicrophoneEnable())
+            {
+#if UNITY_ANDROID && !UNITY_EDITOR
+                return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_RECORD_AUDIO);
+#elif UNITY_IOS && !UNITY_EDITOR
+                return iOSHelper._RequestMicrophoneAuth();
+#endif
+            }
+
+            return true;
+        }
 
         public static string GetDeviceUniqueId()
         {

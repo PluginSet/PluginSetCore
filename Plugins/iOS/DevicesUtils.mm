@@ -1,5 +1,6 @@
 #import <AppTrackingTransparency/AppTrackingTransparency.h>
 #import <AdSupport/AdSupport.h>
+#import <AVFoundation/AVFoundation.h>
 #import "PluginUtils.h"
 
 NSString* Plugin_Utils_CreateNSString (const char* string)
@@ -183,5 +184,23 @@ extern "C"
         } else {
             return _IsAdvertisingTrackingGranted();
         }
+    }
+
+    bool _IsMicrophoneGranted()
+    {
+        AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+        return authStatus == AVAuthorizationStatusAuthorized;
+    }
+
+    bool _RequestMicrophoneAuth()
+    {
+        dispatch_semaphore_t signal = dispatch_semaphore_create(0);
+        __block BOOL result;
+        [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
+            result = granted;
+            dispatch_semaphore_signal(signal);
+        }];
+        dispatch_semaphore_wait(signal, DISPATCH_TIME_FOREVER);
+        return result;
     }
 }

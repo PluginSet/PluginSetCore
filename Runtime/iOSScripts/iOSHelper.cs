@@ -41,6 +41,11 @@ namespace PluginSet.Core
 
         [DllImport("__Internal")]
         public static extern bool _RequestAdvertisingTracking();
+
+        [DllImport("__Internal")]
+        public static extern bool _IsMicrophoneGranted();
+        [DllImport("__Internal")]
+        public static extern bool _RequestMicrophoneAuth();
     }
 }
 #endif
