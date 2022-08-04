@@ -45,7 +45,7 @@ namespace PluginSet.Core
             }
         }
 
-        public void PlayRecordFile(string recordPath, string json = null)
+        public void PlayRecordFile(string recordPath, string json = null, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
@@ -90,11 +90,11 @@ namespace PluginSet.Core
             }
         }
         
-        public void PlayRecordFileWith(string pluginName, string recordPath, string json = null)
+        public void PlayRecordFileWith(string pluginName, string recordPath, string json = null, Action<Result> callback = null)
         {
             if (AudioRecorders.TryGetValue(pluginName, out var plugin))
             {
-                plugin.PlayRecordFile(recordPath, json);
+                plugin.PlayRecordFile(recordPath, json, callback);
             }
         }
         

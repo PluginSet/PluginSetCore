@@ -532,7 +532,7 @@ namespace PluginSet.Core
 
         void CancelRecording();
         
-        void PlayRecordFile(string recordPath, string json = null);
+        void PlayRecordFile(string recordPath, string json = null, Action<Result> callback = null);
 
         void StopPlayRecord();
 
