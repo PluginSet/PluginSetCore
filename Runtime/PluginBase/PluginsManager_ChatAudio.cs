@@ -36,16 +36,6 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
-        public void StartLocalAudio(string json, Action<Result> callback = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void StopLocalAudio()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public bool IsRemoteMute(string userId)
         {
             throw new NotImplementedException();
@@ -102,22 +92,6 @@ namespace PluginSet.Core
             }
             
             InvalidCallback(callback, pluginName);
-        }
-
-        public void StartLocalAudioWith(string pluginName, string json, Action<Result> callback = null)
-        {
-            if (ChatAudios.TryGetValue(pluginName, out var plugin))
-            {
-                plugin.StartLocalAudio(json, callback);
-            }
-        }
-
-        public void StopLocalAudioWith(string pluginName)
-        {
-            if (ChatAudios.TryGetValue(pluginName, out var plugin))
-            {
-                plugin.StopLocalAudio();
-            }
         }
         
         public bool IsRemoteMuteWith(string pluginName, string userId)

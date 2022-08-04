@@ -51,6 +51,11 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
+        public string SendConvSoundMessage(string userId, string soundPath, int duration, Action<Result> callback = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public string SendConvCustomMessage(string userId, string customType, string content, Action<Result> callback = null)
         {
             throw new NotImplementedException();
@@ -148,6 +153,17 @@ namespace PluginSet.Core
             if (ChatConvs.TryGetValue(pluginName, out var plugin))
             {
                 return plugin.SendConvTextMessage(userId, content, callback);
+            }
+
+            InvalidCallback(callback, pluginName);
+            return null;
+        }
+        
+        public string SendConvSoundMessageWith(string pluginName, string userId, string soundPath, int duration, Action<Result> callback = null)
+        {
+            if (ChatConvs.TryGetValue(pluginName, out var plugin))
+            {
+                return plugin.SendConvSoundMessage(userId, soundPath, duration, callback);
             }
 
             InvalidCallback(callback, pluginName);

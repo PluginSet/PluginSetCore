@@ -387,6 +387,8 @@ namespace PluginSet.Core
         void GetConvList(Action<Result> callback);
 
         string SendConvTextMessage(string userId, string content, Action<Result> callback = null);
+        
+        string SendConvSoundMessage(string userId, string soundPath, int duration, Action<Result> callback = null);
 
         string SendConvCustomMessage(string userId, string customType, string content, Action<Result> callback = null);
 
@@ -422,6 +424,8 @@ namespace PluginSet.Core
         void QuitGroup(string groupId, Action<Result> callback = null);
         
         string SendGroupTextMessage(string groupId, string content, Action<Result> callback = null);
+        
+        string SendGroupSoundMessage(string groupId, string soundPath, int duration, Action<Result> callback = null);
 
         string SendGroupCustomMessage(string groupId, string customType, string content, Action<Result> callback = null);
 
@@ -442,15 +446,18 @@ namespace PluginSet.Core
         void ReportReadGroupMessage(string convId, string messageId, Action<Result> callback = null);
     }
 
-    public interface IChatAudio : IChatBase
+    public interface IAudioDevice : IPluginBase
+    {
+        void StartLocalAudio(string json, Action<Result> callback = null);
+        
+        void StopLocalAudio();
+    }
+
+    public interface IChatAudio : IChatBase, IAudioDevice
     {
         void AddRemoteStateChangeCallback(Action<Result> callback);
         
         void RemoveRemoteStateChangeCallback(Action<Result> callback);
-        
-        void StartLocalAudio(string json, Action<Result> callback = null);
-        
-        void StopLocalAudio();
 
         bool IsRemoteMute(string userId);
 
@@ -511,5 +518,20 @@ namespace PluginSet.Core
         void HandleAgreeAndAddRequest(string userId, string json, Action<Result> callback = null);
         
         void HandleRejectRequest(string userId, string json, Action<Result> callback = null);
+    }
+
+    public interface IAudioRecorder: IPluginBase
+    {
+        void StartRecording(string savePath, Action<Result> callback = null);
+
+        void StopRecording();
+
+        void CancelRecording();
+        
+        void PlayRecordFile(string recordPath, string json = null);
+
+        void StopPlayRecord();
+
+        void SetMicVolume(int volume);
     }
 }

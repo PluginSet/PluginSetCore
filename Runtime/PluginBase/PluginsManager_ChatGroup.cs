@@ -60,6 +60,11 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
+        public string SendGroupSoundMessage(string groupId, string soundPath, int duration, Action<Result> callback = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public string SendGroupCustomMessage(string groupId, string customType, string content, Action<Result> callback = null)
         {
             throw new NotImplementedException();
@@ -178,6 +183,17 @@ namespace PluginSet.Core
             if (ChatGroups.TryGetValue(pluginName, out var plugin))
             {
                 return plugin.SendGroupTextMessage(groupId, content, callback);
+            }
+
+            InvalidCallback(callback, pluginName);
+            return null;
+        }
+        
+        public string SendGroupSoundMessageWith(string pluginName, string groupId, string soundPath, int duration, Action<Result> callback = null)
+        {
+            if (ChatGroups.TryGetValue(pluginName, out var plugin))
+            {
+                return plugin.SendGroupSoundMessage(groupId, soundPath, duration, callback);
             }
 
             InvalidCallback(callback, pluginName);
