@@ -451,6 +451,10 @@ namespace PluginSet.Core
         void StartLocalAudio(string json, Action<Result> callback = null);
         
         void StopLocalAudio();
+
+        void PauseLocalAudio();
+        
+        void ResumeLocalAudio();
     }
 
     public interface IChatAudio : IChatBase, IAudioDevice

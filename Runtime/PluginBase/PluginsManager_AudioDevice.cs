@@ -37,6 +37,22 @@ namespace PluginSet.Core
             }
         }
 
+        public void PauseLocalAudio()
+        {
+            foreach (var plugin in AudioDevices.Values)
+            {
+                plugin.PauseLocalAudio();
+            }
+        }
+
+        public void ResumeLocalAudio()
+        {
+            foreach (var plugin in AudioDevices.Values)
+            {
+                plugin.ResumeLocalAudio();
+            }
+        }
+
         public void StartLocalAudioWith(string pluginName, string json, Action<Result> callback = null)
         {
             if (ChatAudios.TryGetValue(pluginName, out var plugin))
