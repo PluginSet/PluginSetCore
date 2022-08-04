@@ -448,7 +448,7 @@ namespace PluginSet.Core
         
         void RemoveRemoteStateChangeCallback(Action<Result> callback);
         
-        void StartLocalAudio(string json);
+        void StartLocalAudio(string json, Action<Result> callback = null);
         
         void StopLocalAudio();
 

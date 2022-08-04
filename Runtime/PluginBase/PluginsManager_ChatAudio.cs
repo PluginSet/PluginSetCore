@@ -36,9 +36,9 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
-        public void StartLocalAudio(string json)
+        public void StartLocalAudio(string json, Action<Result> callback = null)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public void StopLocalAudio()
@@ -104,11 +104,11 @@ namespace PluginSet.Core
             InvalidCallback(callback, pluginName);
         }
 
-        public void StartLocalAudioWith(string pluginName, string json)
+        public void StartLocalAudioWith(string pluginName, string json, Action<Result> callback = null)
         {
             if (ChatAudios.TryGetValue(pluginName, out var plugin))
             {
-                plugin.StartLocalAudio(json);
+                plugin.StartLocalAudio(json, callback);
             }
         }
 
@@ -153,7 +153,7 @@ namespace PluginSet.Core
                 return plugin.GetAudioCaptureVolume();
             }
 
-            return 1;
+            return 0;
         }
 
         public void SetAudioCaptureVolumeWith(string pluginName, int volume)
@@ -171,7 +171,7 @@ namespace PluginSet.Core
                 return plugin.GetAudioPlayVolume();
             }
 
-            return 1;
+            return 0;
         }
 
         public void SetAudioPlayVolumeWith(string pluginName, int volume)
