@@ -24,7 +24,7 @@ namespace PluginSet.Core
             }
         }
         
-        public void StartRecording(string savePath, Action<Result> callback = null)
+        public void StartRecording(string json, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
@@ -63,15 +63,15 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
-        public void StartRecordingWith(string pluginName, string savePath, Action<Result> callback = null)
+        public void StartRecordingWith(string pluginName, string json, Action<Result> callback = null)
         {
             if (AudioRecorders.TryGetValue(pluginName, out var plugin))
             {
-                plugin.StartRecording(savePath, callback);
+                plugin.StartRecording(json, callback);
                 return;
             }
             
-            InvalidCallback(callback, pluginName, savePath);
+            InvalidCallback(callback, pluginName, json);
         }
 
         public void StopRecordingWith(string pluginName)
