@@ -337,7 +337,7 @@ namespace PluginSet.Core
     /// </summary>
     public interface ICustomPlugin : IPluginBase
     {
-        void CustomCall(string func, Action<Result> callback = null, Dictionary<string, object> param = null);
+        void CustomCall(string func, Action<Result> callback = null, string json = null);
     }
 
     /// <summary>

@@ -25,16 +25,16 @@ namespace PluginSet.Core
         }
 
         [Obsolete("CustomCall cannot execute without plugin name, please call CustomCallWith instead", true)]
-        public void CustomCall(string func, Action<Result> callback = null, Dictionary<string, object> param = null)
+        public void CustomCall(string func, Action<Result> callback = null, string json = null)
         {
             throw new Exception("CustomCall cannot execute without plugin name, please call CustomCallWith instead");
         }
         
-        public void CustomCallWith(string pluginName, string func, Action<Result> callback = null, Dictionary<string, object> param = null)
+        public void CustomCallWith(string pluginName, string func, Action<Result> callback = null, string json = null)
         {
             if (CustomPlugins.TryGetValue(pluginName, out var plugin))
             {
-                plugin.CustomCall(func, callback, param);
+                plugin.CustomCall(func, callback, json);
                 return;
             }
             
