@@ -26,32 +26,32 @@ namespace PluginSet.Core
         {
         }
 
-        protected void AddEventListener(string eventName, Action callback)
+        public void AddEventListener(string eventName, Action callback)
         {
             dispatcher.AddEventListener(eventName, callback);
         }
         
-        protected void AddEventListener(string eventName, Action<PluginsEventContext> callback)
+        public void AddEventListener(string eventName, Action<PluginsEventContext> callback)
         {
             dispatcher.AddEventListener(eventName, callback);
         }
         
-        protected void RemoveEventListener(string eventName, Action callback)
+        public void RemoveEventListener(string eventName, Action callback)
         {
             dispatcher.RemoveEventListener(eventName, callback);
         }
         
-        protected void RemoveEventListener(string eventName, Action<PluginsEventContext> callback)
+        public void RemoveEventListener(string eventName, Action<PluginsEventContext> callback)
         {
             dispatcher.RemoveEventListener(eventName, callback);
         }
 
-        protected void RemoveEventListeners(string eventName)
+        public void RemoveEventListeners(string eventName)
         {
             dispatcher.RemoveEventListeners(eventName);
         }
         
-        protected void RemoveEventListeners()
+        public void RemoveEventListeners()
         {
             dispatcher.RemoveEventListeners();
         }
