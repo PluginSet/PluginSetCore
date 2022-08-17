@@ -81,7 +81,7 @@ namespace PluginSet.Core
                 return;
             }
 
-            InvalidCallback(callback, pluginName);
+//            InvalidCallback(callback, pluginName);
         }
 
         public void RemoveNewMessageReceiveCallbackWith(string pluginName, Action<Result> callback)
@@ -92,7 +92,7 @@ namespace PluginSet.Core
                 return;
             }
 
-            InvalidCallback(callback, pluginName);
+//            InvalidCallback(callback, pluginName);
         }
     }
 }

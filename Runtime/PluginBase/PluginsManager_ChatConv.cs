@@ -112,7 +112,7 @@ namespace PluginSet.Core
                 return;
             }
 
-            InvalidCallback(callback, pluginName);
+//            InvalidCallback(callback, pluginName);
         }
 
         public void RemoveNewConvCallbackWith(string pluginName, Action<Result> callback)
@@ -123,7 +123,7 @@ namespace PluginSet.Core
                 return;
             }
 
-            InvalidCallback(callback, pluginName);
+//            InvalidCallback(callback, pluginName);
         }
         
         public void DeleteConvWith(string pluginName, string convId, Action<Result> callback = null)

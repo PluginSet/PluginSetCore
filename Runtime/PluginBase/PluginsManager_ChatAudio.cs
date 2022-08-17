@@ -80,7 +80,7 @@ namespace PluginSet.Core
                 return;
             }
             
-            InvalidCallback(callback, pluginName);
+//            InvalidCallback(callback, pluginName);
         }
 
         public void RemoveRemoteStateChangeCallbackWith(string pluginName, Action<Result> callback)
@@ -91,7 +91,7 @@ namespace PluginSet.Core
                 return;
             }
             
-            InvalidCallback(callback, pluginName);
+//            InvalidCallback(callback, pluginName);
         }
         
         public bool IsRemoteMuteWith(string pluginName, string userId)
