@@ -41,7 +41,7 @@ namespace PluginSet.Core
 
     public static class Global
     {
-        public delegate void CopyFileDelegate(string dst, string src);
+        public delegate void CopyFileDelegate(string src, string dst);
         public delegate bool FilterDelegate(string name);
 
         public static IEnumerable<Type> GetAllTypes(string assemblyName = null, bool excludeGen = false)
@@ -708,7 +708,7 @@ namespace PluginSet.Core
             }
         }
 
-        public static void CopyDependenciesFileInLib(string libName, string fileName, string pathName = "Dependencies")
+        public static void CopyDependenciesFileInLib(string libName, string fileName, string pathName = "Dependencies", CopyFileDelegate @delegate = null)
         {
             var libPath = GetPackageFullPath(libName);
             if (string.IsNullOrEmpty(libPath))
@@ -725,7 +725,7 @@ namespace PluginSet.Core
             }
             
             var dependenciesPath = Path.Combine(Application.dataPath, "PluginDependencies", "Editor");
-            CopyFileTo(fileFullPath, dependenciesPath);
+            CopyFileTo(fileFullPath, dependenciesPath, @delegate);
         }
         
         public static Dictionary<string, string> GetCommandParams(string[] args, string param_start = "-")
