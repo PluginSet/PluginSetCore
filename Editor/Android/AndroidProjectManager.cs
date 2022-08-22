@@ -147,6 +147,7 @@ namespace PluginSet.Core.Editor
                 throw new BuildException("No find main activity node in manifest!");
 
             mainActivity.SetAttribute("name", AndroidConst.NS_URI, activityName);
+            mainActivity.SetAttribute("exported", AndroidConst.NS_URI, "true");
         }
 
         public void AddApplicationPlugin(string key, string pluginFullName)
