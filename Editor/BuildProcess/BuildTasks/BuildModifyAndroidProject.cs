@@ -48,8 +48,20 @@ namespace PluginSet.Core.Editor
             }
 
             Global.CallCustomOrderMethods<AndroidProjectModifyAttribute, BuildToolsAttribute>(context, projectManager);
+            RemoveDebuggable(projectManager.LibraryManifest);
+            RemoveDebuggable(projectManager.LauncherManifest);
             projectManager.Save();
 #endif
+        }
+
+        private static void RemoveDebuggable(XmlDocument doc)
+        {
+            // debuggable
+            var element = doc.findFirstElement(AndroidConst.META_DATA_PARENT);
+            if (element.HasAttribute("debuggable", AndroidConst.NS_URI))
+            {
+                element.SetAttribute("debuggable", AndroidConst.NS_URI, "false");
+            }
         }
 
 #if ENABLE
