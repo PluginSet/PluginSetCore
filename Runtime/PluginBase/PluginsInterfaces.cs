@@ -526,7 +526,7 @@ namespace PluginSet.Core
 
     public interface IAudioRecorder: IPluginBase
     {
-        void StartRecording(string json, Action<Result> callback = null);
+        void StartRecording(string json, Action<Result> callback = null, Action<int> volumeCallback = null);
 
         void StopRecording();
 
