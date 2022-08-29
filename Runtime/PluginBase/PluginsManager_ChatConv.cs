@@ -46,17 +46,17 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
-        public string SendConvTextMessage(string userId, string content, Action<Result> callback = null)
+        public string SendConvTextMessage(string userId, string content, string extra = null, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
 
-        public string SendConvSoundMessage(string userId, string soundPath, int duration, Action<Result> callback = null)
+        public string SendConvSoundMessage(string userId, string soundPath, int duration, string extra = null, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
 
-        public string SendConvCustomMessage(string userId, string customType, string content, Action<Result> callback = null)
+        public string SendConvCustomMessage(string userId, string customType, string content, string extra = null, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
@@ -148,33 +148,33 @@ namespace PluginSet.Core
             InvalidCallback(callback, pluginName);
         }
 
-        public string SendConvTextMessageWith(string pluginName, string userId, string content, Action<Result> callback = null)
+        public string SendConvTextMessageWith(string pluginName, string userId, string content, string extra = null, Action<Result> callback = null)
         {
             if (ChatConvs.TryGetValue(pluginName, out var plugin))
             {
-                return plugin.SendConvTextMessage(userId, content, callback);
+                return plugin.SendConvTextMessage(userId, content, extra, callback);
             }
 
             InvalidCallback(callback, pluginName);
             return null;
         }
         
-        public string SendConvSoundMessageWith(string pluginName, string userId, string soundPath, int duration, Action<Result> callback = null)
+        public string SendConvSoundMessageWith(string pluginName, string userId, string soundPath, int duration, string extra = null, Action<Result> callback = null)
         {
             if (ChatConvs.TryGetValue(pluginName, out var plugin))
             {
-                return plugin.SendConvSoundMessage(userId, soundPath, duration, callback);
+                return plugin.SendConvSoundMessage(userId, soundPath, duration, extra, callback);
             }
 
             InvalidCallback(callback, pluginName);
             return null;
         }
 
-        public string SendConvCustomMessageWith(string pluginName, string userId, string customType, string content, Action<Result> callback = null)
+        public string SendConvCustomMessageWith(string pluginName, string userId, string customType, string content, string extra = null, Action<Result> callback = null)
         {
             if (ChatConvs.TryGetValue(pluginName, out var plugin))
             {
-                return plugin.SendConvCustomMessage(userId, customType, content, callback);
+                return plugin.SendConvCustomMessage(userId, customType, content, extra, callback);
             }
 
             InvalidCallback(callback, pluginName);

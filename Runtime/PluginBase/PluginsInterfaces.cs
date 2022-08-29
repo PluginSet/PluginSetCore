@@ -386,11 +386,11 @@ namespace PluginSet.Core
         
         void GetConvList(Action<Result> callback);
 
-        string SendConvTextMessage(string userId, string content, Action<Result> callback = null);
+        string SendConvTextMessage(string userId, string content, string extra = null, Action<Result> callback = null);
         
-        string SendConvSoundMessage(string userId, string soundPath, int duration, Action<Result> callback = null);
+        string SendConvSoundMessage(string userId, string soundPath, int duration, string extra = null, Action<Result> callback = null);
 
-        string SendConvCustomMessage(string userId, string customType, string content, Action<Result> callback = null);
+        string SendConvCustomMessage(string userId, string customType, string content, string extra = null, Action<Result> callback = null);
 
         void CancelSendConvMessage(string userId, string messageId, Action<Result> callback = null);
         
@@ -423,11 +423,11 @@ namespace PluginSet.Core
 
         void QuitGroup(string groupId, Action<Result> callback = null);
         
-        string SendGroupTextMessage(string groupId, string content, Action<Result> callback = null);
+        string SendGroupTextMessage(string groupId, string content, string extra = null, Action<Result> callback = null);
         
-        string SendGroupSoundMessage(string groupId, string soundPath, int duration, Action<Result> callback = null);
+        string SendGroupSoundMessage(string groupId, string soundPath, int duration, string extra = null, Action<Result> callback = null);
 
-        string SendGroupCustomMessage(string groupId, string customType, string content, Action<Result> callback = null);
+        string SendGroupCustomMessage(string groupId, string customType, string content, string extra = null, Action<Result> callback = null);
 
         void CancelSendGroupMessage(string groupId, string messageId, Action<Result> callback = null);
         

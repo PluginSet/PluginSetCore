@@ -55,17 +55,17 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
-        public string SendGroupTextMessage(string groupId, string content, Action<Result> callback = null)
+        public string SendGroupTextMessage(string groupId, string content, string extra = null, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
 
-        public string SendGroupSoundMessage(string groupId, string soundPath, int duration, Action<Result> callback = null)
+        public string SendGroupSoundMessage(string groupId, string soundPath, int duration, string extra = null, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
 
-        public string SendGroupCustomMessage(string groupId, string customType, string content, Action<Result> callback = null)
+        public string SendGroupCustomMessage(string groupId, string customType, string content, string extra = null, Action<Result> callback = null)
         {
             throw new NotImplementedException();
         }
@@ -178,33 +178,33 @@ namespace PluginSet.Core
             InvalidCallback(callback, pluginName);
         }
 
-        public string SendGroupTextMessageWith(string pluginName, string groupId, string content, Action<Result> callback = null)
+        public string SendGroupTextMessageWith(string pluginName, string groupId, string content, string extra = null, Action<Result> callback = null)
         {
             if (ChatGroups.TryGetValue(pluginName, out var plugin))
             {
-                return plugin.SendGroupTextMessage(groupId, content, callback);
+                return plugin.SendGroupTextMessage(groupId, content, extra, callback);
             }
 
             InvalidCallback(callback, pluginName);
             return null;
         }
         
-        public string SendGroupSoundMessageWith(string pluginName, string groupId, string soundPath, int duration, Action<Result> callback = null)
+        public string SendGroupSoundMessageWith(string pluginName, string groupId, string soundPath, int duration, string extra = null, Action<Result> callback = null)
         {
             if (ChatGroups.TryGetValue(pluginName, out var plugin))
             {
-                return plugin.SendGroupSoundMessage(groupId, soundPath, duration, callback);
+                return plugin.SendGroupSoundMessage(groupId, soundPath, duration, extra, callback);
             }
 
             InvalidCallback(callback, pluginName);
             return null;
         }
 
-        public string SendGroupCustomMessageWith(string pluginName, string groupId, string customType, string content, Action<Result> callback = null)
+        public string SendGroupCustomMessageWith(string pluginName, string groupId, string customType, string content, string extra = null, Action<Result> callback = null)
         {
             if (ChatGroups.TryGetValue(pluginName, out var plugin))
             {
-                return plugin.SendGroupCustomMessage(groupId, customType, content, callback);
+                return plugin.SendGroupCustomMessage(groupId, customType, content, extra, callback);
             }
 
             InvalidCallback(callback, pluginName);
