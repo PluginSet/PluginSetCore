@@ -27,6 +27,14 @@ namespace PluginSet.Core
 
         public bool IsEnablePayment => GetValidLoginTypes().Length > 0;
 
+        public bool IsEnablePayWith(string pluginName)
+        {
+            if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnablePayment;
+
+            return false;
+        }
+
         public string[] GetPayTypes()
         {
             return PaymentPlugins.Keys.ToArray();
