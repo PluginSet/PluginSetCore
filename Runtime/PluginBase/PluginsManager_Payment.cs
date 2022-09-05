@@ -99,7 +99,6 @@ namespace PluginSet.Core
         {
             Logger.Error("Cannot call PaymentComplete without plugin name");
         }
-
         public void PaymentCompleteWith(string pluginName, string transactionId)
         {
             if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
@@ -108,6 +107,39 @@ namespace PluginSet.Core
                     purchasePlugin.PaymentComplete(transactionId);
                 else
                     Logger.Warn($"Payment plugin {pluginName} need not call PaymentComplete");
+            }
+        }
+
+        public void AddOnPaymentCompleted(Action<string> completed)
+        {
+            Logger.Error("Cannot call AddOnPaymentCompleted without plugin name");
+        }
+
+        public void RemoveOnPaymentCompleted(Action<string> completed)
+        {
+            Logger.Error("Cannot call RemoveOnPaymentCompleted without plugin name");
+        }
+
+
+        public void AddOnPaymentCompletedWith(string pluginName, Action<string> completed)
+        {
+            if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
+            {
+                if (plugin is IIAPurchasePlugin purchasePlugin)
+                    purchasePlugin.AddOnPaymentCompleted(completed);
+                else
+                    Logger.Warn($"Payment plugin {pluginName} need not call AddOnPaymentCompleted");
+            }
+        }
+
+        public void RemoveOnPaymentCompletedWith(string pluginName, Action<string> completed)
+        {
+            if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
+            {
+                if (plugin is IIAPurchasePlugin purchasePlugin)
+                    purchasePlugin.RemoveOnPaymentCompleted(completed);
+                else
+                    Logger.Warn($"Payment plugin {pluginName} need not call RemoveOnPaymentCompleted");
             }
         }
     }

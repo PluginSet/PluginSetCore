@@ -164,6 +164,10 @@ namespace PluginSet.Core
         void InitWithProducts(Dictionary<string, int> products);
 
         void PaymentComplete(string transactionId);
+
+        void AddOnPaymentCompleted(Action<string> completed);
+        
+        void RemoveOnPaymentCompleted(Action<string> completed);
     }
 
     public interface ISharePlugin : IPluginBase
