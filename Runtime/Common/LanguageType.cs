@@ -177,5 +177,9 @@ namespace PluginSet.Core
         ///   <para>Uyghur.</para>
         /// </summary>
         Uyghur = 65, // 0000041
+        /// <summary>
+        ///   <para>Kazakh.</para>
+        /// </summary>
+        Kazakh = 66, // 0000042
     }
 }
