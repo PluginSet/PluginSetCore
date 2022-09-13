@@ -26,6 +26,7 @@ namespace PluginSet.Core
         public string Error;
         public string PluginName;
         public string Data;
+        public object DataObject;
     }
 
     public struct ReportError
