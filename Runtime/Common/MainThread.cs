@@ -6,6 +6,8 @@ namespace PluginSet.Core
 {
     public class MainThread: MonoBehaviour
     {
+        private static Logger Logger = LoggerManager.GetLogger("MainThread");
+        
         private static MainThread _instance;
 
         private static MainThread CreateInstance()
@@ -65,8 +67,15 @@ namespace PluginSet.Core
 
                     next = _actions.Dequeue();
                 }
-                
-                next.Invoke();
+
+                try
+                {
+                    next.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Logger.Error($"Action invoke error {e.Message}, {e}");
+                }
             }
         }
 
