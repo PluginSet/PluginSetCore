@@ -18,6 +18,7 @@ namespace PluginSet.Core
         private Action<string> _onGranted;
         private Action<string> _onDenied;
         private Action<string> _onDeniedAlways;
+        private Action<bool> _onCompleted;
 
         public int Result { get; private set; }
 
@@ -25,7 +26,8 @@ namespace PluginSet.Core
             object threadLock,
             Action<string> onGranted,
             Action<string> onDenied,
-            Action<string> onDeniedAlways)
+            Action<string> onDeniedAlways,
+            Action<bool> onCompleted)
             : base("com.pluginset.devices.IPermissionRequestCallback")
         {
             Result = -1;
@@ -34,31 +36,49 @@ namespace PluginSet.Core
             _onGranted = onGranted;
             _onDenied = onDenied;
             _onDeniedAlways = onDeniedAlways ?? onDenied;
+            _onCompleted = onCompleted;
         }
 
         public void onGranted(string permission)
         {
-            _onGranted?.Invoke(permission);
+            MainThread.Run(delegate
+            {
+                _onGranted?.Invoke(permission);
+            });
         }
 
         public void onDenied(string permission)
         {
-            _onDenied?.Invoke(permission);
+            MainThread.Run(delegate
+            {
+                _onDenied?.Invoke(permission);
+            });
         }
 
         public void onDeniedAlways(string permission)
         {
-            _onDeniedAlways?.Invoke(permission);
+            MainThread.Run(delegate
+            {
+                _onDeniedAlways?.Invoke(permission);
+            });
         }
 
         public void onCompleted(bool allGranted)
         {
             Result = allGranted ? 1 : 0;
-            
-            lock (_threadLock)
+
+            if (_threadLock != null)
             {
-                Monitor.Pulse(_threadLock);
+                lock (_threadLock)
+                {
+                    Monitor.Pulse(_threadLock);
+                }
             }
+            
+            MainThread.Run(delegate
+            {
+                _onCompleted?.Invoke(allGranted);
+            });
         }
     }
 }

@@ -200,13 +200,23 @@ namespace PluginSet.Core
             object threadLock = new object();
             lock (threadLock)
             {
-                PermissionRequestCallback callback = new PermissionRequestCallback(threadLock, onGranted, onDenied, onDeniedAlways);
+                PermissionRequestCallback callback = new PermissionRequestCallback(threadLock, onGranted, onDenied, onDeniedAlways, null);
                 Utils.CallStatic("RequestPermissions", CurrentActivity, permission, callback);
                 if (callback.Result == -1)
                     System.Threading.Monitor.Wait( threadLock );
 
                 return callback.Result == 1;
             }
+        }
+        
+        public static void RequestPermissionsAsync(string permission
+            , Action<string> onGranted = null
+            , Action<string> onDenied = null
+            , Action<string> onDeniedAlways = null
+            , Action<bool> onCompleted = null)
+        {
+            PermissionRequestCallback callback = new PermissionRequestCallback(null, onGranted, onDenied, onDeniedAlways, onCompleted);
+            Utils.CallStatic("RequestPermissions", CurrentActivity, permission, callback);
         }
     }
 }
