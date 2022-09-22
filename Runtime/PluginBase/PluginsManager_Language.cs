@@ -40,7 +40,22 @@ namespace PluginSet.Core
 
         public LanguageType CurrentLanguage =>
             MultipleLanguages.First()?.CurrentLanguage ?? (LanguageType)Application.systemLanguage;
-        
+
+        public LanguageType[] ValidLanguages =>
+            MultipleLanguages.First()?.ValidLanguages ?? new[] {(LanguageType) Application.systemLanguage};
+
+        public string GetLanguageFlag(LanguageType lang)
+        {
+            foreach (var plugin in MultipleLanguages)
+            {
+                var result = plugin.GetLanguageFlag(lang);
+                if (!string.IsNullOrEmpty(result))
+                    return result;
+            }
+
+            return null;
+        }
+
         public bool SetCurrentLanguage(LanguageType language)
         {
             bool changed = false;

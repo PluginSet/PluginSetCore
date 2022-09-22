@@ -356,6 +356,10 @@ namespace PluginSet.Core
     public interface IMultipleLanguage : IPluginBase
     {
         LanguageType CurrentLanguage { get; }
+        
+        LanguageType[] ValidLanguages { get; }
+
+        string GetLanguageFlag(LanguageType lang);
 
         /// <summary>
         /// change language and return is changed
