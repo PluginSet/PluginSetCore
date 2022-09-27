@@ -35,6 +35,11 @@ namespace PluginSet.Core
             throw new NotImplementedException();
         }
 
+        public void SetMessageLocalData(string messageId, int? intData = null, string stringData = null, Action<Result> callback = null)
+        {
+            throw new NotImplementedException();
+        }
+        
         public void AddNewMessageReceiveCallback(Action<Result> callback)
         {
             foreach (var plugin in ChatBasePlugins.Values)
@@ -93,6 +98,16 @@ namespace PluginSet.Core
             }
 
 //            InvalidCallback(callback, pluginName);
+        }
+        
+        public void SetMessageLocalDataWith(string pluginName, string messageId, int? intData = null, string stringData = null, Action<Result> callback = null)
+        {
+            if (ChatBasePlugins.TryGetValue(pluginName, out var plugin))
+            {
+                plugin.SetMessageLocalData(messageId, intData, stringData, callback);
+            }
+
+            InvalidCallback(callback, pluginName);
         }
     }
 }

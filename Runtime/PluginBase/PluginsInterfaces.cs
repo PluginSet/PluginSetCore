@@ -383,6 +383,9 @@ namespace PluginSet.Core
         void AddNewMessageReceiveCallback(Action<Result> callback);
         
         void RemoveNewMessageReceiveCallback(Action<Result> callback);
+
+        void SetMessageLocalData(string messageId, int? intData = null, string stringData = null,
+            Action<Result> callback = null);
     }
 
     public interface IChatConv : IChatBase
