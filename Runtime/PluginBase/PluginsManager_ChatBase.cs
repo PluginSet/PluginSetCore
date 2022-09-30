@@ -105,6 +105,7 @@ namespace PluginSet.Core
             if (ChatBasePlugins.TryGetValue(pluginName, out var plugin))
             {
                 plugin.SetMessageLocalData(messageId, intData, stringData, callback);
+                return;
             }
 
             InvalidCallback(callback, pluginName);
