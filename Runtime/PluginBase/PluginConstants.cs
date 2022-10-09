@@ -113,5 +113,6 @@ namespace PluginSet.Core
         public const string FRIEND_DELETE_FRIEND = "FRIEND_DELETE_FRIEND";
         public const string FRIEND_UPDATE_PROFILE = "FRIEND_UPDATE_PROFILE";
         public const string FRIEND_ADD_REQUEST = "FRIEND_ADD_REQUEST";
+        public const string FRIEND_REQUEST_DELETE = "FRIEND_REQUEST_DELETE";
     }
 }
