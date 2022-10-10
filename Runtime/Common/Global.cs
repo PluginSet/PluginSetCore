@@ -8,7 +8,9 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
+#if UNITY_IOS
 using UnityEditor.iOS.Xcode;
+#endif
 using UnityEditor.PackageManager;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -813,6 +815,7 @@ namespace PluginSet.Core
             return result;
         }
 
+#if UNITY_IOS
         public static void EnableSwiftCompile(PBXProject project, string projectPath, string xcodeTarget)
         {
             // 首先需要一个空的Swift文件
@@ -831,6 +834,7 @@ namespace PluginSet.Core
             //project.SetBuildProperty(xcodeTarget, "EMBEDDED_CONTENT_CONTAINS_SWIFT", "YES");
             project.SetBuildProperty(xcodeTarget, "SWIFT_VERSION", "4.0");
         }
+#endif
         
         public static bool CheckGitLibImported(string libName, string gitHttpAddress)
         {
