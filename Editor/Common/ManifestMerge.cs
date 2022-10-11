@@ -78,6 +78,23 @@ namespace PluginSet.Core.Editor
             return element;
         }
 
+        public static XmlElement FindOrAddProvider(this XmlDocument main, string name)
+        {
+            var list = main.findElements(AndroidConst.PROVIDER_PATH, AndroidConst.NS_PREFIX, "name", name);
+            XmlElement element;
+            if (list.Count <= 0)
+            {
+                element = main.createElementWithPath(AndroidConst.PROVIDER_PATH);
+                element.SetAttribute("name", AndroidConst.NS_URI, name);
+            }
+            else
+            {
+                element = list[0];
+            }
+
+            return element;
+        }
+
         private static void insertComment(this XmlElement node, string msg)
         {
             var parent = node.ParentNode;
