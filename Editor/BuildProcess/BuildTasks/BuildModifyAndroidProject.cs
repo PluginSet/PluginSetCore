@@ -51,7 +51,6 @@ namespace PluginSet.Core.Editor
             RemoveDebuggable(projectManager.LibraryManifest);
             RemoveDebuggable(projectManager.LauncherManifest);
             projectManager.Save();
-#endif
         }
 
         private static void RemoveDebuggable(XmlDocument doc)
@@ -62,6 +61,7 @@ namespace PluginSet.Core.Editor
             {
                 element.SetAttribute("debuggable", AndroidConst.NS_URI, "false");
             }
+#endif
         }
 
 #if ENABLE
