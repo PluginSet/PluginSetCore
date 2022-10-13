@@ -7,9 +7,15 @@ using UnityEngine;
 
 namespace PluginSet.Core
 {
+    [AttributeUsage(AttributeTargets.Assembly)]
+    public class PluginIncludeAttribute : Attribute
+    {
+        
+    }
+    
     // 只对PluginSet开头的Assembly中的类有效
     [AttributeUsage(AttributeTargets.Class)]
-    public class PluginRegister : Attribute
+    public class PluginRegisterAttribute : Attribute
     {
     }
 
@@ -21,9 +27,10 @@ namespace PluginSet.Core
 
         static PluginsManager()
         {
-            var registerType = typeof(PluginRegister);
+            var includeType = typeof(PluginIncludeAttribute);
+            var registerType = typeof(PluginRegisterAttribute);
             PluginTypes = (from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                where assembly.FullName.StartsWith("PluginSet")
+                where assembly.IsDefined(includeType, true)
                 from type in assembly.GetTypes()
                 where type.IsDefined(registerType, false)
                 select type).ToList();
