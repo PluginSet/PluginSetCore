@@ -15,7 +15,9 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
         {
             SetEnableAutoResolution(false);
 
-            IOSResolver.PodfileAlwaysAddMainTarget = false;
+            IOSResolver.PodfileStaticLinkFrameworks = false;
+            IOSResolver.PodfileAlwaysAddMainTarget = true;
+            IOSResolver.PodfileAllowPodsInMultipleTargets = false;
         }
 
         private static void SetEnableAutoResolution(bool value)
