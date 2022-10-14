@@ -762,15 +762,15 @@ namespace PluginSet.Core
 
                     lastKey = null;
                 }
-                
-                if (!string.IsNullOrEmpty(lastKey))
+            }
+            
+            if (!string.IsNullOrEmpty(lastKey))
+            {
+                if (result.ContainsKey(lastKey))
                 {
-                    if (result.ContainsKey(lastKey))
-                    {
-                        throw new Exception("Multiple key setting in args:: " + string.Join(" ", args));
-                    }
-                    result.Add(lastKey, "");
+                    throw new Exception("Multiple key setting in args:: " + string.Join(" ", args));
                 }
+                result.Add(lastKey, "");
             }
 
             return result;
