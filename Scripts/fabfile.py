@@ -359,6 +359,7 @@ class BuildConfig(object):
     scheme = ""
     bundle_id = ""
     sign_style = ""
+    bite_code = False
     method = ""
     profile = ""
     cert = ""
@@ -416,6 +417,7 @@ class BuildConfig(object):
         self.sign_style = build_type_obj.get("signStyle")
         self.profile = build_type_obj.get("profile")
         self.cert = build_type_obj.get("cert")
+        self.bite_code = build_type_obj.get("biteCode")
 
     def get_derived_data_path(self):
         return os.path.join(self.path_output, "tmp", str(self.build_num))
@@ -552,7 +554,7 @@ class BuildToolIOS(object):
                 self.build_config.bundle_id: self.build_config.profile
             },
             "method": method,
-            "compileBitcode": True
+            "compileBitcode": self.build_config.bite_code
         }
         print(plist_dict)
         if os.path.exists(plist_file):
