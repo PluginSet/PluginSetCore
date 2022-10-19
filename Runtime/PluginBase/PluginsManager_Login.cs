@@ -51,6 +51,14 @@ namespace PluginSet.Core
 
             return false;
         }
+        
+        public bool IsEnableLoginWith(string pluginName)
+        {
+            if (LoginPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnableLogin;
+
+            return false;
+        }
 
         public void Login(Action<Result> callback = null)
         {

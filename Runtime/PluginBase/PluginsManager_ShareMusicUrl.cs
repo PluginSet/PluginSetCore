@@ -35,6 +35,14 @@ namespace PluginSet.Core
         {
             return ShareMusicUrlPlugins.Where(kv => kv.Value.IsEnableShare).Select(kv => kv.Key).ToArray();
         }
+        
+        public bool IsEnableShareMusicUrlWith(string pluginName)
+        {
+            if (ShareMusicUrlPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnableShare;
+
+            return false;
+        }
 
         public void ShareMusicUrl(string musicUrl, Action success = null, Action fail = null
             , string title = null, string desc = null, string image = null)

@@ -35,6 +35,14 @@ namespace PluginSet.Core
         {
             return ShareImagePlugins.Where(kv => kv.Value.IsEnableShare).Select(kv => kv.Key).ToArray();
         }
+        
+        public bool IsEnableShareImageWith(string pluginName)
+        {
+            if (ShareImagePlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnableShare;
+
+            return false;
+        }
 
         public void ShareImage(string imagePath, Action success = null, Action fail = null
             , string title = null, string desc = null, string image = null)

@@ -35,6 +35,14 @@ namespace PluginSet.Core
         {
             return ShareWebPagePlugins.Where(kv => kv.Value.IsEnableShare).Select(kv => kv.Key).ToArray();
         }
+        
+        public bool IsEnableShareWebPageWith(string pluginName)
+        {
+            if (ShareWebPagePlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnableShare;
+
+            return false;
+        }
 
         public void ShareWebPage(string webUrl, Action success = null, Action fail = null
             , string title = null, string desc = null,string image = null)

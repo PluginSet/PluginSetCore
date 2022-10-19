@@ -37,6 +37,14 @@ namespace PluginSet.Core
         {
             return ShareTextPlugins.Where(kv => kv.Value.IsEnableShare).Select(kv => kv.Key).ToArray();
         }
+        
+        public bool IsEnableShareTextWith(string pluginName)
+        {
+            if (ShareTextPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnableShare;
+
+            return false;
+        }
 
         public void ShareText(string text, Action success = null, Action fail = null
             , string title = null, string image = null)

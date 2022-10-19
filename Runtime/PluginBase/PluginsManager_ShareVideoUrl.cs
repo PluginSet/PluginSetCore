@@ -35,6 +35,14 @@ namespace PluginSet.Core
         {
             return ShareVideoUrlPlugins.Where(kv => kv.Value.IsEnableShare).Select(kv => kv.Key).ToArray();
         }
+        
+        public bool IsEnableShareVideoUrlWith(string pluginName)
+        {
+            if (ShareVideoUrlPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnableShare;
+
+            return false;
+        }
 
         public void ShareVideoUrl(string videoUrl, Action success = null, Action fail = null, string extra = null, string title = null,
             string desc = null, string image = null)

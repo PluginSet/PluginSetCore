@@ -35,6 +35,14 @@ namespace PluginSet.Core
         {
             return ShareMiniProgramPlugins.Where(kv => kv.Value.IsEnableShare).Select(kv => kv.Key).ToArray();
         }
+        
+        public bool IsEnableShareMiniProgramWith(string pluginName)
+        {
+            if (ShareMiniProgramPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsEnableShare;
+
+            return false;
+        }
 
         public void ShareMiniProgram(string url, string path, string appId, Action success = null, Action fail = null,
             string title = null, string desc = null, string image = null)
