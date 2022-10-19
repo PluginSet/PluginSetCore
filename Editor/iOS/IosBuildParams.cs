@@ -62,7 +62,7 @@ namespace PluginSet.Core.Editor
             
             Match match3 = Regex.Match(input, s_PatternSpecifier, RegexOptions.Singleline);
             if (match3.Success)
-                profileSpecifier = match1.Groups[1].Value;
+                profileSpecifier = match3.Groups[1].Value;
             else
                 profileSpecifier = string.Empty;
 
