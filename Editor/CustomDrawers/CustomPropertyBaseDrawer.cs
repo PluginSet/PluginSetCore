@@ -28,7 +28,12 @@ namespace PluginSet.Core.Editor
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             if (IsVisible(property))
-                return EditorGUIUtility.singleLineHeight;
+            {
+                if (property.hasVisibleChildren && property.isExpanded)
+                    return property.CountInProperty() * EditorGUIUtility.singleLineHeight + 10f;
+                else
+                    return EditorGUIUtility.singleLineHeight;
+            }
             
             return 0f;
         }

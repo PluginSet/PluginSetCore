@@ -1,3 +1,4 @@
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +8,10 @@ namespace PluginSet.Core.Editor
     {
         protected override void PropertyField(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.PropertyField(position, property, label);
+            if (property.hasVisibleChildren && property.isExpanded)
+                EditorGUI.PropertyField(position, property, label, true);
+            else
+                EditorGUI.PropertyField(position, property, label, false);
         }
     }
 }

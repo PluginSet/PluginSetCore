@@ -7,6 +7,7 @@ namespace PluginSet.Core.Editor
 {
     public class BuildModifyIOSProject: IBuildProcessorTask
     {
+        
         [Serializable]
         private struct BuildTypeInfo
         {
