@@ -114,7 +114,7 @@ namespace PluginSet.Core.Editor
                             signStyle = iosParams.AutomaticallySign ? "automatic" : "manual",
                             profile = iosParams.AppStoreBuildProfile.ProfileId,
                             cert = iosParams.AppStoreBuildProfile.CodeSignIdentity,
-                            biteCode = pbxProject.GetBuildPropertyForConfig("ReleaseForProfiling", "ENABLE_BITCODE").Equals("YES"),
+                            biteCode = false,
                         },
                     adHoc = new BuildTypeInfo
                         {
@@ -124,7 +124,7 @@ namespace PluginSet.Core.Editor
                             signStyle = iosParams.AutomaticallySign ? "automatic" : "manual",
                             profile = iosParams.AdHocBuildProfile.ProfileId,
                             cert = iosParams.AdHocBuildProfile.CodeSignIdentity,
-                            biteCode = pbxProject.GetBuildPropertyForConfig("ReleaseForRunning", "ENABLE_BITCODE").Equals("YES"),
+                            biteCode = false,
                         },
                 }
             };
