@@ -95,10 +95,10 @@ namespace PluginSet.Core.Editor
             {
                 foreach (var name in pbxProject.BuildConfigNames())
                 {
-                    pbxProject.SetBuildPropertyForConfig(name, "CODE_SIGN_IDENTITY", "iPhone Distribution");
-                    pbxProject.SetBuildPropertyForConfig(name, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", appStoreProfile.CodeSignIdentity);
-                    pbxProject.SetBuildPropertyForConfig(name, "PROVISIONING_PROFILE_APP", appStoreProfile.ProfileId);
-                    pbxProject.SetBuildPropertyForConfig(name, "PROVISIONING_PROFILE_SPECIFIER", appStoreProfile.ProfileSpecifier);
+                    pbxProject.AddBuildPropertyForConfig(name, "CODE_SIGN_IDENTITY", "iPhone Distribution");
+                    pbxProject.AddBuildPropertyForConfig(name, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", appStoreProfile.CodeSignIdentity);
+                    pbxProject.AddBuildPropertyForConfig(name, "PROVISIONING_PROFILE_APP", appStoreProfile.ProfileId);
+                    pbxProject.AddBuildPropertyForConfig(name, "PROVISIONING_PROFILE_SPECIFIER", appStoreProfile.ProfileSpecifier);
                 }
             }
             project.Save();
