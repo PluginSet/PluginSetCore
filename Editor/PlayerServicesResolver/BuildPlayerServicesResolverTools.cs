@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using PluginSet.Core;
 using PluginSet.Core.Editor;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEngine;
 
 namespace PluginSet.Tool.PlayerServicesResolver.Editor
@@ -95,5 +96,20 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
             }
         }
             
+//#if !UNITY_IOS
+//        [PostProcessBuild(100)]
+//        public static void OnPostProcessAfterGenPodfile(BuildTarget buildTarget, string pathToBuiltProject)
+//        {
+//            if (buildTarget != BuildTarget.iOS)
+//                return;
+//            
+//            string projectPath = Google.IOSResolver.GetProjectPath(pathToBuiltProject);
+//            var pbxProject = new UnityEditor.iOS.Xcode.PBXProject();
+//            pbxProject.ReadFromString(File.ReadAllText(projectPath));
+//            var value = pbxProject.GetBuildPropertyForConfig();
+//            
+//
+//        }
+//#endif
     }
 }
