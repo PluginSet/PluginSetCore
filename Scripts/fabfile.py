@@ -775,6 +775,13 @@ def podInstall(project_path:str)->str:
     return os.path.join(project_path, "Unity-iPhone.xcworkspace")
 
 
+@task(help={
+    "ios_project_path": "项目目录",
+    "version_name": "版本名称",
+    "build_number": "版本号",
+    "debug": "调试模式",
+    "buildType": "构建方式: adHoc appStore"
+})
 def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:bool, buildType="adHoc"):
     project = podInstall(ios_project_path)
     configuration = "debug" if debug else "release"
