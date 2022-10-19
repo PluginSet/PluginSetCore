@@ -1,7 +1,4 @@
-using System;
 using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,36 +9,6 @@ namespace PluginSet.Core.Editor
     [VisibleCaseBoolValue("SupportIOS", true)]
     public class IosBuildParams: ScriptableObject
     {
-        private static readonly string s_PatternTeamID = "<key>TeamIdentifier<\\/key>[\n\t]*<array>[\n\t]*<string>((\\w*\\-?){5})";
-        private static readonly string s_PatternUUID = "<key>UUID<\\/key>[\n\t]*<string>((\\w*\\-?){5})";
-        private static readonly string s_PatternDeveloperCertificates = "<key>DeveloperCertificates<\\/key>[\n\t]*<array>[\n\t]*<data>([\\w\\/+=]+)<\\/data>";
-        private static readonly string s_DistributionPattern = "iPhone Distribution: ";
-
-        private static string ParseFile(string filePath, out string profileId, out ProvisioningProfileType type)
-        {
-            string input = File.ReadAllText(filePath);
-            Match match1 = Regex.Match(input, s_PatternUUID, RegexOptions.Singleline);
-            if (match1.Success)
-                profileId = match1.Groups[1].Value;
-            else
-                profileId = string.Empty;
-            
-            Match match2 = Regex.Match(input, s_PatternDeveloperCertificates, RegexOptions.Singleline);
-            if (match2.Success)
-                type = !Encoding.UTF8.GetString(Convert.FromBase64String(match2.Groups[1].Value))
-                    .Contains(s_DistributionPattern)
-                    ? ProvisioningProfileType.Development
-                    : ProvisioningProfileType.Distribution;
-            else
-                type = ProvisioningProfileType.Automatic;
-            
-            Match match3 = Regex.Match(input, s_PatternTeamID, RegexOptions.Singleline);
-            if (match3.Success)
-                return match3.Groups[1].Value;
-
-            return string.Empty;
-        }
-        
         [Tooltip("存储KeyChains时默认使用的services字符串")]
         public string KeyChainServices = "com.pluginset.core";
         
@@ -50,31 +17,19 @@ namespace PluginSet.Core.Editor
         
         [Tooltip("启动自动签名")]
         public bool AutomaticallySign;
+        
+        [Tooltip("appstore包对应的签名文件")]
+        [VisibleCaseBoolValue("AutomaticallySign", false)]
+        public BuildProvisioningProfile AppStoreBuildProfile;
 
-        [Tooltip("签名文件ID")]
+        [Tooltip("adHoc包对应的签名文件")]
         [VisibleCaseBoolValue("AutomaticallySign", false)]
-        [BrowserFile("选择文件", "mobileprovision")]
-        public string ProfileFile;
-        
-        [DisableEdit]
-        [VisibleCaseBoolValue("AutomaticallySign", false)]
-        public string ProfileId;
-        
-//        [DisableEdit]
-        [VisibleCaseBoolValue("AutomaticallySign", false)]
-        public ProvisioningProfileType ProfileType;
+        public BuildProvisioningProfile AdHocBuildProfile;
 
         private void OnValidate()
         {
-            if (string.IsNullOrEmpty(ProfileFile))
-                return;
-            
-            var teamId = ParseFile(Path.Combine(".", ProfileFile), out ProfileId, out ProfileType);
-            if (!string.IsNullOrEmpty(teamId) && !string.IsNullOrEmpty(TeamID) && !string.Equals(teamId, TeamID))
-            {
-                TeamID = teamId;
-                Debug.LogWarning($"Change teamId{TeamID} to {teamId} for matching provisioning profile");
-            }
+            BuildProvisioningProfile.OnUpdateProfile(ref AdHocBuildProfile);
+            BuildProvisioningProfile.OnUpdateProfile(ref AppStoreBuildProfile);
         }
 
         [OnSyncEditorSetting]
@@ -90,10 +45,10 @@ namespace PluginSet.Core.Editor
                 PlayerSettings.iOS.appleDeveloperTeamID = setting.TeamID;
             
             PlayerSettings.iOS.appleEnableAutomaticSigning = setting.AutomaticallySign;
-            if (!setting.AutomaticallySign && !string.IsNullOrEmpty(setting.ProfileId))
+            if (!setting.AutomaticallySign && !string.IsNullOrEmpty(setting.AppStoreBuildProfile.ProfileFile))
             {
-                PlayerSettings.iOS.iOSManualProvisioningProfileID = setting.ProfileId;
-                PlayerSettings.iOS.iOSManualProvisioningProfileType = setting.ProfileType;
+                PlayerSettings.iOS.iOSManualProvisioningProfileID = setting.AppStoreBuildProfile.ProfileId;
+                PlayerSettings.iOS.iOSManualProvisioningProfileType = setting.AppStoreBuildProfile.ProfileType;
             }
         }
 

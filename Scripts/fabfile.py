@@ -358,6 +358,7 @@ class BuildConfig(object):
     team_id = ""
     scheme = ""
     bundle_id = ""
+    sign_style = ""
     method = ""
     profile = ""
     cert = ""
@@ -412,6 +413,7 @@ class BuildConfig(object):
         self.team_id = build_type_obj.get("teamId")
         self.bundle_id = build_type_obj.get("bundleId")
         self.method = build_type_obj.get("method")
+        self.sign_style = build_type_obj.get("signStyle")
         self.profile = build_type_obj.get("profile")
         self.cert = build_type_obj.get("cert")
 
@@ -544,11 +546,11 @@ class BuildToolIOS(object):
         plist_file = os.path.join(plist_path, 'export.plist')
         plist_dict = {
             "teamID": self.build_config.team_id,
-            "signingStyle": "automatic",
-            # "signingCertificate": self.build_config.cert,
-            # "provisioningProfiles": {
-            #     self.build_config.bundle_id: self.build_config.profile
-            # },
+            "signingStyle": self.build_config.sign_style,
+            "signingCertificate": self.build_config.cert,
+            "provisioningProfiles": {
+                self.build_config.bundle_id: self.build_config.profile
+            },
             "method": method,
             "compileBitcode": True
         }

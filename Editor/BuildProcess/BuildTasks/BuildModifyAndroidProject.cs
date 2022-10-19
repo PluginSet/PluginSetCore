@@ -1,12 +1,8 @@
-#if UNITY_ANDROID
-#define ENABLE
-#endif
-#if ENABLE
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
-#endif
+using UnityEditor;
 
 namespace PluginSet.Core.Editor
 {
@@ -21,7 +17,9 @@ namespace PluginSet.Core.Editor
 
         public void Execute(BuildProcessorContext context)
         {
-#if ENABLE
+            if (context.BuildTarget != BuildTarget.Android)
+                return;
+            
             var metadatas = new Dictionary<string, MetaDataInfo>();
             var methods = Global.GetMethods<AndroidMetadataAttribute, BuildToolsAttribute>();
             foreach (var method in methods)
@@ -61,10 +59,8 @@ namespace PluginSet.Core.Editor
             {
                 element.SetAttribute("debuggable", AndroidConst.NS_URI, "false");
             }
-#endif
         }
 
-#if ENABLE
         struct MetaDataInfo
         {
             public string Key;
@@ -92,6 +88,5 @@ namespace PluginSet.Core.Editor
                 Source = source
             });
         }
-#endif
     }
 }

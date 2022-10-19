@@ -1,14 +1,7 @@
-#if UNITY_IOS
-#define ENABLE
-#endif
-
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-#if ENABLE
 using System.IO;
 using UnityEditor;
-#endif
 
 namespace PluginSet.Core.Editor
 {
@@ -23,6 +16,14 @@ namespace PluginSet.Core.Editor
             public string bundleId;
             [SerializeField]
             public string method;
+            [SerializeField]
+            public string signStyle;
+            [SerializeField]
+            public string profile;
+            [SerializeField]
+            public string cert;
+            [SerializeField]
+            public bool biteCode;
         }
         
         [Serializable]
@@ -32,8 +33,6 @@ namespace PluginSet.Core.Editor
             public BuildTypeInfo appstore;
             [SerializeField]
             public BuildTypeInfo adHoc;
-            [SerializeField]
-            public BuildTypeInfo test;
         }
         
         [Serializable]
@@ -56,7 +55,9 @@ namespace PluginSet.Core.Editor
 
         public void Execute(BuildProcessorContext context)
         {
-#if ENABLE
+            if (context.BuildTarget != BuildTarget.iOS)
+                return;
+            
             context.Set("projectPath", IOSProjectPath);
             string xcodeProjectPath = Path.Combine(IOSProjectPath, "Unity-iPhone.xcodeproj", "project.pbxproj");
 
@@ -85,10 +86,21 @@ namespace PluginSet.Core.Editor
             if (project.WorkSpaceSettings.HasPlistValue("BuildSystemType"))
                 project.WorkSpaceSettings.root.values.Remove("BuildSystemType");
 
-            project.Save();
-
             var iosParams = context.BuildChannels.Get<IosBuildParams>();
             var teamId = iosParams.TeamID;
+
+            var appStoreProfile = iosParams.AppStoreBuildProfile;
+            if (!iosParams.AutomaticallySign && !string.IsNullOrEmpty(appStoreProfile.ProfileFile))
+            {
+                foreach (var name in pbxProject.BuildConfigNames())
+                {
+                    pbxProject.SetBuildPropertyForConfig(name, "CODE_SIGN_IDENTITY", "iPhone Distribution");
+                    pbxProject.SetBuildPropertyForConfig(name, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", appStoreProfile.CodeSignIdentity);
+                    pbxProject.SetBuildPropertyForConfig(name, "PROVISIONING_PROFILE_APP", appStoreProfile.ProfileId);
+                    pbxProject.SetBuildPropertyForConfig(name, "PROVISIONING_PROFILE_SPECIFIER", appStoreProfile.ProfileSpecifier);
+                }
+            }
+            project.Save();
             
             var buildConfig = new BuildConfig
             {
@@ -100,25 +112,26 @@ namespace PluginSet.Core.Editor
                         {
                             teamId = teamId,
                             bundleId = bundleId,
-                            method = "app-store"
+                            method = "app-store",
+                            signStyle = iosParams.AutomaticallySign ? "automatic" : "manual",
+                            profile = iosParams.AppStoreBuildProfile.ProfileId,
+                            cert = iosParams.AppStoreBuildProfile.CodeSignIdentity,
+                            biteCode = pbxProject.GetBuildPropertyForConfig("ReleaseForProfiling", "ENABLE_BITCODE").Equals("YES"),
                         },
                     adHoc = new BuildTypeInfo
                         {
                             teamId = teamId,
                             bundleId = bundleId,
-                            method = "ad-hoc"
-                        },
-                    test = new BuildTypeInfo
-                        {
-                            teamId = teamId,
-                            bundleId = bundleId,
-                            method = "development"
+                            method = "ad-hoc",
+                            signStyle = iosParams.AutomaticallySign ? "automatic" : "manual",
+                            profile = iosParams.AdHocBuildProfile.ProfileId,
+                            cert = iosParams.AdHocBuildProfile.CodeSignIdentity,
+                            biteCode = pbxProject.GetBuildPropertyForConfig("ReleaseForRunning", "ENABLE_BITCODE").Equals("YES"),
                         },
                 }
             };
 
             File.WriteAllText(Path.Combine(IOSProjectPath, "build_config.json"), JsonUtility.ToJson(buildConfig));
-#endif
         }
 
     }
