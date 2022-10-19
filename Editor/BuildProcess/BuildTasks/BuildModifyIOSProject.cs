@@ -93,8 +93,8 @@ namespace PluginSet.Core.Editor
             var appStoreProfile = iosParams.AppStoreBuildProfile;
             if (!iosParams.AutomaticallySign && !string.IsNullOrEmpty(appStoreProfile.ProfileFile))
             {
-                pbxProject.AddBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY", "iPhone Distribution");
-                pbxProject.AddBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", appStoreProfile.CodeSignIdentity);
+                pbxProject.SetBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY", "iPhone Distribution");
+                pbxProject.SetBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", appStoreProfile.CodeSignIdentity);
             }
             project.Save();
             

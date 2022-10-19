@@ -35,10 +35,10 @@ namespace PluginSet.Core.Editor
             OnUpdateProfile(ref AppStoreBuildProfile);
         }
         
-        private static readonly string s_PatternTeamID = "<key>TeamIdentifier<\\/key>[\n\t]*<array>[\n\t]*<string>((\\w*\\-?){5})";
+        private static readonly string s_PatternTeamID = "<key>TeamIdentifier<\\/key>[\n\t]*<array>[\n\t]*<string>([^<>]*)</string>";
         private static readonly string s_PatternUUID = "<key>UUID<\\/key>[\n\t]*<string>((\\w*\\-?){5})";
-        private static readonly string s_PatternSpecifier = "<key>Name<\\/key>[\n\t]*<string>((\\w*\\-?){5})";
-        private static readonly string s_PatternTeamName = "<key>TeamName<\\/key>[\n\t]*<string>((\\w*\\-?){5})";
+        private static readonly string s_PatternSpecifier = "<key>Name<\\/key>[\n\t]*<string>([^<>]*)</string>";
+        private static readonly string s_PatternTeamName = "<key>TeamName<\\/key>[\n\t]*<string>([^<>]*)</string>";
         private static readonly string s_PatternDeveloperCertificates = "<key>DeveloperCertificates<\\/key>[\n\t]*<array>[\n\t]*<data>([\\w\\/+=]+)<\\/data>";
         private static readonly string s_DistributionPattern = "iPhone Distribution: ";
 
