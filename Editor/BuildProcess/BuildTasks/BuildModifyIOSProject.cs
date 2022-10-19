@@ -95,8 +95,6 @@ namespace PluginSet.Core.Editor
             {
                 pbxProject.AddBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY", "iPhone Distribution");
                 pbxProject.AddBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", appStoreProfile.CodeSignIdentity);
-                pbxProject.AddBuildProperty(mainTargetGuild, "PROVISIONING_PROFILE_APP", appStoreProfile.ProfileId);
-                pbxProject.AddBuildProperty(mainTargetGuild, "PROVISIONING_PROFILE_SPECIFIER", appStoreProfile.ProfileSpecifier);
             }
             project.Save();
             
