@@ -494,9 +494,9 @@ class BuildToolIOS(object):
             ]
 
         if code_sign_identity and provisioning_profile:
-            cmds.append("CODE_SIGN_IDENTITY='{code_sign_identity}'".format(**locals()))
-            cmds.append("PROVISIONING_PROFILE={provisioning_profile}".format(**locals()))
-            cmds.append("CODE_SIGN_STYLE=Manual")
+            # cmds.append("CODE_SIGN_IDENTITY='{code_sign_identity}'".format(**locals()))
+            cmds.append("PROVISIONING_PROFILE_APP={provisioning_profile}".format(**locals()))
+            # cmds.append("CODE_SIGN_STYLE=Manual")
 
         cmd = " ".join(cmds)
         print(cmd)
