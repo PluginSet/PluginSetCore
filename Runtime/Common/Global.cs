@@ -838,8 +838,7 @@ namespace PluginSet.Core
             project.AddFileToBuild(xcodeTarget, fileGuid);
 
             // 然后要打开 Build Settings -> Build Options -> Always Embed Swift Standard Libraries 修改为YES
-            //这个开了之后 会让ipa里面所一些swift的文件 会导致拒审
-            //project.SetBuildProperty(xcodeTarget, "EMBEDDED_CONTENT_CONTAINS_SWIFT", "YES");
+            project.SetBuildProperty(xcodeTarget, "EMBEDDED_CONTENT_CONTAINS_SWIFT", "YES");
             project.SetBuildProperty(xcodeTarget, "SWIFT_VERSION", "4.0");
         }
 #endif

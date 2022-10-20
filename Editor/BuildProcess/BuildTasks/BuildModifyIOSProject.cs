@@ -79,6 +79,9 @@ namespace PluginSet.Core.Editor
             // 填写个假的token  https://blog.csdn.net/yinfourever/article/details/107385530
             pbxProject.AddBuildProperty(mainTargetGuild, "USYM_UPLOAD_AUTH_TOKEN", "490e4f2bba5acc946a3eafb76c145605");
             pbxProject.AddBuildProperty(targetGuid, "USYM_UPLOAD_AUTH_TOKEN", "490e4f2bba5acc946a3eafb76c145605");
+            
+            // FIX:ERROR ITMS-90206: "Invalid Bundle. The bundle at 'xxx.app/Frameworks/UnityFramework.framework' contains disallowed file 'Frameworks'."
+            pbxProject.AddBuildProperty(targetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "NO");
 
 //            //推送权限处理  TODO
 //            var unityIphone = pbxProject.ProjectGuid();
