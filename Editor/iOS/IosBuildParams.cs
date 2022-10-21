@@ -42,6 +42,9 @@ namespace PluginSet.Core.Editor
         private static readonly string s_PatternDeveloperCertificates = "<key>DeveloperCertificates<\\/key>[\n\t]*<array>[\n\t]*<data>([\\w\\/+=]+)<\\/data>";
         private static readonly string s_DistributionPattern = "iPhone Distribution: ";
 
+        private static readonly string DefaultProvisioningProfileSearchPath =
+            "{Home}/Library/MobileDevice/Provisioning Profiles";
+
         private static void ParseFile(string filePath, out string profileId, out string profileSpecifier, out string codeSignIdentity, out ProvisioningProfileType type)
         {
             string input = File.ReadAllText(filePath);
@@ -86,7 +89,7 @@ namespace PluginSet.Core.Editor
                 codeSignIdentity = $"Apple Distribution: {teamName} ({teamId})";
         }
         
-        internal static void OnUpdateProfile(ref BuildProvisioningProfile profile)
+        private static void OnUpdateProfile(ref BuildProvisioningProfile profile)
         {
             if (string.IsNullOrEmpty(profile.ProfileFile))
                 return;
@@ -94,6 +97,15 @@ namespace PluginSet.Core.Editor
             ParseFile(Path.Combine(".", profile.ProfileFile), out profile.ProfileId, out profile.ProfileSpecifier, out profile.CodeSignIdentity, out profile.ProfileType);
         }
 
+        private static void CopyProvisioningProfile(in BuildProvisioningProfile profile)
+        {
+            if (string.IsNullOrEmpty(profile.ProfileFile))
+                return;
+            
+            string path = DefaultProvisioningProfileSearchPath.Replace("{Home}", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+            Global.CopyFile(Path.Combine(".", profile.ProfileFile), Path.Combine(path, $"{profile.ProfileId}.mobileprovision"), null);
+        }
+        
 
         [OnSyncEditorSetting]
         public static void OnSyncExportSetting_IOS(BuildProcessorContext context)
@@ -108,10 +120,16 @@ namespace PluginSet.Core.Editor
                 PlayerSettings.iOS.appleDeveloperTeamID = setting.TeamID;
             
             PlayerSettings.iOS.appleEnableAutomaticSigning = setting.AutomaticallySign;
-            if (!setting.AutomaticallySign && !string.IsNullOrEmpty(setting.AppStoreBuildProfile.ProfileFile))
+            if (!setting.AutomaticallySign)
             {
-                PlayerSettings.iOS.iOSManualProvisioningProfileID = setting.AppStoreBuildProfile.ProfileId;
-                PlayerSettings.iOS.iOSManualProvisioningProfileType = setting.AppStoreBuildProfile.ProfileType;
+                if (!string.IsNullOrEmpty(setting.AppStoreBuildProfile.ProfileFile))
+                {
+                    PlayerSettings.iOS.iOSManualProvisioningProfileID = setting.AppStoreBuildProfile.ProfileId;
+                    PlayerSettings.iOS.iOSManualProvisioningProfileType = setting.AppStoreBuildProfile.ProfileType;
+                }
+                
+                CopyProvisioningProfile(in setting.AppStoreBuildProfile);
+                CopyProvisioningProfile(in setting.AdHocBuildProfile);
             }
         }
 
