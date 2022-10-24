@@ -29,6 +29,9 @@ namespace PluginSet.Core.Editor
 //        [VisibleCaseBoolValue("AutomaticallySign", false)]
         public BuildProvisioningProfile AdHocBuildProfile;
 
+        [Tooltip("开启数据收集")]
+        public bool EnableAppTrackingTransparency = true;
+
         private void OnValidate()
         {
             OnUpdateProfile(ref AdHocBuildProfile);
@@ -152,13 +155,16 @@ namespace PluginSet.Core.Editor
             plist.AddPlistValue("NSBluetoothPeripheralUsageDescription", "Your consent is required to access Bluetooth");
             plist.AddPlistValue("NSAppleMusicUsageDescription", "Your consent is required to access the media database");
             plist.AddPlistValue("NSRemindersUsageDescription", "Your consent is required to access reminders");
-            plist.AddPlistValue("NSUserTrackingUsageDescription","Your consent is required to access advertising tracking");
 
             var buildParams = context.BuildChannels.Get<IosBuildParams>("iOS");
             plist.AddPlistValue("KeyChainServices", buildParams.KeyChainServices);
             
             // DevicesUtil.mm 需要依赖 AppTrackingTransparency, 但Unity中并没有相应选项
-            project.Project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
+            if (buildParams.EnableAppTrackingTransparency)
+            {
+                plist.AddPlistValue("NSUserTrackingUsageDescription","Your consent is required to access advertising tracking");
+                project.Project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
+            }
             
             var xcodeTarget = project.UnityFramework;
             project.Project.AddBuildProperty(xcodeTarget, "CLANG_ENABLE_MODULES", "YES");
