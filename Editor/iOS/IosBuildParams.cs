@@ -31,6 +31,30 @@ namespace PluginSet.Core.Editor
 
         [Tooltip("开启数据收集")]
         public bool EnableAppTrackingTransparency = true;
+        
+        public string LocationUsageDescription = "Your consent is required to access the microphone";
+
+        public string LocationAlwaysUsageDescription = "Your location is required for xyz benefits for you";
+
+        public string LocationWhenInUseUsageDescription = "Your location is required for xyz benefits for you";
+        
+        public string PhotoLibraryUsageDescription = "This app requires access to the photo library.";
+            
+        public string CameraUsageDescription = "Your consent is required to access the camera";
+        
+        public string MicrophoneUsageDescription = "Your consent is required to access the microphone";
+        
+        public string CalendarsUsageDescription = "Your consent is required to access the calendar";
+        
+        public string MotionUsageDescription = "Your consent is required to access sports and fitness";
+        
+        public string BluetoothPeripheralUsageDescription = "Your consent is required to access Bluetooth";
+        
+        public string AppleMusicUsageDescription = "Your consent is required to access the media database";
+        
+        public string RemindersUsageDescription = "Your consent is required to access reminders";
+
+        public string UserTrackingUsageDescription = "Your consent is required to access advertising tracking";
 
         private void OnValidate()
         {
@@ -140,29 +164,29 @@ namespace PluginSet.Core.Editor
         public static void OnIosXCodeProjectModify(BuildProcessorContext context, PBXProjectManager project)
         {
             var plist = project.PlistDocument;
+            var buildParams = context.BuildChannels.Get<IosBuildParams>("iOS");
             //ios一系类权限请求文本
-            plist.AddPlistValue("NSLocationAlwaysUsageDescription", "Your location is required for xyz benefits for you");
-            plist.AddPlistValue("NSLocationWhenInUseUsageDescription", "Your location is required for xyz benefits for you");
-            plist.AddPlistValue("NSPhotoLibraryUsageDescription", "This app requires access to the photo library.");
-            plist.AddPlistValue("NSCameraUsageDescription", "Your consent is required to access the camera");
-            plist.AddPlistValue("NSMicrophoneUsageDescription", "Your consent is required to access the microphone");
-            plist.AddPlistValue("NSLocationUsageDescription", "Your consent is required to access the microphone");
-            plist.AddPlistValue("NSCalendarsUsageDescription", "Your consent is required to access the calendar");
-            plist.AddPlistValue("NSMotionUsageDescription", "Your consent is required to access sports and fitness");
+            plist.AddPlistValue("NSLocationUsageDescription", buildParams.LocationUsageDescription);
+            plist.AddPlistValue("NSLocationAlwaysUsageDescription", buildParams.LocationAlwaysUsageDescription);
+            plist.AddPlistValue("NSLocationWhenInUseUsageDescription", buildParams.LocationWhenInUseUsageDescription);
+            plist.AddPlistValue("NSPhotoLibraryUsageDescription", buildParams.PhotoLibraryUsageDescription);
+            plist.AddPlistValue("NSCameraUsageDescription", buildParams.CameraUsageDescription);
+            plist.AddPlistValue("NSMicrophoneUsageDescription", buildParams.MicrophoneUsageDescription);
+            plist.AddPlistValue("NSCalendarsUsageDescription", buildParams.CalendarsUsageDescription);
+            plist.AddPlistValue("NSMotionUsageDescription", buildParams.MotionUsageDescription);
             //这两个权限是关于健康啥的 一般app不用申请 不然会拒审
             //plist.SetPlistValue("NSHealthUpdateUsageDescription", "Your consent is required to access health updates");
             //plist.SetPlistValue("NSHealthShareUsageDescription", "Your consent is required to access health sharing");
-            plist.AddPlistValue("NSBluetoothPeripheralUsageDescription", "Your consent is required to access Bluetooth");
-            plist.AddPlistValue("NSAppleMusicUsageDescription", "Your consent is required to access the media database");
-            plist.AddPlistValue("NSRemindersUsageDescription", "Your consent is required to access reminders");
+            plist.AddPlistValue("NSBluetoothPeripheralUsageDescription", buildParams.BluetoothPeripheralUsageDescription);
+            plist.AddPlistValue("NSAppleMusicUsageDescription", buildParams.AppleMusicUsageDescription);
+            plist.AddPlistValue("NSRemindersUsageDescription", buildParams.RemindersUsageDescription);
 
-            var buildParams = context.BuildChannels.Get<IosBuildParams>("iOS");
             plist.AddPlistValue("KeyChainServices", buildParams.KeyChainServices);
             
             // DevicesUtil.mm 需要依赖 AppTrackingTransparency, 但Unity中并没有相应选项
             if (buildParams.EnableAppTrackingTransparency)
             {
-                plist.AddPlistValue("NSUserTrackingUsageDescription","Your consent is required to access advertising tracking");
+                plist.AddPlistValue("NSUserTrackingUsageDescription",buildParams.UserTrackingUsageDescription);
                 project.Project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
             }
             
