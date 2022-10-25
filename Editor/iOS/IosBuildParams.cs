@@ -54,7 +54,7 @@ namespace PluginSet.Core.Editor
         
         public string RemindersUsageDescription = "Your consent is required to access reminders";
 
-        public string UserTrackingUsageDescription = "Your consent is required to access advertising tracking";
+        public string UserTrackingUsageDescription = "Your data will be used to deliver personalized ads to you";
 
         private void OnValidate()
         {
