@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine.Assertions;
 
@@ -18,6 +19,26 @@ namespace PluginSet.Core.Editor
         private readonly string m_filePath;
 
         public GradleNode ROOT => m_root;
+
+        public int TargetSdkVersion
+        {
+            get
+            {
+                var node = ROOT.TryGetNode("android/defaultConfig");
+                if (node == null)
+                    return -1;
+
+                foreach (var child in node.CHILDREN)
+                {
+                    var match = Regex.Match(child.NAME, "\\s*targetSdkVersion\\s+([0-9]+)");
+                    if (!match.Success) continue;
+
+                    return int.Parse(match.Groups[1].Value);
+                }
+                
+                return -1;
+            }
+        }
 
         public GradleConfig(string filePath)
         {
@@ -108,7 +129,7 @@ namespace PluginSet.Core.Editor
                         break;
                 }
             }
-
+            
             //Debug.Log("Gradle parse done!");
         }
 
