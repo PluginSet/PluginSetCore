@@ -183,6 +183,11 @@ namespace PluginSet.Core
         {
             return Utils.CallStatic<bool>("IsPermissionGranted", CurrentActivity, permission);
         }
+        
+        public static int CheckPermission(string permission)
+        {
+            return Utils.CallStatic<int>("CheckPermission", CurrentActivity, permission);
+        }
 
         /// <summary>
         /// RequestPermissions  

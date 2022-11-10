@@ -3,6 +3,12 @@ using UnityEngine;
 
 namespace PluginSet.Core
 {
+    public enum DevicePermission
+    {
+        Denied = 0,
+        Granted = 1,
+        ShouldAsk = 2,
+    }
     
     public static class Devices
     {
@@ -50,21 +56,27 @@ namespace PluginSet.Core
         {
             return Screen.safeArea;
         }
+        
+        public static DevicePermission CheckAdvertisingTrackingPermission()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return (DevicePermission)AndroidHelper.CheckPermission(AndroidHelper.PERMISSION_READ_PHONE_STATE);
+#elif UNITY_IOS && !UNITY_EDITOR
+            return (DevicePermission)iOSHelper._CheckAdvertisingTrackingPermission();
+#else
+            return DevicePermission.Granted;
+#endif
+        }
 
         public static bool IsAdvertisingTrackingGranted()
         {
-#if UNITY_ANDROID && !UNITY_EDITOR
-            return AndroidHelper.IsPermissionGranted(AndroidHelper.PERMISSION_READ_PHONE_STATE);
-#elif UNITY_IOS && !UNITY_EDITOR
-            return iOSHelper._IsAdvertisingTrackingGranted();
-#else
-            return true;
-#endif
+            return CheckAdvertisingTrackingPermission() == DevicePermission.Granted;
         }
 
         public static bool RequestAdvertisingTracking()
         {
-            if (!IsAdvertisingTrackingGranted())
+            var permission = CheckAdvertisingTrackingPermission();
+            if (permission == DevicePermission.ShouldAsk)
             {
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_READ_PHONE_STATE);
@@ -73,23 +85,29 @@ namespace PluginSet.Core
 #endif
             }
 
-            return true;
+            return permission == DevicePermission.Granted;
+        }
+        
+        public static DevicePermission CheckMicrophonePermission()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return (DevicePermission)AndroidHelper.CheckPermission(AndroidHelper.PERMISSION_RECORD_AUDIO);
+#elif UNITY_IOS && !UNITY_EDITOR
+            return (DevicePermission)iOSHelper._CheckMicrophonePermission();
+#else
+            return DevicePermission.Granted;
+#endif
         }
 
         public static bool IsMicrophoneEnable()
         {
-#if UNITY_ANDROID && !UNITY_EDITOR
-            return AndroidHelper.IsPermissionGranted(AndroidHelper.PERMISSION_RECORD_AUDIO);
-#elif UNITY_IOS && !UNITY_EDITOR
-            return iOSHelper._IsMicrophoneGranted();
-#else
-            return true;
-#endif
+            return CheckMicrophonePermission() == DevicePermission.Granted;
         }
 
         public static bool RequestMicrophoneAuth()
         {
-            if (!IsMicrophoneEnable())
+            var permission = CheckMicrophonePermission();
+            if (permission == DevicePermission.ShouldAsk)
             {
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_RECORD_AUDIO);
@@ -98,7 +116,7 @@ namespace PluginSet.Core
 #endif
             }
 
-            return true;
+            return permission == DevicePermission.Granted;
         }
 
         public static string GetDeviceUniqueId()

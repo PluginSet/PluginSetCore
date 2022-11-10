@@ -37,13 +37,14 @@ namespace PluginSet.Core
         public static extern void _DeleteKeyChain(string services, string key);
 
         [DllImport("__Internal")]
-        public static extern bool _IsAdvertisingTrackingGranted();
+        public static extern int _CheckAdvertisingTrackingPermission();
 
         [DllImport("__Internal")]
         public static extern bool _RequestAdvertisingTracking();
 
         [DllImport("__Internal")]
-        public static extern bool _IsMicrophoneGranted();
+        public static extern int _CheckMicrophonePermission();
+
         [DllImport("__Internal")]
         public static extern bool _RequestMicrophoneAuth();
     }

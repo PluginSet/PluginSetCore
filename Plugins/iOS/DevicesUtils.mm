@@ -21,6 +21,10 @@ char* UtilsMakeStringCopy (const char* string)
     return res;
 }
 
+const int PermissionDenied = 0;
+const int PermissionGranted = 1;
+const int PermissionShouldAsk = 2;
+
 extern "C"
 {
 
@@ -155,16 +159,18 @@ extern "C"
         [PluginUtils saveKeychain:stringServices data:mutableDict];
     }
 
-    bool _IsAdvertisingTrackingGranted()
+    int _CheckAdvertisingTrackingPermission()
     {
         if (@available(iOS 14, *)) {
             ATTrackingManagerAuthorizationStatus state = [ATTrackingManager trackingAuthorizationStatus];
             if(state == ATTrackingManagerAuthorizationStatusAuthorized){
-                return true;
+                return PermissionGranted;
+            } else if (state == ATTrackingManagerAuthorizationStatusNotDetermined) {
+                return PermissionShouldAsk;
             }
-            return false;
+            return PermissionDenied;
         } else {
-            return [[ASIdentifierManager sharedManager] isAdvertisingTrackingEnabled];
+            return [[ASIdentifierManager sharedManager] isAdvertisingTrackingEnabled] ? PermissionGranted : PermissionDenied;
         }
     }
 
@@ -179,17 +185,23 @@ extern "C"
                 dispatch_semaphore_signal(signal);
             }];
             dispatch_semaphore_wait(signal, DISPATCH_TIME_FOREVER);
-            NSLog(@"sync _RequestAdversitingTracking result %lu", (unsigned long)result);
+            NSLog(@"sync _RequestAdvertisingTracking result %lu", (unsigned long)result);
             return result == ATTrackingManagerAuthorizationStatusAuthorized;
         } else {
             return _IsAdvertisingTrackingGranted();
         }
     }
 
-    bool _IsMicrophoneGranted()
+    int _CheckMicrophonePermission()
     {
         AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-        return authStatus == AVAuthorizationStatusAuthorized;
+        if (authStatus == AVAuthorizationStatusAuthorized) {
+            return PermissionGranted;
+        } else if (authStatus == AVAuthorizationStatusNotDetermined) {
+            return PermissionShouldAsk;
+        }
+        
+        return PermissionDenied;
     }
 
     bool _RequestMicrophoneAuth()
