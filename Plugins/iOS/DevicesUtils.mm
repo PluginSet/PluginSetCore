@@ -188,7 +188,7 @@ extern "C"
             NSLog(@"sync _RequestAdvertisingTracking result %lu", (unsigned long)result);
             return result == ATTrackingManagerAuthorizationStatusAuthorized;
         } else {
-            return [[ASIdentifierManager sharedManager] isAdvertisingTrackingEnabled]；
+            return [[ASIdentifierManager sharedManager] isAdvertisingTrackingEnabled];
         }
     }
 
