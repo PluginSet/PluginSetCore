@@ -38,6 +38,8 @@ namespace PluginSet.Core.Editor
 //        [Tooltip("Manifest中的application的theme属性")]
 //        public string ApplicationTheme;
 
+        [Tooltip("构建目标SDK版本号")]
+        public AndroidSdkVersions TargetSdkVersion = AndroidSdkVersions.AndroidApiLevelAuto;
 
         [OnSyncEditorSetting]
         public static void OnSyncExportSetting_android(BuildProcessorContext context)
@@ -63,6 +65,8 @@ namespace PluginSet.Core.Editor
             PlayerSettings.Android.keyaliasName = setting.KeyAliasName;
             PlayerSettings.Android.keystorePass = setting.KeyStorePassword;
             PlayerSettings.Android.keyaliasPass = setting.KeyAliasPassword;
+
+            PlayerSettings.Android.targetSdkVersion = setting.TargetSdkVersion;
         }
     }
 }
