@@ -45,12 +45,12 @@ namespace PluginSet.Core.Editor
             }
         }
 
-        public static void AddUsePermission(this XmlDocument main, string name, string msg = null)
+        public static XmlElement AddUsePermission(this XmlDocument main, string name, string msg = null)
         {
             foreach (var ele in main.findElements(AndroidConst.USES_PERMISSION_PATH, AndroidConst.NS_PREFIX, "name", name))
             {
                 Debug.Log($"The same use-permission {name} has been set");
-                return;
+                return ele;
             }
             var parent = main.createElementWithPath(AndroidConst.USES_PERMISSION_PARENT);
             var node = main.createElementWithPath(AndroidConst.USES_PERMISSION_PATH);
@@ -59,6 +59,8 @@ namespace PluginSet.Core.Editor
             
             if (!string.IsNullOrEmpty(msg))
                 node.insertComment(msg);
+
+            return node;
         }
 
         public static XmlElement FindOrAddActivity(this XmlDocument main, string activityName)
