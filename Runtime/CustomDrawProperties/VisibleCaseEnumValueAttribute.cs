@@ -11,11 +11,13 @@ namespace PluginSet.Core
     {
         private readonly string _targetName;
         private readonly string _targetValue;
+        private readonly bool _revers;
         
-        public VisibleCaseEnumValueAttribute(string targetName, object targetValue)
+        public VisibleCaseEnumValueAttribute(string targetName, object targetValue, bool revers = false)
         {
             _targetName = targetName;
             _targetValue = targetValue.ToString();
+            _revers = revers;
         }
         
 #if UNITY_EDITOR
@@ -37,7 +39,7 @@ namespace PluginSet.Core
                     return false;
                     
                 var enumName = prop.enumNames[index];
-                return _targetValue.Equals(enumName);
+                return _targetValue.Equals(enumName) ? !_revers : _revers;
             }
 
             return false;
