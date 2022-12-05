@@ -223,6 +223,17 @@ namespace PluginSet.Core
             PermissionRequestCallback callback = new PermissionRequestCallback(null, onGranted, onDenied, onDeniedAlways, onCompleted);
             Utils.CallStatic("RequestPermissions", CurrentActivity, permission, callback);
         }
+
+        public static void OpenSettings()
+        {
+            Utils.CallStatic("OpenSettings", CurrentActivity);
+        }
+
+        public static bool OSAvailable(int version)
+        {
+            return Utils.CallStatic<bool>("OSAvailable", version);
+        }
+
     }
 }
 #endif

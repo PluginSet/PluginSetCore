@@ -206,5 +206,34 @@ namespace PluginSet.Core
 #endif
 #endif
         }
+        
+        public static bool EnableOpenSettings()
+        {
+#if !UNITY_EDITOR && UNITY_IOS
+            return iOSHelper._EnableOpenSettings(version);
+#else
+            return true;
+#endif
+        }
+
+        public static void OpenSettings()
+        {
+#if !UNITY_EDITOR && UNITY_IOS
+            iOSHelper._OpenSettings();
+#elif !UNITY_EDITOR && UNITY_ANDROID
+            AndroidHelper.OpenSettings();
+#endif
+        }
+
+        public static bool OSAvailable(int version)
+        {
+#if !UNITY_EDITOR && UNITY_IOS
+            return iOSHelper._OSAvailable(version);
+#elif !UNITY_EDITOR && UNITY_ANDROID
+            return AndroidHelper.OSAvailable(version);
+#else
+            return true;
+#endif
+        }
     }
 }

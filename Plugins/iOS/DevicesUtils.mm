@@ -215,4 +215,28 @@ extern "C"
         dispatch_semaphore_wait(signal, DISPATCH_TIME_FOREVER);
         return result;
     }
+
+    bool _EnableOpenSettings()
+    {
+        return (&UIApplicationOpenSettingsURLString) != NULL ;
+    }
+
+    void _OpenSettings()
+    {
+        if( _EnableOpenSettings() )
+        {
+    #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000
+            if( @available( iOS 10, *) )
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+            else
+    #endif
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+        }
+    }
+
+    bool _OSAvailable(int version)
+    {
+        NSString * ver = [NSString stringWithFormat:@"%d.0", version];
+        return [[[UIDevice currentDevice]systemVersion]compare:ver options:NSNumericSearch] != NSOrderedAscending;
+    }
 }

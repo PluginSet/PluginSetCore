@@ -47,6 +47,15 @@ namespace PluginSet.Core
 
         [DllImport("__Internal")]
         public static extern bool _RequestMicrophoneAuth();
+
+        [DllImport("__Internal")]
+        public static extern bool _EnableOpenSettings();
+
+        [DllImport("__Internal")]
+        public static extern void _OpenSettings();
+
+        [DllImport("__Internal")]
+        public static extern bool _OSAvailable(int version);
     }
 }
 #endif
