@@ -1272,3 +1272,25 @@ def sendDingTalk(content, webhook, title, markdown, atmobiles=None, isatall=Fals
     # if code != 200:
     #     return FAILURE(resp.get("errmsg", "Unknow Error"))
     return SUCESS("发送成功")
+
+
+@task(help={
+    'id': "登录使用的AccessKeyId",
+    'secret': "登录使用的AccessKeySecret",
+    'bucketname': "域名（无需oss前缀）",
+    'key': "需要上传至的全路径",
+    'url': "下载app的页面地址"
+})
+def makeQR(context, id, secret, bucketname, endpoint, key, url):
+    qr = qrcode.QRCode(version=5, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image()
+    filename = 'qrcode_temp.png'
+    img.save(filename)
+    auth = oss2.AuthV2(id, secret)
+    bucket = oss2.Bucket(auth, endpoint, bucketname)
+    bucket.put_object_from_file(key, filename)
+    rm_file(filename)
+    return SUCESS("上传文件%s成功" % key)
+
