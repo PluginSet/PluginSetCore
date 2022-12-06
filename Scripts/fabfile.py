@@ -808,9 +808,15 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
     except Exception as err:
         return FAILURE(err)
     
+    patches_path = os.path.join(temp_path, "Patches")
+    if os.path.exists(patches_path):
+        check_path(out_path)
+        copy_path(patches_path, os.path.join(out_path, "Patches"))
+    
     LogFiles.clear()
+    build_path = os.path.join(temp_path, channel)
     if platform == 'android':
-        apk_file_name = generateApk(os.path.join(temp_path, channel), debug)
+        apk_file_name = generateApk(build_path, debug)
         if not os.path.exists(apk_file_name):
             return FAILURE("找不到构建的安卓APK" + apk_file_name)
         if out_path.endswith(".apk"):
@@ -823,7 +829,7 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
         rm_file(out_file)
         copy_file(apk_file_name, out_file)
     elif platform == 'ios':
-        ipa_file_name = generateIpa(os.path.join(temp_path, channel), version_name, build_number, debug, "adHoc")
+        ipa_file_name = generateIpa(build_path, version_name, build_number, debug, "adHoc")
         if not os.path.exists(ipa_file_name):
             return FAILURE("找不到构建的IPA:" + ipa_file_name)
         if out_path.endswith(".ipa"):
