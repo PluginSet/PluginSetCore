@@ -15,10 +15,8 @@ namespace PluginSet.Core.Editor
 			if (string.IsNullOrEmpty(targetPath))
 				return;
 			
-//			Global.MoveAllFilesToPath(streamingAssetsPath, targetPath);
-		    if (!context.IsBuildingPatches())
-			    targetPath = Path.Combine(targetPath, "..", "patches"); // TODO
-            Global.CopyFilesTo(targetPath, streamingAssetsPath, "*");
+			Global.MoveAllFilesToPath(streamingAssetsPath, targetPath);
+//            Global.CopyFilesTo(targetPath, streamingAssetsPath, "*");
 
 			AssetDatabase.Refresh();
         }
