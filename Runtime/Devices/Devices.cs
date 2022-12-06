@@ -76,7 +76,7 @@ namespace PluginSet.Core
         public static bool RequestAdvertisingTracking()
         {
             var permission = CheckAdvertisingTrackingPermission();
-            if (permission == DevicePermission.ShouldAsk)
+            if (!IsAdvertisingTrackingGranted())
             {
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_READ_PHONE_STATE);
@@ -85,7 +85,7 @@ namespace PluginSet.Core
 #endif
             }
 
-            return permission == DevicePermission.Granted;
+            return false;
         }
         
         public static DevicePermission CheckMicrophonePermission()
@@ -107,7 +107,7 @@ namespace PluginSet.Core
         public static bool RequestMicrophoneAuth()
         {
             var permission = CheckMicrophonePermission();
-            if (permission == DevicePermission.ShouldAsk)
+            if (!IsMicrophoneEnable())
             {
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_RECORD_AUDIO);
@@ -116,7 +116,7 @@ namespace PluginSet.Core
 #endif
             }
 
-            return permission == DevicePermission.Granted;
+            return false;
         }
 
         public static string GetDeviceUniqueId()
