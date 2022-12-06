@@ -24,7 +24,7 @@ namespace PluginSet.Core.Editor
                 throw new Exception("Not Supported BuildTarget");
             }
             
-            Global.CopyFilesTo(targetPath, streamingAssetsPath, "*.*");
+            Global.CopyFilesTo(targetPath, streamingAssetsPath, "*");
         }
     }
 }
