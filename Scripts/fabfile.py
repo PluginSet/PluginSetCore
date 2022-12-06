@@ -1219,9 +1219,10 @@ def writeVersion(name, version_name, id, secret, bucketname, upload_keys, key
     "build": "build号",
     'endpoint': "oss域名，默认为杭州点",
     'cname': "下载地址头",
+    'patches': "子包名称列表",
 })
 def writeVersionFile(context, platform, channels, version_name, id, secret, bucketname, root, key
-                     , build, cname, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
+                     , build, cname, endpoint="https://oss-cn-hangzhou.aliyuncs.com", patches=None):
     file = "version.manifest"
     upload_keys = []
     for c in channels.split(','):
@@ -1230,6 +1231,16 @@ def writeVersionFile(context, platform, channels, version_name, id, secret, buck
         
     writeVersion(STREAMINGASSETSNAME.lower(), version_name, id, secret, bucketname, upload_keys, key
                  , build, cname, endpoint)
+    
+    if patches:
+        for patch in patches.split(','):
+            upload_keys = []
+            for c in channels.split(','):
+                upload_key = "%s/%s/%s/%s/%s-%s/%s" % (root, platform, patch.lower(), c.strip(), version_name, build, file)
+                upload_keys.append(upload_key)
+            writeVersion(patch.lower(), version_name, id, secret, bucketname, upload_keys, key
+                         , build, cname, endpoint)
+        
 
 
 @task(help={
