@@ -22,7 +22,7 @@ namespace PluginSet.Core.Editor
 
 			context.Set("AssetBundleManifest", manifest);
 
-			Global.CallCustomOrderMethods<OnBuildBundlesCompletedAttribute, BuildToolsAttribute>(context, streamingAssetsPath, streamingAssetsName, manifest, true);
+			Global.CallCustomOrderMethods<OnBuildBundlesCompletedAttribute, BuildToolsAttribute>(context, streamingAssetsPath, streamingAssetsName, manifest, context.IsBuildingUpdatePatches());
 
 			AssetDatabase.Refresh();
         }
