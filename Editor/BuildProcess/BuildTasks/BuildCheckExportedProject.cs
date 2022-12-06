@@ -17,6 +17,7 @@ namespace PluginSet.Core.Editor
                 // 为了测试加快打包 可以不用每次都打包bundles
                 task = handler.AddNextTask(new BuildPrepareBundles(), task);
                 task = handler.AddNextTask(new BuildExportAssetBundles(), task);
+                task = handler.AddNextTask(new BuildCopyBundles(), task);
                 buildAssets = true;
             }
             
