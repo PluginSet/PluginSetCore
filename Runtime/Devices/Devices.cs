@@ -56,6 +56,14 @@ namespace PluginSet.Core
         {
             return Screen.safeArea;
         }
+
+        private static bool RecordRequestPermissions(string key)
+        {
+            var record = PlayerPrefs.GetInt(key, 0);
+            PlayerPrefs.SetInt(key, 1);
+            PlayerPrefs.Save();
+            return record == 1;
+        }
         
         public static DevicePermission CheckAdvertisingTrackingPermission()
         {
@@ -76,7 +84,8 @@ namespace PluginSet.Core
         public static bool RequestAdvertisingTracking()
         {
             var permission = CheckAdvertisingTrackingPermission();
-            if (permission == DevicePermission.ShouldAsk)
+            if (permission == DevicePermission.ShouldAsk ||
+                (permission == DevicePermission.Denied && !RecordRequestPermissions(nameof(RequestAdvertisingTracking))))
             {
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_READ_PHONE_STATE);
@@ -107,7 +116,8 @@ namespace PluginSet.Core
         public static bool RequestMicrophoneAuth()
         {
             var permission = CheckMicrophonePermission();
-            if (permission == DevicePermission.ShouldAsk)
+            if (permission == DevicePermission.ShouldAsk ||
+                (permission == DevicePermission.Denied && !RecordRequestPermissions(nameof(RequestMicrophoneAuth))))
             {
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_RECORD_AUDIO);
