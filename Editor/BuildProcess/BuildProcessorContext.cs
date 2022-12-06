@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 using PluginSet.Core.MiniJSON;
 using UnityEditor;
+using UnityEditor.iOS;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace PluginSet.Core.Editor
 {
@@ -57,6 +61,7 @@ namespace PluginSet.Core.Editor
         public bool ForceExportProject = true;
         public PatchFiles PatchFiles;
         public string BuildPath;
+        public string ResourceVersion;
 
         public string ProjectPath => Path.Combine(BuildPath, Channel);
 
@@ -157,8 +162,8 @@ namespace PluginSet.Core.Editor
         {
             Reset();
 
-            ForceBuildBundles = true;
-            ForceExportProject = true;
+            ForceBuildBundles = false;
+            ForceExportProject = false;
             ExportProject = true;
             DebugMode = false;
 
@@ -180,6 +185,7 @@ namespace PluginSet.Core.Editor
             VersionCode = CommandArgs.TryGet("versioncode", VersionCode);
             PatchFiles = JsonUtility.FromJson<PatchFiles>(CommandArgs.TryGet("patchdata", "{}"));
             Build = CommandArgs.TryGet("build", Build);
+            ResourceVersion = CommandArgs.TryGet("gitcommit", string.Empty);
             Debug.Log("InitDataWithCommand::: build commands:: " + Json.Serialize(CommandArgs));
         }
 
@@ -345,6 +351,28 @@ namespace PluginSet.Core.Editor
             if (!string.IsNullOrEmpty(bundleName))
                 Global.CallCustomOrderMethods<AssetBundleFilePathsCollectorAttribute, BuildToolsAttribute>(this, bundleName, list);
             return list;
+        }
+
+        public string BuildExportProjectTag()
+        {
+            var buffer = new StringBuilder();
+            buffer.Append("channel");
+            buffer.Append(GetBuildChannelsMd5(BuildChannels));
+            buffer.Append("version");
+            buffer.Append(PluginUtil.GetMd5(PluginUtil.GetVersionString(VersionName, int.Parse(VersionCode))));
+            if (!string.IsNullOrEmpty(ResourceVersion))
+            {
+                buffer.Append("resource");
+                buffer.Append(PluginUtil.GetMd5(ResourceVersion));
+            }
+            return buffer.ToString();
+        }
+
+        private static string GetBuildChannelsMd5(Object asset)
+        {
+            var path = AssetDatabase.GetAssetPath(asset);
+            var assetText = File.ReadAllText(path);
+            return PluginUtil.GetMd5(assetText);
         }
     }
 }

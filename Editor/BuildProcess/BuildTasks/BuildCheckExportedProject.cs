@@ -1,7 +1,4 @@
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using UnityEditor;
 
 namespace PluginSet.Core.Editor
 {
@@ -13,18 +10,26 @@ namespace PluginSet.Core.Editor
             var handler = context.Get<BuildTaskHandler>("handler");
             string projectPath = context.ProjectPath;
             
-            if (context.ForceExportProject || CheckNeedExportProject(context))
+            var projectChanged = CheckProjectChanged(context);
+            var buildAssets = false;
+            if (projectChanged || context.ForceBuildBundles || CheckNeedExportAssetBundles(context))
+            {
+                // 为了测试加快打包 可以不用每次都打包bundles
+                task = handler.AddNextTask(new BuildPrepareBundles(), task);
+                task = handler.AddNextTask(new BuildExportAssetBundles(), task);
+                buildAssets = true;
+            }
+            
+            if (projectChanged || context.ForceExportProject || CheckNeedExportProject(context))
             {
                 Global.CheckAndDeletePath(projectPath);
-                if (context.ForceBuildBundles || CheckNeedExportAssetBundles(context))
-                {
-                    // 为了测试加快打包 可以不用每次都打包bundles
-                    task = handler.AddNextTask(new BuildPrepareBundles(), task);
-                    task = handler.AddNextTask(new BuildExportAssetBundles(), task);
-                }
                 
                 task = handler.AddNextTask(new BuildExportProjectOrApk(), task);
                 if (!context.ExportProject) return;
+            }
+            else if (buildAssets)
+            {
+                task = handler.AddNextTask(new BuildCopyStreamAssets(), task);
             }
 
             
@@ -34,41 +39,43 @@ namespace PluginSet.Core.Editor
             Unuse(task);
         }
 
-        private static bool CheckNeedExportProject(BuildProcessorContext context)
+        private static bool CheckProjectChanged(BuildProcessorContext context)
         {
-            string md5 = GetBuildChannelsMd5(context.BuildChannels);
+            string tag = context.BuildExportProjectTag();
             string md5FileName = Path.Combine(context.ProjectPath, "channelMd5.txt");
             if (File.Exists(md5FileName))
             {
-                if (File.ReadAllText(md5FileName).Equals(md5))
+                if (File.ReadAllText(md5FileName).Equals(tag))
                     return false;
 
                 File.Delete(md5FileName);
             }
 
             context.Set("md5FileName", md5FileName);
-            context.Set("md5Context", md5);
+            context.Set("md5Context", tag);
             return true;
         }
 
-        private static bool CheckNeedExportAssetBundles(BuildProcessorContext context)
+        private static bool CheckNeedExportProject(BuildProcessorContext context)
         {
-            return true; // TODO
+            if (!Directory.Exists(context.ProjectPath))
+                return true;
+            
+            return false;
         }
 
-        private static string GetBuildChannelsMd5(BuildChannels asset)
-        {
-            var md5 = MD5.Create();
-            var path = AssetDatabase.GetAssetPath(asset);
-            var bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(path));
-            var buffer = new StringBuilder();
-            var len = bytes.Length;
-            for (int i = 0; i < len; i++)
-            {
-                buffer.Append(bytes[i]);
-            }
 
-            return buffer.ToString();
+        private static bool CheckNeedExportAssetBundles(BuildProcessorContext context)
+        {
+	        var streamingAssetsName = context.TryGet<string>("StreamingAssetsName", null);
+	        var streamingAssetsPath = context.TryGet<string>("StreamingAssetsPath", null);
+            if (string.IsNullOrEmpty(streamingAssetsPath))
+                return false;
+
+            if (!File.Exists(Path.Combine(streamingAssetsPath, streamingAssetsName.ToLower())))
+                return true;
+            
+            return false;
         }
 
         private static void Unuse(IBuildProcessorTask _)
