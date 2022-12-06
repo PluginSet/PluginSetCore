@@ -60,8 +60,11 @@ namespace PluginSet.Core
         private static bool RecordRequestPermissions(string key)
         {
             var record = PlayerPrefs.GetInt(key, 0);
-            PlayerPrefs.SetInt(key, 1);
-            PlayerPrefs.Save();
+            if (record == 0)
+            {
+                PlayerPrefs.SetInt(key, 1);
+                PlayerPrefs.Save();
+            }
             return record == 1;
         }
         
