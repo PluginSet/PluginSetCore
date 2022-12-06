@@ -37,6 +37,7 @@ namespace PluginSet.Core
         }
 
         private static PluginsManager _instance;
+        public static bool Started => _instance != null && _instance.IsStarted;
         public static PluginsManager Instance => StartPlugins();
 
         public static readonly SimpleDataSet GlobalData = new SimpleDataSet();
