@@ -99,6 +99,8 @@ namespace PluginSet.Core.Editor
 				if (!string.IsNullOrEmpty(md5FileName) && !string.IsNullOrEmpty(md5Context))
 					File.WriteAllText(md5FileName, md5Context);
 			}
+			
+            Global.CallCustomOrderMethods<ExportTaskCompletedAttribute, BuildToolsAttribute>(context);
         }
     }
 }
