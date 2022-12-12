@@ -7,6 +7,8 @@ namespace PluginSet.Core
     {
         private bool _keepWaiting = false;
         public override bool keepWaiting => _keepWaiting;
+        
+        public bool Locked => _keepWaiting;
 
         public void Lock()
         {
