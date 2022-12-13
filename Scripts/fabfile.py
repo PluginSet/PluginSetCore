@@ -895,7 +895,7 @@ def check_is_assets(filename):
     return True
 
 
-def build_patches(platform, version_name, build_number, out_path, root, debug, cache_log):
+def build_patches(channel, platform, version_name, build_number, out_path, root, debug, cache_log):
     tag_name = get_patch_tag(platform, version_name, root)
     target_tag = None
     repo = git.Repo(PROTJECT_PATH)
@@ -943,7 +943,7 @@ def build_patches(platform, version_name, build_number, out_path, root, debug, c
     try:
         build_unity_patches(platform, temp_path if cache_log else None,
                             version_name=version_name, out_path=out_path, build_number=build_number,
-                            patch_data="'%s'" % json.dumps(patchdata),debug=debug)
+                            patch_data="'%s'" % json.dumps(patchdata),debug=debug,channel=channel)
     except Exit as e:
         error_path = os.path.join(out_path, "errors")
         check_path(error_path)
@@ -1004,6 +1004,7 @@ def buildMultiApp(context, platform, channel, channelIds, version_name, build_nu
 
 
 @task(help={
+    "channel": "目标渠道",
     "platform": "编译目标平台，目前支持ios与android",
     "version_name": "版本号名称",
     "build_number": "build号",
@@ -1012,12 +1013,12 @@ def buildMultiApp(context, platform, channel, channelIds, version_name, build_nu
     "root": "上传至的根目录(环境标识)",
     "log": "保存log文件",
 })
-def buildPatches(context, platform, version_name, build_number, out_path, root, debug=False, log=True):
+def buildPatches(context, platform, version_name, build_number, out_path, root, debug=False, log=True, channel="default"):
     build_target = BUILD_TARGETS.get(platform.lower(), None)
     if build_target is None:
         return FAILURE("暂不支持该平台(%s)导出" % platform)
     out_path = os.path.abspath(out_path)
-    build_patches(platform, version_name, build_number, out_path, root, debug, log)
+    build_patches(channel, platform, version_name, build_number, out_path, root, debug, log)
     return SUCESS("Build Patches Success in :" + out_path)
 
 
