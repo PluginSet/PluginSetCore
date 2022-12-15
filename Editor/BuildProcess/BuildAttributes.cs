@@ -8,46 +8,16 @@ namespace PluginSet.Core.Editor
     public class BuildToolsAttribute : Attribute
     {
     }
-
-    // 安卓gradle.properties文件中需要加入的选项，属性需返回一个Dict<key:string, value:string>
-    // 当有相同的key但value不同时，如果priority相同，则报错，如果priority不同，则使用较高权重的值
-    [AttributeUsage(AttributeTargets.Property)]
-    public class AndroidGradlePropertiesAttribute : Attribute
+    
+    // 项目导出完成回调
+    [AttributeUsage(AttributeTargets.Method)]
+    public class CheckRebuildAssetBundlesAttribute : Attribute
     {
-        public int Priority = 0;
-
-        public AndroidGradlePropertiesAttribute(int priority)
+        public CheckRebuildAssetBundlesAttribute()
         {
-            Priority = priority;
         }
     }
 
-    // 安卓项目build.gradle文件中需要加入的EXTERNAL_SOURCES, 属性需返回一个List<name:string>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class AndroidExternalSourcesAttribute : Attribute
-    {
-    }
-
-    // 安卓项目build.gradle文件中需要加入的APPLY_PLUGINS, 属性需返回一个List<name:string>
-    [AttributeUsage(AttributeTargets.Property)]
-    public class AndroidApplyPluginsAttribute : Attribute
-    {
-    }
-
-    // 安卓项目build.gradle文件中需要加入的BUILD_SCRIPT_DEPS，属性需返回一个Dict<name:string, version:string>
-    // 自动使用较高版本的依赖库，使用string.Comparer来判断版本高低
-    [AttributeUsage(AttributeTargets.Property)]
-    public class AndroidBuildScriptAttribute : Attribute
-    {
-    }
-
-    // 安卓项目build.gradle文件中需要加入的远程依赖库DEPS，属性需返回一个Dict<name:string, version:string>
-    // 自动使用较高版本的依赖库，使用string.Comparer来判断版本高低
-    [AttributeUsage(AttributeTargets.Property)]
-    public class AndroidDependLibsAttribute : Attribute
-    {
-    }
-    
     // 项目导出完成回调
     [AttributeUsage(AttributeTargets.Method)]
     public class ExportTaskCompletedAttribute : OrderCallBack
@@ -91,6 +61,39 @@ namespace PluginSet.Core.Editor
         }
 
         public iOSXCodeProjectModifyAttribute(int order)
+            : base(order)
+        {
+        }
+    }
+
+    // 安卓项目多渠道ID数据构建时，不重新导出项目，直接修改安卓工程
+    // 该接口有序调用，接收BuildProccessorContext, AndroidProjectManager
+    public class AndroidMultipleBuildSetupAttribute : OrderCallBack
+    {
+        public AndroidMultipleBuildSetupAttribute()
+            : base(0)
+        {
+            
+        }
+
+        public AndroidMultipleBuildSetupAttribute(int order)
+            : base(order)
+        {
+            
+        }
+    }
+    
+    // 苹果项目多渠道ID数据构建时，不重新导出项目，直接修改安卓工程（预留，完整的打包流程不支持苹果项目多渠道打包）
+    // 该接口有序调用，接收BuildProccessorContext, PBXProject
+    [AttributeUsage(AttributeTargets.Method)]
+    public class iOSMultipleBuildSetupAttribute : OrderCallBack
+    {
+        public iOSMultipleBuildSetupAttribute()
+            : base(0)
+        {
+        }
+
+        public iOSMultipleBuildSetupAttribute(int order)
             : base(order)
         {
         }

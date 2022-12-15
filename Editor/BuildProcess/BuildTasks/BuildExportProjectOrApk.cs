@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildExportProjectOrApk: IBuildProcessorTask
+    public class BuildExportProjectOrApk: BuildProcessorTask
     {
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
 	        var streamingAssetsPath = context.TryGet<string>("StreamingAssetsPath", null);
 	        if (!string.IsNullOrEmpty(streamingAssetsPath))
@@ -55,6 +55,11 @@ namespace PluginSet.Core.Editor
 				EditorUserBuildSettings.androidBuildType =
 					debugMode ? AndroidBuildType.Debug : AndroidBuildType.Release;
 				EditorUserBuildSettings.exportAsGoogleAndroidProject = context.ExportProject;
+				
+				context.SetBuildResult("keystoreName", Path.GetFullPath(Path.Combine(".", PlayerSettings.Android.keystoreName)));
+				context.SetBuildResult("keyaliasName", PlayerSettings.Android.keyaliasName);
+				context.SetBuildResult("keystorePass", PlayerSettings.Android.keystorePass);
+				context.SetBuildResult("keyaliasPass", PlayerSettings.Android.keyaliasPass);
 			}
 			else
 			{
@@ -70,37 +75,11 @@ namespace PluginSet.Core.Editor
 					Directory.CreateDirectory(locationPath);
 			}
 
-			//关闭unity logo
-			PlayerSettings.SplashScreen.showUnityLogo = false;
 			EditorUserBuildSettings.development = debugMode;
 #if UNITY_2018_4_OR_NEWER && (!UNITY_2019_1_OR_NEWER || UNITY_2019_2_OR_NEWER)
 			EditorUserBuildSettings.androidCreateSymbolsZip = context.ProductMode;
 #endif
 			BuildPipeline.BuildPlayer(EditorBuildSettings.scenes, locationPath, target, buildOption);
-			
-			if (context.ExportProject)
-			{
-#if UNITY_ANDROID
-#if UNITY_EDITOR_OSX
-				const string gradlewFileName = "gradlew";
-#else
-				const string gradlewFileName = "gradlew.bat";
-#endif
-				string command = Path.Combine(locationPath, gradlewFileName);
-				if (!File.Exists(command))
-				{
-					var corePath = Global.GetPackageFullPath("com.pluginset.core");
-					Global.CopyFilesTo( locationPath, Path.Combine(corePath, "AndroidTools~"), "*");
-				}
-#endif
-				
-				var md5FileName = context.TryGet<string>("md5FileName", null);
-				var md5Context = context.TryGet<string>("md5Context", null);
-				if (!string.IsNullOrEmpty(md5FileName) && !string.IsNullOrEmpty(md5Context))
-					File.WriteAllText(md5FileName, md5Context);
-			}
-			
-            Global.CallCustomOrderMethods<ExportTaskCompletedAttribute, BuildToolsAttribute>(context);
         }
     }
 }

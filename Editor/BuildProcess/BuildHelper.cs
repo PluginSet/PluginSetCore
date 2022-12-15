@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using UnityEditor;
-using UnityEditor.Callbacks;
 using UnityEditor.iOS;
 using UnityEngine;
-using UnityEngine.VFX;
 using Debug = UnityEngine.Debug;
 
 namespace PluginSet.Core.Editor
@@ -17,43 +10,6 @@ namespace PluginSet.Core.Editor
     [BuildTools]
     public static class BuildHelper
     {
-        private static bool HasBuildScene;
-
-        public static EditorBuildSettingsScene[] BuildScenes => EditorBuildSettings.scenes;
-
-        [OnFrameworkInit]
-        public static void CopyToolsToProject(BuildProcessorContext context)
-        {
-            var targetFile = "fabfile.py";
-            if (File.Exists(targetFile))
-                return;
-
-            var libPath = Global.GetPackageFullPath("com.pluginset.core");
-            if (string.IsNullOrEmpty(libPath))
-                return;
-
-            File.Copy(Path.Combine(libPath, "Scripts", "fabfile.py"), "fabfile.py");
-        }
-
-        [PostProcessScene(-int.MaxValue)]
-        public static void OnPostprocessScene()
-        {
-            if (EditorApplication.isCompiling || EditorApplication.isPlaying)
-                return;
-
-            if (HasBuildScene) return;
-            HasBuildScene = true;
-
-            BuildProcessorContext context = BuildProcessorContext.Current;
-            Global.CallCustomOrderMethods<OnCompileCompleteAttribute, BuildToolsAttribute>(context);
-
-            var handler = new BuildTaskHandler();
-            // android
-//            handler.AddNextTask(new BuildMergeAndroidManifest());
-
-            handler.Execute(context);
-        }
-
         public static void BuildIpaInstallerInternal(string ipa, string output, string remote)
         {
             var libPath = Global.GetPackageFullPath("com.pluginset.core");
@@ -61,7 +17,7 @@ namespace PluginSet.Core.Editor
 
             var ipaName = string.Empty;
             if (!string.IsNullOrEmpty(ipa))
-                ipaName = Path.GetFileName(ipa).ToLower();  // oss在上传时将所有url改成了全小写，所以这里需要同步修改为全小写
+                ipaName = Path.GetFileName(ipa);
 
             if (!Directory.Exists(output))
                 Directory.CreateDirectory(output);
@@ -114,52 +70,24 @@ namespace PluginSet.Core.Editor
         public static void PreBuildWithContext(BuildProcessorContext context)
         {
             var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildInitialize());
             handler.AddNextTask(new BuildSyncEditorSettings());
-            handler.Execute(context);
-        }
-
-        public static void BuildAllWithContecxt(BuildProcessorContext context)
-        {
-            var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildInitialize());
-            handler.AddNextTask(new BuildSyncEditorSettings());
-            handler.AddNextTask(new BuildPrepareGradleTemplates());
-            handler.AddNextTask(new BuildCheckExportedProject());
-            handler.AddNextTask(new BuildEnd());
             handler.Execute(context);
         }
 
         public static void BuildWithContext(BuildProcessorContext context)
         {
+            context.ExportProject = true;
             var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildInitialize());
-            handler.AddNextTask(new BuildSyncEditorSettings());
-            handler.AddNextTask(new BuildPrepareGradleTemplates());
             handler.AddNextTask(new BuildCheckExportedProject());
             handler.AddNextTask(new BuildEnd());
-            handler.Execute(context);
-        }
-
-        /// <summary>
-        /// 不用重新导出工程
-        /// </summary>
-        /// <param name="context"></param>
-        public static void BuildNotExportProject(BuildProcessorContext context)
-        {
-            var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildCheckExportedProject());
             handler.Execute(context);
         }
 
         public static void BuildBundlesWithContext(BuildProcessorContext context)
         {
             var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildInitialize());
-//            handler.AddNextTask(new BuildSyncEditorSettings());
             handler.AddNextTask(new BuildPrepareBundles());
             handler.AddNextTask(new BuildExportAssetBundles());
-            handler.AddNextTask(new BuildCopyBundles());
             handler.AddNextTask(new BuildEnd());
             handler.Execute(context);
         }
@@ -167,18 +95,11 @@ namespace PluginSet.Core.Editor
         public static void BuildPatchesWithContext(BuildProcessorContext context)
         {
             var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildInitialize());
-//            handler.AddNextTask(new BuildSyncEditorSettings());
             handler.AddNextTask(new BuildPreparePatches());
             handler.AddNextTask(new BuildExportAssetBundles());
             handler.AddNextTask(new BuildCopyBundles());
             handler.AddNextTask(new BuildEnd());
             handler.Execute(context);
-        }
-
-        public static void InitStudio()
-        {
-            PreBuildWithContext(BuildProcessorContext.Default());
         }
 
         public static void SyncPluginsConfig()
@@ -199,15 +120,7 @@ namespace PluginSet.Core.Editor
             context.BuildTarget = BuildTarget.iOS;
 #endif
             context.BuildPath = buildPath;
-
-            if (context.ForceExportProject)
-            {
-                BuildAllWithContecxt(context);
-            }
-            else
-            {
-                BuildNotExportProject(context);
-            }
+            BuildWithContext(context);
         }
 
         public static void BuildBundlesDefault(string buildPath, bool editorTest = false)
@@ -260,6 +173,30 @@ namespace PluginSet.Core.Editor
             var args = context.CommandArgs;
             Debug.Log("BuildIpaInstaller args::: " + string.Join(";", args.Select(kv => $"{kv.Key}={kv.Value}")));
             BuildIpaInstallerInternal(args["ipa"], args["output"], args["remote"]);
+        }
+        
+        public static void BuildWithExistProject()
+        {
+            if (!Application.isBatchMode)
+                throw new BuildException("Application is not in batch mode");
+
+            var context = BuildProcessorContext.BatchMode();
+            if (!Directory.Exists(context.ProjectPath))
+                throw new BuildException("There is no exported project");
+
+#if UNITY_ANDROID
+            var projectManager = new AndroidProjectManager(context.ProjectPath);
+            Global.CallCustomOrderMethods<AndroidMultipleBuildSetupAttribute, BuildToolsAttribute>(context, projectManager);
+#elif UNITY_IOS
+            string xcodeProjectPath = Path.Combine(context.ProjectPath, "Unity-iPhone.xcodeproj", "project.pbxproj");
+            var bundleId = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.iOS);
+            var bundleStrings = bundleId.Split('.');
+            var project = new PBXProjectManager(xcodeProjectPath
+                , $"Unity-iPhone/{bundleStrings[bundleStrings.Length - 1]}.entitlements"
+                , "Unity-iPhone");
+
+            Global.CallCustomOrderMethods<iOSMultipleBuildSetupAttribute, BuildToolsAttribute>(context, project);
+#endif
         }
 
         private static string AppendSpaces(string text, int targetLen)

@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildModifyIOSProject: IBuildProcessorTask
+    public class BuildModifyIOSProject: BuildProcessorTask
     {
         
         [Serializable]
@@ -54,12 +54,11 @@ namespace PluginSet.Core.Editor
             IOSProjectPath = path;
         }
 
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
             if (context.BuildTarget != BuildTarget.iOS)
                 return;
             
-            context.Set("projectPath", IOSProjectPath);
             string xcodeProjectPath = Path.Combine(IOSProjectPath, "Unity-iPhone.xcodeproj", "project.pbxproj");
 
             var bundleId = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.iOS);

@@ -38,7 +38,19 @@ namespace PluginSet.Core.Editor
         {
             return context.TryGet<List<string>>("buildPaths", defaultResult);
         }
-        
+
+        public static void SetBuildResult(this BuildProcessorContext context, string key, object value)
+        {
+            var dict = context.TryGet<Dictionary<string, object>>("buildResultJson", null);
+            if (dict == null)
+            {
+                dict = new Dictionary<string, object>();
+                context.Set("buildResultJson", dict);
+            }
+            
+            dict[key] = value;
+        }
+
         public static List<string> CollectBuildPaths(this BuildProcessorContext context, List<string> originPaths)
         {
             if (!IsBuildingPatches(context))
@@ -49,6 +61,22 @@ namespace PluginSet.Core.Editor
                 return null;
 
             return Global.CollectSameItemsAndRemove(originPaths, buildPaths);
+        }
+
+        public static bool CheckNeedRebuildAssetBundles(this BuildProcessorContext context)
+        {
+            if (context.ForceBuildBundles)
+                return true;
+                
+            foreach (var method in Global.GetMethods<CheckRebuildAssetBundlesAttribute, BuildToolsAttribute>())
+            {
+                if (method.Invoke(null, new object[] {context}).Equals(true))
+                {
+                    return true;
+                }
+            }
+            
+            return false;
         }
     }
 }

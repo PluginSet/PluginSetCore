@@ -2,9 +2,9 @@ using UnityEditor;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildExportAssetBundles: IBuildProcessorTask
+    public class BuildExportAssetBundles: BuildProcessorTask
     {
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
 	        var streamingAssetsName = context.TryGet<string>("StreamingAssetsName", null);
 	        var streamingAssetsPath = context.TryGet<string>("StreamingAssetsPath", null);

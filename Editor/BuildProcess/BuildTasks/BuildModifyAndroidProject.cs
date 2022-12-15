@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildModifyAndroidProject : IBuildProcessorTask
+    public class BuildModifyAndroidProject : BuildProcessorTask
     {
         private string AndroidProjectPath;
 
@@ -15,7 +15,7 @@ namespace PluginSet.Core.Editor
             AndroidProjectPath = path;
         }
 
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
             if (context.BuildTarget != BuildTarget.Android)
                 return;

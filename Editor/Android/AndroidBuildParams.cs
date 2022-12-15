@@ -62,8 +62,8 @@ namespace PluginSet.Core.Editor
             PlayerSettings.Android.useCustomKeystore = true;
 #endif
             PlayerSettings.Android.keystoreName = setting.KeyStorePath;
-            PlayerSettings.Android.keyaliasName = setting.KeyAliasName;
             PlayerSettings.Android.keystorePass = setting.KeyStorePassword;
+            PlayerSettings.Android.keyaliasName = setting.KeyAliasName;
             PlayerSettings.Android.keyaliasPass = setting.KeyAliasPassword;
 
             PlayerSettings.Android.targetSdkVersion = setting.TargetSdkVersion;

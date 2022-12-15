@@ -7,10 +7,10 @@ namespace PluginSet.Core.Editor
 {
     public static class MenuCore
     {
-        [MenuItem("PluginSet/Init Plugins")]
+        [MenuItem("PluginSet/Init Default Channels")]
         public static void FrameworkInit()
         {
-            Global.CallCustomOrderMethods<OnFrameworkInitAttribute>(BuildProcessorContext.Default());
+            BuildChannels.InitDefaultChannels();
         }
 
         [MenuItem("PluginSet/Copy fabric file")]

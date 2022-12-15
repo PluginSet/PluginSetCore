@@ -9,12 +9,11 @@ namespace PluginSet.Core.Editor
 {
     public class BuildTaskHandler
     {
-        private List<IBuildProcessorTask> _tasks = new List<IBuildProcessorTask>();
+        private List<BuildProcessorTask> _tasks = new List<BuildProcessorTask>();
         private int _currentTaskIndex = 0;
         private BuildProcessorContext _context;
-        private BuildTaskHandler _lastHandler;
         
-        public IBuildProcessorTask AddNextTask(IBuildProcessorTask task, IBuildProcessorTask place = null)
+        public BuildProcessorTask AddNextTask(BuildProcessorTask task, BuildProcessorTask place = null)
         {
             if (place == null)
             {
@@ -28,16 +27,18 @@ namespace PluginSet.Core.Editor
                 _tasks.Insert(index + 1, task);
             }
 
+            task.Handler = this;
             return task;
         }
 
-        public IBuildProcessorTask AddTaskAfter(IBuildProcessorTask task, int index = -1)
+        public BuildProcessorTask AddTaskAfter(BuildProcessorTask task, int index = -1)
         {
             if (index < 0)
                 index = _currentTaskIndex - 1;
             
             _tasks.Insert(index + 1, task);
             
+            task.Handler = this;
             return task;
         }
 
@@ -45,9 +46,7 @@ namespace PluginSet.Core.Editor
         {
             _context = context;
             _currentTaskIndex = 0;
-            _lastHandler = context.TryGet<BuildTaskHandler>("handler", null);
             
-            context.Set("handler", this);
             ExecuteNext();
         }
         
@@ -126,9 +125,7 @@ namespace PluginSet.Core.Editor
             if (_context == null)
                 return -1;
             
-            _context.Set("handler", _lastHandler);
             _context = null;
-            _lastHandler = null;
             
             return 0;
         }

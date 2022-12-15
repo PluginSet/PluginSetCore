@@ -2,14 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
 using PluginSet.Core.MiniJSON;
 using UnityEditor;
-using UnityEditor.iOS;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace PluginSet.Core.Editor
@@ -29,18 +26,35 @@ namespace PluginSet.Core.Editor
             public string[] Types;
         }
 
-        public static BuildProcessorContext Current { get; protected set; }
+        private static BuildProcessorContext _current;
+
+        public static BuildProcessorContext Current
+        {
+            get
+            {
+                if (_current == null)
+                {
+                    if (Application.isBatchMode)
+                        throw new BuildException("Please load BuildProcessorContext first!!!");
+
+
+                    return Default();
+                }
+                
+                return _current;
+            }
+        }
 
         public static BuildProcessorContext Default()
         {
             if (Application.isBatchMode)
                 throw new BuildException("Don't use this value in batch mode");
-            return Current = new BuildProcessorContext().LoadFromDefault();
+            return _current = new BuildProcessorContext().LoadFromDefault();
         }
 
         public static BuildProcessorContext BatchMode()
         {
-            return Current = new BuildProcessorContext().LoadFromCommand();
+            return _current = new BuildProcessorContext().LoadFromCommand();
         }
 
         public BuildTarget BuildTarget;
@@ -63,7 +77,7 @@ namespace PluginSet.Core.Editor
         public string BuildPath;
         public string ResourceVersion;
 
-        public string ProjectPath => Path.Combine(BuildPath, Channel);
+        public string ProjectPath;
 
         public List<string> Symbols = new List<string>();
         public List<string> TemplatePaths = new List<string>();
@@ -145,7 +159,7 @@ namespace PluginSet.Core.Editor
 
             Debug.Log($"LoadFromDefault VersionName:{VersionName} VersionCode:{VersionCode}");
 #if UNITY_ANDROID
-            ExportProject = true;// EditorUserBuildSettings.exportAsGoogleAndroidProject;
+            ExportProject = EditorUserBuildSettings.exportAsGoogleAndroidProject;
 #else
             ExportProject = true;
 #endif
@@ -186,6 +200,9 @@ namespace PluginSet.Core.Editor
             PatchFiles = JsonUtility.FromJson<PatchFiles>(CommandArgs.TryGet("patchdata", "{}"));
             Build = CommandArgs.TryGet("build", Build);
             ResourceVersion = CommandArgs.TryGet("gitcommit", string.Empty);
+            if (string.IsNullOrEmpty(ResourceVersion))
+                ResourceVersion = $"{VersionName}-{VersionCode}";
+            ProjectPath = Path.Combine(BuildPath, Channel);
             Debug.Log("InitDataWithCommand::: build commands:: " + Json.Serialize(CommandArgs));
         }
 

@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildPrepareBundles : IBuildProcessorTask
+    public class BuildPrepareBundles : BuildProcessorTask
     {
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
             var manager = ResourcesManager.Instance;
             if (manager == null) return;
@@ -15,7 +15,7 @@ namespace PluginSet.Core.Editor
             streamingAssetsPath = Global.GetFullPath(streamingAssetsPath);
             context.Set("StreamingAssetsName", manager.StreamingAssetsName);
             context.Set("StreamingAssetsPath", streamingAssetsPath);
-	        
+            
 			Global.CheckAndDeletePath(streamingAssetsPath);
 			Directory.CreateDirectory(streamingAssetsPath);
             

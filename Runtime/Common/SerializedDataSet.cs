@@ -100,21 +100,6 @@ namespace PluginSet.Core
 
         public void CheckDataItems()
         {
-            //Debug.Log("CheckDataItems");
-#if UNITY_EDITOR
-            if (EditorApplication.isUpdating)
-            {
-                Debug.Log("CheckDataItems !!!!!!!!!!! isUpdating now!");
-                return;
-            }
-            
-            if (EditorApplication.isCompiling)
-            {
-                Debug.Log("CheckDataItems !!!!!!!!!!! isCompiling now!");
-                return;
-            }
-#endif
-            
             if (_isLoading)
                 return;
 

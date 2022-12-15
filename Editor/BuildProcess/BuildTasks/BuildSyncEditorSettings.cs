@@ -6,9 +6,9 @@ using UnityEngine.PlayerLoop;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildSyncEditorSettings : IBuildProcessorTask
+    public class BuildSyncEditorSettings : BuildProcessorTask
     {
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
             var config = PluginSetConfig.Asset;
             context.Set("pluginsConfig", config);

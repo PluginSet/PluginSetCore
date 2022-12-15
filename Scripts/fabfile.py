@@ -19,6 +19,8 @@ import qrcode
 import requests
 import git
 import plistlib
+import datetime
+import zipfile
 
 from invoke import task
 from invoke.exceptions import Exit
@@ -28,6 +30,11 @@ log.addHandler(logging.StreamHandler(sys.stdout))
 
 
 LogFiles = []
+
+DRY_MODE = False
+
+def dump_now(text):
+    print(text, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
 def SUCESS(tip):
@@ -675,7 +682,7 @@ BUILD_TARGETS = {
 
 def call_unity_func(build_target, func_name, log_name, channel=None
                     , channelId=None, out_path=None, version_name=None
-                    , build_number=None, patch_data=None, debug=False, product=False):
+                    , build_number=None, patch_data=None, debug=False, product=False,gitcommit=None):
     buf = [
         UNITY_PATH
         , "-batchmode"
@@ -713,6 +720,9 @@ def call_unity_func(build_target, func_name, log_name, channel=None
     if patch_data is not None:
         buf.append("-patchdata")
         buf.append(patch_data)
+    if gitcommit is not None:
+        buf.append("-gitcommit")
+        buf.append(gitcommit)
     if debug:
         buf.append("-debug")
     if product:
@@ -791,6 +801,33 @@ def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:
     return ipa_path
 
 
+def export_project(platform, channel, channelId, version_name, build_number, temp_path
+    , debug, cache_log, product, gitcommit):
+    check_path(temp_path)
+    platform = platform.lower()
+    try:
+        build_unity(platform, temp_path if cache_log else None, version_name=version_name
+                    , build_number=build_number, out_path=temp_path
+                    , channel=channel, debug=debug, product=product, channelId=channelId,gitcommit=gitcommit)
+    except Exit as e:
+        return FAILURE(e.message)
+    except Exception as err:
+        return FAILURE(err)
+
+
+def build_multi(platform, channel, channelId, version_name, build_number, temp_path, debug, cache_log, product):
+    build_target = BUILD_TARGETS.get(platform.lower(), None)
+    log_path = temp_path if cache_log else None
+    if build_target is None:
+        return FAILURE("暂不支持该平台(%s)导出" % platform)
+    if call_unity_func(build_target
+            , "PluginSet.Core.Editor.BuildHelper.BuildWithExistProject"
+            , os.path.join(log_path, "multiLog") if log_path else None
+            , version_name=version_name, build_number=build_number, out_path=temp_path
+            , channel=channel, debug=debug, product=product, channelId=channelId):
+        return FAILURE("Unity build fail!")
+
+
 def build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, cache_log, product):
     check_path(temp_path)
     platform = platform.lower()
@@ -844,6 +881,9 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
 
 
 def uploadFileToOss(filename, path, bucket, force=False):
+    if DRY_MODE:
+        print("skip upload file in dry mode:", filename, path)
+        return
     if filename.endswith(".DS_Store"):
         return
     # 上传文件保持路径全小写
@@ -857,6 +897,9 @@ def uploadFileToOss(filename, path, bucket, force=False):
 
 
 def uploadDirToOss(dir, path, bucket, types=None, exclude=None):
+    if DRY_MODE:
+        print("skip upload dir in dry mode:", dir, path)
+        return
     for filename in os.listdir(dir):
         d = os.path.join(dir, filename)
         if os.path.isdir(d):
@@ -895,7 +938,7 @@ def check_is_assets(filename):
     return True
 
 
-def build_patches(channel, platform, version_name, build_number, out_path, root, debug, cache_log):
+def build_patches(channel, platform, version_name, build_number, out_path, root, debug, cache_log, product, gitcommit):
     tag_name = get_patch_tag(platform, version_name, root)
     target_tag = None
     repo = git.Repo(PROTJECT_PATH)
@@ -943,14 +986,8 @@ def build_patches(channel, platform, version_name, build_number, out_path, root,
     try:
         build_unity_patches(platform, temp_path if cache_log else None,
                             version_name=version_name, out_path=out_path, build_number=build_number,
-                            patch_data="'%s'" % json.dumps(patchdata),debug=debug,channel=channel)
-    except Exit as e:
-        error_path = os.path.join(out_path, "errors")
-        check_path(error_path)
-        rm_dir(error_path)
-        check_path(error_path)
-        shutil.move(temp_path, error_path)
-        return FAILURE(e.message)
+                            patch_data="'%s'" % json.dumps(patchdata),debug=debug,channel=channel,
+                            product=product,gitcommit=gitcommit)
     except Exception as err:
         return FAILURE(err)
 
@@ -1090,7 +1127,7 @@ def buildIpaInstaller(context, id, secret, bucketname, file, key, cname=None
     buf.append("-executeMethod")
     buf.append("PluginSet.Core.Editor.BuildHelper.BuildIpaInstaller")
     buf.append("-ipa")
-    buf.append(file)
+    buf.append(file.lower())
     buf.append("-output")
     buf.append(temp_path)
     buf.append("-remote")
@@ -1194,25 +1231,32 @@ def uploadPatches(context, version_name, id, secret, bucketname, file, key, buil
     uploadDirToOss(file, key, bucket, exclude=[".meta", ".manifest"])
     return SUCESS("上传文件夹%s成功" % file)
 
+def writeVersion(id, secret, bucketname, upload_keys, endpoint, file_name, template, **kwargs):
+    version_content = template
+    for key, value in kwargs.items():
+        print("writeVersion params:: ", key, value)
+        version_content = version_content.replace("{{%s}}" % key, value)
+    with open(file_name, 'w', encoding='UTF-8') as f:
+        f.write(version_content)
 
-def writeVersion(name, version_name, id, secret, bucketname, upload_keys, key
-                 , build, cname, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
-    file = "version.manifest"
-    data = {
-        "packageUrl": "%s/%s/" % (cname, key),
-        "streamingAsset": "%s_v%s-%s" % (name, version_name, build),
-        "version": version_name,
-        "build": int(build),
-    }
-    with open(file, 'w', encoding='UTF-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    print("writeVersionFile content:: ", get_all_text(file))
+    print("writeVersionFile content:: ", get_all_text(file_name))
     auth = oss2.AuthV2(id, secret)
     bucket = oss2.Bucket(auth, endpoint, bucketname)
     for upload_key in upload_keys:
-        uploadFileToOss(file, upload_key, bucket, True)
-    rm_file(file)
-    
+        uploadFileToOss(file_name, upload_key, bucket, True)
+    rm_file(file_name)
+
+def writeVersionOld(name, version_name, id, secret, bucketname, upload_keys, key
+                 , build, cname, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
+    file = "version.manifest"
+    template = """{
+        "packageUrl": "{{cname}}/{{key}}/",
+        "streamingAsset": "{{name}}_v{{version_name}}-{{build}}",
+        "version": "{{version_name}}",
+        "build": {{build}},
+    }"""
+    writeVersion(id, secret, bucketname, upload_keys, endpoint, file, template
+      , cname=cname, key=key, name=name, version_name=version_name, build=build)
 
 @task(help={
     'platform': "平台",
@@ -1236,7 +1280,7 @@ def writeVersionFile(context, platform, channels, version_name, id, secret, buck
         upload_key = "%s/%s/%s/%s-%s/%s" % (root, platform, c.strip(), version_name, build, file)
         upload_keys.append(upload_key)
         
-    writeVersion(STREAMINGASSETSNAME.lower(), version_name, id, secret, bucketname, upload_keys, key
+    writeVersionOld(STREAMINGASSETSNAME.lower(), version_name, id, secret, bucketname, upload_keys, key
                  , build, cname, endpoint)
     
     if patches:
@@ -1245,7 +1289,7 @@ def writeVersionFile(context, platform, channels, version_name, id, secret, buck
             for c in channels.split(','):
                 upload_key = "%s/%s/%s/%s/%s-%s/%s" % (root, platform, patch.lower(), c.strip(), version_name, build, file)
                 upload_keys.append(upload_key)
-            writeVersion(patch.lower(), version_name, id, secret, bucketname, upload_keys, key
+            writeVersionOld(patch.lower(), version_name, id, secret, bucketname, upload_keys, key
                          , build, cname, endpoint)
         
 
@@ -1312,3 +1356,336 @@ def makeQR(context, id, secret, bucketname, endpoint, key, url):
     rm_file(filename)
     return SUCESS("上传文件%s成功" % key)
 
+def get_build_result(build_path):
+    result_json = os.path.join(build_path, "buildResult.json")
+    return parseJsonFile(result_json)
+
+
+def replace_string(str, **kwargs):
+    for key, value in kwargs.items():
+        str = str.replace("{{%s}}" % key, value)
+    return str
+
+
+def writeOssFile(id, secret, bucketname, endpoint, file_name, key_template, content_template, **kwargs):
+    key = replace_string(key_template, **kwargs)
+    version_content = replace_string(content_template, **kwargs)
+
+    with open(file_name, 'w', encoding='UTF-8') as f:
+        f.write(version_content)
+
+    print("writeOssFile at %s content:: %s" % (key, get_all_text(file_name)))
+    auth = oss2.AuthV2(id, secret)
+    bucket = oss2.Bucket(auth, endpoint, bucketname)
+    uploadFileToOss(file_name, "%s/%s" % (key, file_name), bucket, True)
+    rm_file(file_name)
+
+
+def write_all_file_versions(build_result, channels, id, secret, bucketname, endpoint
+    , vesrion_file=None, key_template=None, patch_key_template=None, content_template=None, **kwargs):
+    if vesrion_file is None:
+        vesrion_file = "version.manifest"
+    # if key_template is None:
+    #     key_template = "{{root}}/{{platform}}/{{channelId}}/{{version_name}}-{{build}}"
+    # if patch_key_template is None:
+    #     patch_key_template = "{{root}}/{{platform}}/{{name}}/{{channelId}}/{{version_name}}-{{build}}"
+    if content_template is None:
+        content_template = """{
+            "packageUrl": "{{cname}}/{{key}}/",
+            "streamingAsset": "{{name}}_v{{version_name}}-{{build}}",
+            "version": "{{version_name}}",
+            "build": {{build}},
+        }"""
+    dump_now("start wirte all file versions")
+    for c in channels.split(','):
+        writeOssFile(id, secret, bucketname, endpoint, vesrion_file, key_template, content_template
+          , channelId=c.strip(), name=STREAMINGASSETSNAME.lower(), **kwargs)
+
+        patches = build_result.get("patchesName", [])
+        for patch in patches:
+            writeOssFile(id, secret, bucketname, endpoint, vesrion_file, patch_key_template, content_template
+            , channelId=c.strip(), name=patch, **kwargs)
+
+    dump_now("completed wirte all file versions")
+
+
+def upload_patches_if_exist(build_result, id, secret, bucketname, endpoint, upload_key):
+    patches_path = build_result.get("patchesPath", None)
+    if patches_path is None:
+        return False
+    if not os.path.exists(patches_path):
+        return FAILURE("Cannot find patches path: " + patches_path)
+
+    dump_now("start uploaded patches")
+    auth = oss2.AuthV2(id, secret)
+    bucket = oss2.Bucket(auth, endpoint, bucketname)
+    uploadDirToOss(patches_path, upload_key, bucket, exclude=[".meta", ".manifest"])
+    return True
+
+
+def upload_apks(apks_path, id, secret, bucketname, endpoint, upload_key):
+    if not os.path.exists(apks_path):
+        return FAILURE("Cannot find apks path: " + apks_path)
+
+    dump_now("start uploaded apks")
+    auth = oss2.AuthV2(id, secret)
+    bucket = oss2.Bucket(auth, endpoint, bucketname)
+    uploadDirToOss(apks_path, upload_key, bucket, types=[".apk"])
+
+def sign_apk(sign_tool, align_tool, targetSdkVersion, keystore, keystoreAlias, keystorePass, keyaliasPass, src, dst):
+    temp_file_name = None
+    unsigned_file = src
+    if targetSdkVersion >= 30:
+        temp_file_name = src + "align"
+        unsigned_file = temp_file_name
+        execall("%s -p -f -v 4 %s %s" % (align_tool, src, temp_file_name))
+
+    cmds = (
+        "java -jar", sign_tool, "sign -verbose --ks", keystore, "--ks-key-alias",
+        keystoreAlias, "--ks-pass pass:%s" % keystorePass, "--key-pass pass:%s" % keyaliasPass,
+        "--out", dst, unsigned_file
+    )
+    result = execall(" ".join(cmds))
+    if result != 0:
+        FAILURE("sign apk fail=====>"+dst)
+    if temp_file_name:
+        rm_file(temp_file_name)
+    return dst
+
+
+def build_all_apks(apks_path, apk_name_tempalte, channel, channelIds, version_name, build_number, temp_path
+    , debug, cache_log, product, gitcommit):
+    channelId_list = channelIds.split(',')
+    channelId = channelId_list[0]
+    dump_now("start build all apks")
+    export_project("android", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
+    dump_now("export android project")
+    build_result = get_build_result(temp_path)
+    android_project_path = build_result.get("projectPath", None)
+    if android_project_path is None:
+        print("buld_result >>>>>>> ", str(build_result))
+        return FAILURE("Cannot get android project path")
+    apk_file_name = generateApk(android_project_path, debug)
+    dump_now("generate first apk")
+    if not os.path.exists(apk_file_name):
+        return FAILURE("找不到构建的安卓APK" + apk_file_name)
+    apk_name = replace_string(apk_name_tempalte, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
+    target_apk_file = os.path.join(apks_path, apk_name)
+    check_path(apks_path)
+    rm_file(target_apk_file)
+    shutil.move(apk_file_name, target_apk_file)
+
+    if len(channelId_list) > 1:
+        channel_file = "assets/channelInfo.json"
+        unsigned_apk_path = os.path.join(temp_path, "unsigned_apk.tmp")
+        sign_tool = os.path.join(android_project_path, "apksigner.jar")
+        align_tool = os.path.join(android_project_path, "zipalign")
+        targetSdkVersion = build_result.get("targetSdkVersion", 30)
+        keystoreFile = build_result.get("keystoreName")
+        keyaliasName = build_result.get("keyaliasName")
+        keystorePass = build_result.get("keystorePass")
+        keyaliasPass = build_result.get("keyaliasPass")
+        copy_file(target_apk_file, unsigned_apk_path)
+        for channelId in channelId_list[1:]:
+            dump_now("start generate channel %s apk" % channelId)
+            execall("zip -d %s %s" % (unsigned_apk_path, channel_file))
+            with zipfile.ZipFile(unsigned_apk_path, 'a') as inzip:
+                channel_info = json.dumps({
+                    "channel": channel,
+                    "channelId": int(channelId),
+                })
+                inzip.writestr(channel_file, channel_info, compress_type=zipfile.ZIP_DEFLATED)
+                inzip.close()
+            apk_name = replace_string(apk_name_tempalte, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
+            sign_apk(sign_tool, align_tool, targetSdkVersion, keystoreFile, keyaliasName, keystorePass, keyaliasPass, unsigned_apk_path, os.path.join(apks_path, apk_name) )
+            dump_now("complted generate channel %s apk" % channelId)
+            
+            # build_multi("android", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product)
+            # apk_file_name = generateApk(android_project_path, debug)
+            # dump_now("generate a channel apk")
+            # if not os.path.exists(apk_file_name):
+            #     return FAILURE("构建渠道包%s时找不到构建的安卓APK%s" % (channelId ,apk_file_name))
+            # apk_name = replace_string(apk_name_tempalte, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
+            # target_apk_file = os.path.join(apks_path, apk_name)
+            # check_path(apks_path)
+            # rm_file(target_apk_file)
+            # shutil.move(apk_file_name, target_apk_file)
+        
+    return build_result
+
+
+def build_ios_installer(installer_path, channel, channelId, version_name, build_number, temp_path
+    , debug, cache_log, product, gitcommit):
+    dump_now("start build ios installer")
+    export_project("ios", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
+    dump_now("export ios project completed")
+    build_result = get_build_result(temp_path)
+    ios_project_path = build_result.get("projectPath", None)
+    if ios_project_path is None:
+        return FAILURE("Cannot get ios project path")
+    ipa_file_name = generateIpa(ios_project_path, version_name, build_number, debug, "adHoc")
+    dump_now("generated ipa")
+    if not os.path.exists(ipa_file_name):
+        return FAILURE("找不到构建的IPA:" + ipa_file_name)
+    copy_file(ipa_file_name, os.path.join(installer_path, "app.ipa"))
+
+def upload_ipa_installer(installer_path, id, secret, bucketname, key, cname=None, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
+    dump_now("start build ipa installer")
+    url_prefix = cname
+    if url_prefix is None:
+        address = endpoint.replace("http://", "")
+        address = address.replace("https://", "")
+        url_prefix = "http://%s.%s" % (bucketname, address)
+    remote = "%s/%s" % (url_prefix, key)
+
+    build_target = BUILD_TARGETS.get("ios", None)
+    buf = [
+        UNITY_PATH
+        , "-batchmode"
+        , "-nographics"
+        , "-quit"
+        , "-projectPath"
+        , os.path.relpath(PROTJECT_PATH, WORK_PATH)
+        , "-buildTarget"
+        , build_target
+    ]
+    buf.append("-executeMethod")
+    buf.append("PluginSet.Core.Editor.BuildHelper.BuildIpaInstaller")
+    buf.append("-ipa")
+    buf.append(os.path.join(installer_path, "app.ipa"))
+    buf.append("-output")
+    buf.append(installer_path)
+    buf.append("-remote")
+    buf.append(remote)
+
+    cmd = " ".join(buf)
+    execall(cmd)
+    if not os.path.exists(installer_path):
+        return FAILURE("生成IPA安装器失败")
+
+    dump_now("start upload ipa installer")
+    auth = oss2.AuthV2(id, secret)
+    bucket = oss2.Bucket(auth, endpoint, bucketname)
+    uploadDirToOss(installer_path, key, bucket)
+
+# -----------------
+@task(help={
+    "platform": "编译目标平台，目前支持ios与android",
+    "channel": "目标渠道",
+    "channelIds": "目标渠道ID，多渠道ID以逗号','隔开",
+    "version_name": "版本号名称",
+    "build_number": "build号",
+    "out_path": "输出目录",
+
+    "debug": "DEBUG模式会打开构建时的开发模式选项，且增加DEBUG宏",
+    "log": "保存log文件",
+    "product": "是否为生产模式",
+
+    'apk_name_template' : "APK目标文件名称模版",
+    'gitcommit': "gitcommit号，用来标识资源版本TAG",
+})
+def buildAppsFlow(context, platform, channel, channelIds, version_name, build_number, out_path
+    , apk_name_template, debug=False, log=True, product=False, gitcommit=None):
+    temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
+    rm_dir(temp_path)
+    try:
+        if platform == 'ios':
+            installer_path = os.path.join(temp_path, "installer")
+            build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
+        elif platform == "android":
+            apks_path = os.path.join(temp_path, "apks")
+            build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
+              , debug, log, product, gitcommit)
+        else:
+            raise Exception("not support platform " + platform)
+    except Exit as exit:
+        shutil.move(temp_path, out_path)
+        raise exit
+    except Exception as err:
+        return FAILURE("Build Fail with error::" + str(err))
+        
+    shutil.move(temp_path, out_path)
+    return SUCESS("Build Completed")
+
+
+@task(help={
+    "platform": "编译目标平台，目前支持ios与android",
+    "channelIds": "目标渠道ID，多渠道ID以逗号','隔开",
+    "out_path": "输出目录",
+
+    'id': "登录使用的AccessKeyId",
+    'secret': "登录使用的AccessKeySecret",
+    'bucketname': "域名（无需oss前缀）",
+    'cname': "下载云文件时使用的域名",
+    'endpoint': "oss域名，默认为杭州点",
+    'apktemplate' : "APK文件夹上传目录路径",
+    'resourcetemplate' : "资源包文件夹上传目录路径",
+    'installertemplate' : "IOS安装器文件夹上传目录路径",
+    'streamtemplate' : "stream版本文件上传目录路径",
+    'patchtemplate' : "子包版本文件上传目录路径",
+    'version_content': "版本文件内容模板",
+    'version_file': "版本文件名称，默认为version.manifest",
+})
+def buildUploadFlow(context, platform, channelIds, out_path
+    , id, secret, bucketname, cname, apktemplate, resourcetemplate, installertemplate
+    , streamtemplate, patchtemplate, version_content=None, version_file=None
+    , endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
+    try:
+        build_result = get_build_result(out_path)
+        channel = build_result.get("channel", None)
+        version_name = build_result.get("version", None)
+        build_number = build_result.get("build", None)
+        if channel is None or version_name is None or build_number is None:
+            return FAILURE("Error build result :" + str(build_result))
+
+        resources_key = replace_string(resourcetemplate, platform=platform, channel=channel, version_name=version_name, build_number=build_number)
+        if platform == 'ios':
+            installer_path = os.path.join(out_path, "installer")
+            installer_key = replace_string(installertemplate, platform=platform, channel=channel, channelId=channelIds, version_name=version_name, build_number=build_number)
+            upload_ipa_installer(installer_path, id, secret, bucketname, installer_key, cname, endpoint)
+        elif platform == "android":
+            apks_path = os.path.join(out_path, "apks")
+            apks_key = replace_string(apktemplate, platform=platform, channel=channel, version_name=version_name, build_number=build_number)
+            upload_apks(apks_path, id, secret, bucketname, endpoint, apks_key)
+        else:
+            raise Exception("not support platform " + platform)
+
+        upload_patches_if_exist(build_result, id, secret, bucketname, endpoint, resources_key)
+        write_all_file_versions(build_result, channelIds, id, secret, bucketname, endpoint, version_file, streamtemplate, patchtemplate
+            , version_content, channel=channel,version_name=version_name,build_number=build_number,cname=cname,platform=platform)
+    except Exit as exit:
+        raise exit
+    except Exception as err:
+        return FAILURE("Build Fail with error::" + str(err))
+    return SUCESS("Build Completed")
+
+@task(help={
+    "platform": "编译目标平台，目前支持ios与android",
+    "channel": "目标渠道",
+    "version_name": "版本号名称",
+    "build_number": "build号",
+    "out_path": "输出目录",
+
+    "debug": "DEBUG模式会打开构建时的开发模式选项，且增加DEBUG宏",
+    "log": "保存log文件",
+    "product": "是否为生产模式",
+
+    'gitcommit': "gitcommit号，用来标识资源版本TAG"
+})
+def buildPatchesFlow(context, platform, tag_root, channel, version_name, build_number, out_path
+    , debug=False, log=True, product=False, gitcommit=None):
+    build_target = BUILD_TARGETS.get(platform.lower(), None)
+    if build_target is None:
+        return FAILURE("暂不支持该平台(%s)导出" % platform)
+    temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
+    rm_dir(temp_path)
+    try:
+        build_patches(channel, platform, version_name, build_number, temp_path, tag_root, debug, log, product, gitcommit)
+    except Exit as exit:
+        shutil.move(temp_path, out_path)
+        raise exit
+    except Exception as err:
+        return FAILURE("Build Fail with error::" + str(err))
+        
+    shutil.move(temp_path, out_path)
+    return SUCESS("Build Completed")

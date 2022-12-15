@@ -73,6 +73,9 @@ namespace PluginSet.Core.Editor
         [Tooltip("构建AssetBundle时使用的选项")]
         public BuildAssetBundleOptions BuildAssetBundleOptions = BuildAssetBundleOptions.None;
 
+        [Tooltip("是否显示Unity闪屏")]
+        public bool ShowUnityLogo = false;
+
         internal static readonly string MainPath = Path.Combine("Assets", "Editor", "Channels");
         private static SettingAssetLoader assetLoader = new SettingAssetLoader(MainPath);
 
@@ -128,7 +131,7 @@ namespace PluginSet.Core.Editor
             return assetLoader.GetMain<BuildChannels>(GetFileNameInternal(channel));
         }
 
-        private static string[] GetAllFileNames()
+        private static string[] GetAllDefaultChannelNames()
         {
             return new[]
             {
@@ -141,10 +144,9 @@ namespace PluginSet.Core.Editor
             return $"Channel_{channel}";
         }
 
-        [OnFrameworkInit]
-        public static void OnPluginsInit(BuildProcessorContext context)
+        public static void InitDefaultChannels()
         {
-            foreach (var fileName in GetAllFileNames())
+            foreach (var fileName in GetAllDefaultChannelNames())
             {
                 assetLoader.GetMain<BuildChannels>(fileName);
             }

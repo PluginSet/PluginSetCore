@@ -592,7 +592,7 @@ namespace PluginSet.Core
             }
             else
             {
-                if (symbols.Contains(symbol))
+                if (symbols.Split(';').Any(s => s.Trim().Equals(symbol)))
                     return;
                 symbols += ";" + symbol;
             }

@@ -4,11 +4,17 @@ using UnityEditor;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildCopyStreamAssets: IBuildProcessorTask
+    public class BuildCopyStreamAssets: BuildProcessorTask
     {
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
 	        var streamingAssetsPath = context.TryGet<string>("StreamingAssetsPath", null);
+		    if (string.IsNullOrEmpty(streamingAssetsPath))
+				return;
+			
+			if (!Directory.Exists(streamingAssetsPath))
+				return;
+            
             string projectPath = context.ProjectPath;
             string targetPath;
             if (context.BuildTarget == BuildTarget.Android)

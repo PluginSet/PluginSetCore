@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildPreparePatches: IBuildProcessorTask
+    public class BuildPreparePatches: BuildProcessorTask
     {
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
             var manager = ResourcesManager.Instance;
             if (manager == null) return;

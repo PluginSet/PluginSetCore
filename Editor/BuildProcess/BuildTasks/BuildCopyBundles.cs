@@ -3,12 +3,15 @@ using UnityEditor;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildCopyBundles: IBuildProcessorTask
+    public class BuildCopyBundles: BuildProcessorTask
     {
-	    public void Execute(BuildProcessorContext context)
+	    public override void Execute(BuildProcessorContext context)
 	    {
 		    var streamingAssetsPath = context.TryGet<string>("StreamingAssetsPath", null);
 		    if (string.IsNullOrEmpty(streamingAssetsPath))
+				return;
+			
+			if (!Directory.Exists(streamingAssetsPath))
 				return;
 			
 			string targetPath = context.BuildPath;
@@ -16,7 +19,6 @@ namespace PluginSet.Core.Editor
 				return;
 			
 			targetPath = Path.Combine(targetPath, "Patches");
-//			Global.MoveAllFilesToPath(streamingAssetsPath, targetPath);
             Global.CopyFilesTo(targetPath, streamingAssetsPath, "*");
 
 			AssetDatabase.Refresh();

@@ -2,22 +2,20 @@ using System.IO;
 
 namespace PluginSet.Core.Editor
 {
-    public class BuildCheckExportedProject : IBuildProcessorTask
+    public class BuildCheckExportedProject : BuildProcessorTask
     {
-        public void Execute(BuildProcessorContext context)
+        public override void Execute(BuildProcessorContext context)
         {
-            IBuildProcessorTask task = this;
-            var handler = context.Get<BuildTaskHandler>("handler");
+            BuildProcessorTask task = this;
+            var handler = this.Handler;
             string projectPath = context.ProjectPath;
-            
-            var projectChanged = CheckProjectChanged(context);
+
             var buildAssets = false;
-            if (projectChanged || context.ForceBuildBundles || CheckNeedExportAssetBundles(context))
+            var projectChanged = CheckProjectChanged(context);
+            if (projectChanged || context.CheckNeedRebuildAssetBundles())
             {
-                // 为了测试加快打包 可以不用每次都打包bundles
                 task = handler.AddNextTask(new BuildPrepareBundles(), task);
                 task = handler.AddNextTask(new BuildExportAssetBundles(), task);
-                task = handler.AddNextTask(new BuildCopyBundles(), task);
                 buildAssets = true;
             }
             
@@ -25,19 +23,12 @@ namespace PluginSet.Core.Editor
             {
                 Global.CheckAndDeletePath(projectPath);
                 
-                task = handler.AddNextTask(new BuildExportProjectOrApk(), task);
-                if (!context.ExportProject) return;
+                handler.AddNextTask(new BuildExportProjectOrApk(), task);
             }
             else if (buildAssets)
             {
-                task = handler.AddNextTask(new BuildCopyStreamAssets(), task);
+                handler.AddNextTask(new BuildCopyStreamAssets(), task);
             }
-
-            
-            task = handler.AddNextTask(new BuildModifyAndroidProject(projectPath), task);
-            task = handler.AddNextTask(new BuildModifyIOSProject(projectPath), task);
-
-            Unuse(task);
         }
 
         private static bool CheckProjectChanged(BuildProcessorContext context)
@@ -63,24 +54,6 @@ namespace PluginSet.Core.Editor
                 return true;
             
             return false;
-        }
-
-
-        private static bool CheckNeedExportAssetBundles(BuildProcessorContext context)
-        {
-	        var streamingAssetsName = context.TryGet<string>("StreamingAssetsName", null);
-	        var streamingAssetsPath = context.TryGet<string>("StreamingAssetsPath", null);
-            if (string.IsNullOrEmpty(streamingAssetsPath))
-                return false;
-
-            if (!File.Exists(Path.Combine(streamingAssetsPath, streamingAssetsName.ToLower())))
-                return true;
-            
-            return false;
-        }
-
-        private static void Unuse(IBuildProcessorTask _)
-        {
         }
     }
 }

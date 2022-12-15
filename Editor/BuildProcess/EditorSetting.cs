@@ -85,12 +85,6 @@ namespace PluginSet.Core.Editor
             }
         }
 
-        [OnFrameworkInit]
-        public static void OnPluginsInit(BuildProcessorContext context)
-        {
-            Debug.Log($"EditorSetting {Asset}");
-        }
-
         public string CurrentChannel = "default";
 
         [Tooltip("版本名称")]
