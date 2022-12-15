@@ -79,6 +79,7 @@ namespace PluginSet.Core.Editor
         {
             context.ExportProject = true;
             var handler = new BuildTaskHandler();
+            handler.AddNextTask(new BuildSyncEditorSettings());
             handler.AddNextTask(new BuildCheckExportedProject());
             handler.AddNextTask(new BuildEnd());
             handler.Execute(context);
