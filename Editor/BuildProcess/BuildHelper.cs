@@ -71,6 +71,7 @@ namespace PluginSet.Core.Editor
         {
             var handler = new BuildTaskHandler();
             handler.AddNextTask(new BuildSyncEditorSettings());
+            handler.AddNextTask(new BuildEnd());
             handler.Execute(context);
         }
 
