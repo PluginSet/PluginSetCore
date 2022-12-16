@@ -1392,9 +1392,9 @@ def write_all_file_versions(build_result, channels, id, secret, bucketname, endp
     if content_template is None:
         content_template = """{
             "packageUrl": "{{cname}}/{{key}}/",
-            "streamingAsset": "{{name}}_v{{version_name}}-{{build}}",
+            "streamingAsset": "{{name}}_v{{version_name}}-{{build_number}}",
             "version": "{{version_name}}",
-            "build": {{build}},
+            "build": {{build_number}},
         }"""
     dump_now("start wirte all file versions")
     for c in channels.split(','):
@@ -1650,8 +1650,9 @@ def buildUploadFlow(context, platform, channelIds, out_path
         if build_result.__contains__("patchesPath"):
             patches_path = os.path.join(out_path, "Patches")
             upload_patches(patches_path, id, secret, bucketname, endpoint, resources_key)
+        
         write_all_file_versions(build_result, channelIds, id, secret, bucketname, endpoint, version_file, streamtemplate, patchtemplate
-            , version_content, channel=channel,version_name=version_name,build_number=build_number,cname=cname,platform=platform)
+            , version_content,key=resources_key,channel=channel,version_name=version_name,build_number=build_number,cname=cname,platform=platform)
     except Exit as exit:
         raise exit
     except Exception as err:
