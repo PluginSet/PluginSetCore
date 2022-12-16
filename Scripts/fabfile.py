@@ -1597,7 +1597,7 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
             raise Exception("not support platform " + platform)
     except Exit as exit:
         shutil.move(temp_path, out_path)
-        raise exit
+        return FAILURE(exit.message)
     except Exception as err:
         return FAILURE("Build Fail with error::" + str(err))
         
@@ -1636,16 +1636,17 @@ def buildUploadFlow(context, platform, channelIds, out_path
             return FAILURE("Error build result :" + str(build_result))
 
         resources_key = replace_string(resourcetemplate, platform=platform, channel=channel, version_name=version_name, build_number=build_number)
-        if platform == 'ios':
-            installer_path = os.path.join(out_path, "installer")
-            installer_key = replace_string(installertemplate, platform=platform, channel=channel, channelId=channelIds, version_name=version_name, build_number=build_number)
-            upload_ipa_installer(installer_path, id, secret, bucketname, installer_key, cname, endpoint)
-        elif platform == "android":
-            apks_path = os.path.join(out_path, "apks")
-            apks_key = replace_string(apktemplate, platform=platform, channel=channel, version_name=version_name, build_number=build_number)
-            upload_apks(apks_path, id, secret, bucketname, endpoint, apks_key)
-        else:
-            raise Exception("not support platform " + platform)
+        if build_result.__contains__("projectPath"):
+            if platform == 'ios':
+                installer_path = os.path.join(out_path, "installer")
+                installer_key = replace_string(installertemplate, platform=platform, channel=channel, channelId=channelIds, version_name=version_name, build_number=build_number)
+                upload_ipa_installer(installer_path, id, secret, bucketname, installer_key, cname, endpoint)
+            elif platform == "android":
+                apks_path = os.path.join(out_path, "apks")
+                apks_key = replace_string(apktemplate, platform=platform, channel=channel, version_name=version_name, build_number=build_number)
+                upload_apks(apks_path, id, secret, bucketname, endpoint, apks_key)
+            else:
+                raise Exception("not support platform " + platform)
 
         if build_result.__contains__("patchesPath"):
             patches_path = os.path.join(out_path, "Patches")
@@ -1654,7 +1655,7 @@ def buildUploadFlow(context, platform, channelIds, out_path
         write_all_file_versions(build_result, channelIds, id, secret, bucketname, endpoint, version_file, streamtemplate, patchtemplate
             , version_content,key=resources_key,channel=channel,version_name=version_name,build_number=build_number,cname=cname,platform=platform)
     except Exit as exit:
-        raise exit
+        return FAILURE(exit.message)
     except Exception as err:
         return FAILURE("Build Fail with error::" + str(err))
     return SUCESS("Build Completed")
@@ -1683,7 +1684,7 @@ def buildPatchesFlow(context, platform, tag_root, channel, version_name, build_n
         build_patches(channel, platform, version_name, build_number, temp_path, tag_root, debug, log, product, gitcommit)
     except Exit as exit:
         shutil.move(temp_path, out_path)
-        raise exit
+        return FAILURE(exit.message)
     except Exception as err:
         return FAILURE("Build Fail with error::" + str(err))
         
