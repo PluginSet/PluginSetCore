@@ -1409,10 +1409,7 @@ def write_all_file_versions(build_result, channels, id, secret, bucketname, endp
     dump_now("completed wirte all file versions")
 
 
-def upload_patches_if_exist(build_result, id, secret, bucketname, endpoint, upload_key):
-    patches_path = build_result.get("patchesPath", None)
-    if patches_path is None:
-        return False
+def upload_patches(patches_path, id, secret, bucketname, endpoint, upload_key):
     if not os.path.exists(patches_path):
         return FAILURE("Cannot find patches path: " + patches_path)
 
@@ -1650,7 +1647,9 @@ def buildUploadFlow(context, platform, channelIds, out_path
         else:
             raise Exception("not support platform " + platform)
 
-        upload_patches_if_exist(build_result, id, secret, bucketname, endpoint, resources_key)
+        if build_result.__contains__("patchesPath"):
+            patches_path = os.path.join(out_path, "Patches")
+            upload_patches(patches_path, id, secret, bucketname, endpoint, resources_key)
         write_all_file_versions(build_result, channelIds, id, secret, bucketname, endpoint, version_file, streamtemplate, patchtemplate
             , version_content, channel=channel,version_name=version_name,build_number=build_number,cname=cname,platform=platform)
     except Exit as exit:
