@@ -1394,7 +1394,7 @@ def write_all_file_versions(build_result, channels, id, secret, bucketname, endp
             "packageUrl": "{{cname}}/{{key}}/",
             "streamingAsset": "{{name}}_v{{version_name}}-{{build_number}}",
             "version": "{{version_name}}",
-            "build": {{build_number}},
+            "build": {{build_number}}
         }"""
     dump_now("start wirte all file versions")
     for c in channels.split(','):
