@@ -680,19 +680,20 @@ BUILD_TARGETS = {
 }
 
 
-def call_unity_func(build_target, func_name, log_name, channel=None
+def call_unity_func(build_target, func_name, quit, log_name, channel=None
                     , channelId=None, out_path=None, version_name=None
                     , build_number=None, patch_data=None, debug=False, product=False,gitcommit=None):
     buf = [
         UNITY_PATH
         , "-batchmode"
         , "-nographics"
-        # , "-quit"
         , "-projectPath"
         , os.path.relpath(PROTJECT_PATH, WORK_PATH)
         , "-buildTarget"
         , build_target
     ]
+    if quit:
+        buf.append("-quit")
     if func_name is not None:
         buf.append("-executeMethod")
         buf.append(func_name)
@@ -737,11 +738,13 @@ def build_unity(platform, log_path, **kwargs):
         return FAILURE("暂不支持该平台(%s)导出" % platform)
     if call_unity_func(build_target
             , "PluginSet.Core.Editor.BuildHelper.PreBuild"
+            , True
             , os.path.join(log_path, "prebuildLog") if log_path else None
             , **kwargs):
         return FAILURE("Unity prebuild fail!")
     if call_unity_func(build_target
             , "PluginSet.Core.Editor.BuildHelper.Build"
+            , False
             , os.path.join(log_path, "buildLog") if log_path else None
             , **kwargs):
         return FAILURE("Unity build fail!")
