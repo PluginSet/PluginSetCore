@@ -223,7 +223,7 @@ namespace PluginSet.Core
         public static bool EnableOpenSettings()
         {
 #if !UNITY_EDITOR && UNITY_IOS
-            return iOSHelper._EnableOpenSettings(version);
+            return iOSHelper._EnableOpenSettings();
 #else
             return true;
 #endif
