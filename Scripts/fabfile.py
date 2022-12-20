@@ -756,11 +756,13 @@ def build_unity_patches(platform, log_path, **kwargs):
         return FAILURE("暂不支持该平台(%s)导出" % platform)
     if call_unity_func(build_target
             , "PluginSet.Core.Editor.BuildHelper.PreBuild"
+            , True
             , os.path.join(log_path, "prebuildLog") if log_path else None
             , **kwargs):
         return FAILURE("Unity prebuild fail!")
     if call_unity_func(build_target
             , "PluginSet.Core.Editor.BuildHelper.BuildPatch"
+            , False
             , os.path.join(log_path, "patchLog") if log_path else None
             , **kwargs):
         return FAILURE("Unity build fail!")
@@ -825,6 +827,7 @@ def build_multi(platform, channel, channelId, version_name, build_number, temp_p
         return FAILURE("暂不支持该平台(%s)导出" % platform)
     if call_unity_func(build_target
             , "PluginSet.Core.Editor.BuildHelper.BuildWithExistProject"
+            , True
             , os.path.join(log_path, "multiLog") if log_path else None
             , version_name=version_name, build_number=build_number, out_path=temp_path
             , channel=channel, debug=debug, product=product, channelId=channelId):
