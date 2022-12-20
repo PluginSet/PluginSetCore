@@ -49,8 +49,9 @@ namespace PluginSet.Core.Editor
             
             File.WriteAllText(Path.Combine(output, "index.html"), index);
             File.WriteAllText(Path.Combine(output, "manifest.plist"), manifest);
-            if (!string.IsNullOrEmpty(ipa))
-                File.Copy(ipa, Path.Combine(output, ipaName), true);
+            var outputIpa = Path.Combine(output, ipaName);
+            if (!string.IsNullOrEmpty(ipa) && !ipa.Equals(outputIpa))
+                File.Copy(ipa, outputIpa, true);
 
             var appIconPath = Path.Combine(templatePath, "app.png");
             
