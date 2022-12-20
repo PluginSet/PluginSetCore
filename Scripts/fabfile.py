@@ -687,7 +687,7 @@ def call_unity_func(build_target, func_name, log_name, channel=None
         UNITY_PATH
         , "-batchmode"
         , "-nographics"
-        , "-quit"
+        # , "-quit"
         , "-projectPath"
         , os.path.relpath(PROTJECT_PATH, WORK_PATH)
         , "-buildTarget"

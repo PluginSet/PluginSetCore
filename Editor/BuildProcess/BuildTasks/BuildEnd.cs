@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEngine;
 
 namespace PluginSet.Core.Editor
 {
@@ -30,6 +31,9 @@ namespace PluginSet.Core.Editor
             }
 
             AssetDatabase.Refresh();
+            
+            if (Application.isBatchMode)
+                Application.Quit();
         }
     }
 }
