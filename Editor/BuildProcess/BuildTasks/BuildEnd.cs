@@ -33,7 +33,7 @@ namespace PluginSet.Core.Editor
             AssetDatabase.Refresh();
             
             if (Application.isBatchMode)
-                Application.Quit();
+                EditorApplication.Exit(0);
         }
     }
 }

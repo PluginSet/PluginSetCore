@@ -81,7 +81,7 @@ namespace PluginSet.Core.Editor
             {
                 Debug.Log(e);
                 if (Application.isBatchMode)
-                    Application.Quit(1);
+                    EditorApplication.Exit(1);
             }
         }
 
@@ -100,7 +100,7 @@ namespace PluginSet.Core.Editor
             {
                 Debug.Log(e);
                 if (Application.isBatchMode)
-                    Application.Quit(1);
+                    EditorApplication.Exit(1);
             }
         }
 
@@ -118,7 +118,7 @@ namespace PluginSet.Core.Editor
             {
                 Debug.Log(e);
                 if (Application.isBatchMode)
-                    Application.Quit(1);
+                    EditorApplication.Exit(1);
             }
         }
 
@@ -137,7 +137,7 @@ namespace PluginSet.Core.Editor
             {
                 Debug.Log(e);
                 if (Application.isBatchMode)
-                    Application.Quit(1);
+                    EditorApplication.Exit(1);
             }
         }
 
