@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -69,39 +70,75 @@ namespace PluginSet.Core.Editor
 
         public static void PreBuildWithContext(BuildProcessorContext context)
         {
-            var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildSyncEditorSettings());
-            handler.AddNextTask(new BuildEnd());
-            handler.Execute(context);
+            try
+            {
+                var handler = new BuildTaskHandler();
+                handler.AddNextTask(new BuildSyncEditorSettings());
+                handler.AddNextTask(new BuildEnd());
+                handler.Execute(context);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+                if (Application.isBatchMode)
+                    Application.Quit(1);
+            }
         }
 
         public static void BuildWithContext(BuildProcessorContext context)
         {
-            context.ExportProject = true;
-            var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildSyncEditorSettings());
-            handler.AddNextTask(new BuildCheckExportedProject());
-            handler.AddNextTask(new BuildEnd());
-            handler.Execute(context);
+            try
+            {
+                context.ExportProject = true;
+                var handler = new BuildTaskHandler();
+                handler.AddNextTask(new BuildSyncEditorSettings());
+                handler.AddNextTask(new BuildCheckExportedProject());
+                handler.AddNextTask(new BuildEnd());
+                handler.Execute(context);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+                if (Application.isBatchMode)
+                    Application.Quit(1);
+            }
         }
 
         public static void BuildBundlesWithContext(BuildProcessorContext context)
         {
-            var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildPrepareBundles());
-            handler.AddNextTask(new BuildExportAssetBundles());
-            handler.AddNextTask(new BuildEnd());
-            handler.Execute(context);
+            try
+            {
+                var handler = new BuildTaskHandler();
+                handler.AddNextTask(new BuildPrepareBundles());
+                handler.AddNextTask(new BuildExportAssetBundles());
+                handler.AddNextTask(new BuildEnd());
+                handler.Execute(context);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+                if (Application.isBatchMode)
+                    Application.Quit(1);
+            }
         }
 
         public static void BuildPatchesWithContext(BuildProcessorContext context)
         {
-            var handler = new BuildTaskHandler();
-            handler.AddNextTask(new BuildPreparePatches());
-            handler.AddNextTask(new BuildExportAssetBundles());
-            handler.AddNextTask(new BuildCopyBundles());
-            handler.AddNextTask(new BuildEnd());
-            handler.Execute(context);
+            try
+            {
+                var handler = new BuildTaskHandler();
+                handler.AddNextTask(new BuildPreparePatches());
+                handler.AddNextTask(new BuildExportAssetBundles());
+                handler.AddNextTask(new BuildCopyBundles());
+                handler.AddNextTask(new BuildEnd());
+                handler.Execute(context);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+                if (Application.isBatchMode)
+                    Application.Quit(1);
+            }
         }
 
         public static void SyncPluginsConfig()
