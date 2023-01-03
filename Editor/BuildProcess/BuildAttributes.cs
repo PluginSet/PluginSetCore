@@ -17,21 +17,6 @@ namespace PluginSet.Core.Editor
         {
         }
     }
-
-    // 项目导出完成回调
-    [AttributeUsage(AttributeTargets.Method)]
-    public class ExportTaskCompletedAttribute : OrderCallBack
-    {
-        public ExportTaskCompletedAttribute()
-            : base(0)
-        {
-        }
-
-        public ExportTaskCompletedAttribute(int order)
-            : base(order)
-        {
-        }
-    }
     
     // 安卓项目设定工程时调用该接口
     // 该接口有序调用，接收BuildProccessorContext, AndroidProjectManager

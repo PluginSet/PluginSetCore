@@ -32,9 +32,6 @@ namespace PluginSet.Core.Editor
 
             AssetDatabase.Refresh();
             
-            if (context.ExportProject)
-                Global.CallCustomOrderMethods<ExportTaskCompletedAttribute, BuildToolsAttribute>(context);
-            
             if (Application.isBatchMode)
                 EditorApplication.Exit(0);
         }

@@ -1531,6 +1531,7 @@ def build_ios_installer(installer_path, channel, channelId, version_name, build_
     if not os.path.exists(ipa_file_name):
         return FAILURE("找不到构建的IPA:" + ipa_file_name)
     copy_file(ipa_file_name, os.path.join(installer_path, "app.ipa"))
+    return build_result
 
 def upload_ipa_installer(installer_path, id, secret, bucketname, key, cname=None, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
     dump_now("start build ipa installer")
@@ -1571,6 +1572,50 @@ def upload_ipa_installer(installer_path, id, secret, bucketname, key, cname=None
     bucket = oss2.Bucket(auth, endpoint, bucketname)
     uploadDirToOss(installer_path, key, bucket)
 
+
+def upload_bugly_symbols(build_result:dict):
+    if build_result is None:
+        return
+    bundleId = build_result.get("bundleId", None)
+    if bundleId is None:
+        return
+    platform = build_result.get("platform", None)
+    if platform is None:
+        return
+    buglyId = build_result.get("buglyId", None)
+    if buglyId is None:
+        return
+    buglyKey = build_result.get("buglyKey", None)
+    if buglyKey is None:
+        return
+    buglyVersion = build_result.get("buglyVersion", None)
+    if buglyVersion is None:
+        return
+    buglySymbols = build_result.get("buglySymbols", None)
+    if buglySymbols is None:
+        return
+    if not os.path.exists(buglySymbols):
+        return
+    projectPath = build_result.get("projectPath", None)
+    if projectPath is None:
+        return
+    if not os.path.exists(projectPath):
+        return
+    tool_jar = os.path.join(projectPath, "buglyqq-upload-symbol.jar")
+    if not os.path.exists(tool_jar):
+        return
+    cmds = ["java",
+        "-jar", tool_jar,
+        "-appid", buglyId,
+        "-appkey", buglyKey,
+        "-inputSymbol", buglySymbols,
+        "-version", buglyVersion,
+        "-bundleid", bundleId,
+        "platform", platform.title()
+        ]
+    execall(" ".join(cmds))
+
+
 # -----------------
 @task(help={
     "platform": "编译目标平台，目前支持ios与android",
@@ -1592,15 +1637,17 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
     try:
+        build_result = None
         if platform == 'ios':
             installer_path = os.path.join(temp_path, "installer")
-            build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
+            build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
         elif platform == "android":
             apks_path = os.path.join(temp_path, "apks")
-            build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
+            build_result = build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
               , debug, log, product, gitcommit)
         else:
             raise Exception("not support platform " + platform)
+        upload_bugly_symbols(build_result)
     except Exit as exit:
         shutil.move(temp_path, out_path)
         return FAILURE(exit.message)

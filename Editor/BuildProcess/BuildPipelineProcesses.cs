@@ -48,6 +48,14 @@ namespace PluginSet.Core.Editor
 	        var context = BuildProcessorContext.Current;
 			context.SetBuildResult("unityVersion", Application.unityVersion);
 			
+#if UNITY_IOS
+            context.SetBuildResult("bundleId", PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.iOS));
+            context.SetBuildResult("platform", "iOS");
+#else
+            context.SetBuildResult("bundleId", PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android));
+            context.SetBuildResult("platform", "Android");
+#endif
+			
 			if (context.ExportProject)
 			{
 				context.SetBuildResult("projectPath", Path.GetFullPath(exportPath));
