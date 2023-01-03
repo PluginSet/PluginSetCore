@@ -78,8 +78,6 @@ namespace PluginSet.Core.Editor
 			{
 				context.SetBuildResult("apkPath", Path.GetFullPath(exportPath));
 			}
-			
-            Global.CallCustomOrderMethods<ExportTaskCompletedAttribute, BuildToolsAttribute>(context);
             
             if (!Application.isBatchMode)
             {
