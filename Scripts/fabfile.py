@@ -1611,7 +1611,7 @@ def upload_bugly_symbols(build_result:dict):
         "-inputSymbol", buglySymbols,
         "-version", buglyVersion,
         "-bundleid", bundleId,
-        "platform", platform.title()
+        "-platform", platform.title()
         ]
     execall(" ".join(cmds))
 
