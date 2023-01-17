@@ -20,6 +20,7 @@ namespace PluginSet.Core.Editor
 			
 			targetPath = Path.Combine(targetPath, "Patches");
             Global.CopyFilesTo(targetPath, streamingAssetsPath, "*");
+			context.SetBuildResult("patchesPath", Path.GetFullPath(targetPath));
 
 			AssetDatabase.Refresh();
         }
