@@ -145,6 +145,11 @@ namespace PluginSet.Core
             return Utils.CallStatic<int>("GetApplicationMetaInt", CurrentActivity, name, defaultValue);
         }
 
+        public static string GetIMEIAt(int index)
+        {
+            return Utils.CallStatic<string>("GetIMEIAt", CurrentActivity, index);
+        }
+
         public static string GetIMEI()
         {
             return Utils.CallStatic<string>("GetIMEI", CurrentActivity);
