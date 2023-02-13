@@ -8,7 +8,8 @@ namespace PluginSet.Core.Editor
     {
         protected override void PropertyField(Rect position, SerializedProperty property, GUIContent label)
         {
-            var toolTip = fieldInfo.GetCustomAttributes(typeof(TooltipAttribute), false).First();
+            var toolTipAttrs = fieldInfo.GetCustomAttributes(typeof(TooltipAttribute), false);
+            var toolTip = toolTipAttrs.Length > 0 ? toolTipAttrs.First() : null;
             if (toolTip != null)
                 label.tooltip = ((TooltipAttribute) toolTip).tooltip;
             ((DrawablePropertyAttribute)attribute).DrawProperty(position, property, label);

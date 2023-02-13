@@ -8,13 +8,9 @@ namespace PluginSet.Core.Editor
     {
         public override void Execute(BuildProcessorContext context)
         {
-            var manager = ResourcesManager.Instance;
-            if (manager == null) return;
-            
-            var streamingAssetsPath = Path.Combine(Application.dataPath, manager.StreamingAssetsName);
-            streamingAssetsPath = Global.GetFullPath(streamingAssetsPath);
-            context.Set("StreamingAssetsName", manager.StreamingAssetsName);
-            context.Set("StreamingAssetsPath", streamingAssetsPath);
+            var streamingAssetsPath = context.StreamingAssetsPath;
+            if (string.IsNullOrEmpty(streamingAssetsPath))
+                return;
             
 			Global.CheckAndDeletePath(streamingAssetsPath);
 			Directory.CreateDirectory(streamingAssetsPath);

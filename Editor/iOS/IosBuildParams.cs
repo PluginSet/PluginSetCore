@@ -1,12 +1,39 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using System.Security.Cryptography.X509Certificates;
 
 namespace PluginSet.Core.Editor
 {
+    public enum IosArchiveMethod
+    {
+        AppStore,
+        AdHoc,
+        Development,
+    }
+    
+    [Serializable]
+    public struct IosBuildTypeInfo
+    {
+        [SerializeField]
+        public string teamId;
+        [SerializeField]
+        public string bundleId;
+        [SerializeField]
+        public IosArchiveMethod method;
+        [SerializeField]
+        public bool automaticallySign;
+        [DropDownList("ProfileNames")]
+        [SerializeField]
+        public string profileName;
+        [SerializeField]
+        public bool biteCode;
+    }
+    
     [BuildTools]
     [BuildChannelsParams("iOS", -10000, "苹果打包相关设置")]
     [VisibleCaseBoolValue("SupportIOS", true)]
@@ -14,20 +41,15 @@ namespace PluginSet.Core.Editor
     {
         [Tooltip("存储KeyChains时默认使用的services字符串")]
         public string KeyChainServices = "com.pluginset.core";
-        
-        [Tooltip("使用的appleDeveloperTeamID")]
-        public string TeamID;
-        
-        [Tooltip("启动自动签名")]
-        public bool AutomaticallySign;
-        
-        [Tooltip("adHoc包对应的签名文件")]
-        [VisibleCaseBoolValue("AutomaticallySign", false)]
-        public BuildProvisioningProfile AppStoreBuildProfile;
 
-        [Tooltip("adHoc包对应的签名文件")]
-//        [VisibleCaseBoolValue("AutomaticallySign", false)]
-        public BuildProvisioningProfile AdHocBuildProfile;
+        [Tooltip("所有用到的签名文件")]
+        public BuildProvisioningProfile[] BuildProfiles;
+        
+        [Tooltip("可提供的所有构建方式及参数")]
+        public IosBuildTypeInfo[] BuildTypeInfos;
+        
+        [Tooltip("预设的构建方式")]
+        public IosArchiveMethod PresetMothod;
 
         [Tooltip("开启数据收集")]
         public bool EnableAppTrackingTransparency = true;
@@ -56,10 +78,23 @@ namespace PluginSet.Core.Editor
 
         public string UserTrackingUsageDescription = "Your data will be used to deliver personalized ads to you";
 
+        public IEnumerable<string> ProfileNames
+        {
+            get
+            {
+                return BuildProfiles?.Select(e => e.ProfileSpecifier);
+            }
+        }
+
         private void OnValidate()
         {
-            OnUpdateProfile(ref AdHocBuildProfile);
-            OnUpdateProfile(ref AppStoreBuildProfile);
+            if (BuildProfiles != null)
+            {
+                for (int i = 0; i < BuildProfiles.Length; i++)
+                {
+                    OnUpdateProfile(ref BuildProfiles[i]);
+                }
+            }
         }
         
         private static readonly string s_PatternTeamID = "<key>TeamIdentifier<\\/key>[\n\t]*<array>[\n\t]*<string>([^<>]*)</string>";
@@ -67,7 +102,7 @@ namespace PluginSet.Core.Editor
         private static readonly string s_PatternSpecifier = "<key>Name<\\/key>[\n\t]*<string>([^<>]*)</string>";
         private static readonly string s_PatternTeamName = "<key>TeamName<\\/key>[\n\t]*<string>([^<>]*)</string>";
         private static readonly string s_PatternDeveloperCertificates = "<key>DeveloperCertificates<\\/key>[\n\t]*<array>[\n\t]*<data>([\\w\\/+=]+)<\\/data>";
-        private static readonly string s_DistributionPattern = "iPhone Distribution: ";
+        private static readonly string s_SubjectCN = "CN=\"([^=]+)\"";
 
         private static readonly string DefaultProvisioningProfileSearchPath =
             "{Home}/Library/MobileDevice/Provisioning Profiles";
@@ -81,21 +116,6 @@ namespace PluginSet.Core.Editor
             else
                 profileId = string.Empty;
             
-            Match match2 = Regex.Match(input, s_PatternDeveloperCertificates, RegexOptions.Singleline);
-            if (match2.Success)
-                type = !Encoding.UTF8.GetString(Convert.FromBase64String(match2.Groups[1].Value))
-                    .Contains(s_DistributionPattern)
-                    ? ProvisioningProfileType.Development
-                    : ProvisioningProfileType.Distribution;
-            else
-                type = ProvisioningProfileType.Automatic;
-            
-            Match match3 = Regex.Match(input, s_PatternSpecifier, RegexOptions.Singleline);
-            if (match3.Success)
-                profileSpecifier = match3.Groups[1].Value;
-            else
-                profileSpecifier = string.Empty;
-
             string teamId;
             Match match4 = Regex.Match(input, s_PatternTeamID, RegexOptions.Singleline);
             if (match4.Success)
@@ -114,13 +134,38 @@ namespace PluginSet.Core.Editor
                 codeSignIdentity = string.Empty;
             else
                 codeSignIdentity = $"Apple Distribution: {teamName} ({teamId})";
+            
+            Match match2 = Regex.Match(input, s_PatternDeveloperCertificates, RegexOptions.Singleline);
+            if (match2.Success)
+            {
+                type = ProvisioningProfileType.Automatic;
+                var data = Convert.FromBase64String(match2.Groups[1].Value);
+                var cert = new X509Certificate(data);
+                Match match = Regex.Match(cert.Subject, s_SubjectCN, RegexOptions.Singleline);
+                if (match.Success)
+                {
+                    codeSignIdentity = match.Groups[1].Value;
+                    if (codeSignIdentity.StartsWith("iPhone Distribution:") || codeSignIdentity.StartsWith("Apple Distribution:"))
+                        type = ProvisioningProfileType.Distribution;
+                    else if (codeSignIdentity.StartsWith("iPhone Development:") || codeSignIdentity.StartsWith("Apple Development:"))
+                        type = ProvisioningProfileType.Development;
+                }
+            }
+            else
+                type = ProvisioningProfileType.Automatic;
+            
+            Match match3 = Regex.Match(input, s_PatternSpecifier, RegexOptions.Singleline);
+            if (match3.Success)
+                profileSpecifier = match3.Groups[1].Value;
+            else
+                profileSpecifier = string.Empty;
         }
         
         private static void OnUpdateProfile(ref BuildProvisioningProfile profile)
         {
             if (string.IsNullOrEmpty(profile.ProfileFile))
                 return;
-            
+
             ParseFile(Path.Combine(".", profile.ProfileFile), out profile.ProfileId, out profile.ProfileSpecifier, out profile.CodeSignIdentity, out profile.ProfileType);
         }
 
@@ -143,20 +188,64 @@ namespace PluginSet.Core.Editor
             var asset = context.BuildChannels;
             var setting = asset.Get<IosBuildParams>("iOS");
             
-            if (!string.IsNullOrEmpty(setting.TeamID))
-                PlayerSettings.iOS.appleDeveloperTeamID = setting.TeamID;
-            
-            PlayerSettings.iOS.appleEnableAutomaticSigning = setting.AutomaticallySign;
-            if (!setting.AutomaticallySign)
+            if (setting.BuildProfiles != null)
             {
-                if (!string.IsNullOrEmpty(setting.AppStoreBuildProfile.ProfileFile))
+                for (int i = 0; i < setting.BuildProfiles.Length; i++)
                 {
-                    PlayerSettings.iOS.iOSManualProvisioningProfileID = setting.AppStoreBuildProfile.ProfileId;
-                    PlayerSettings.iOS.iOSManualProvisioningProfileType = setting.AppStoreBuildProfile.ProfileType;
+                    CopyProvisioningProfile(in setting.BuildProfiles[i]);
                 }
+            }
+
+            IosBuildTypeInfo? buildInfo = null;
+            if (setting.BuildTypeInfos != null)
+            {
+                foreach (var info in setting.BuildTypeInfos)
+                {
+                    if (info.method == setting.PresetMothod)
+                    {
+                        buildInfo = info;
+                        break;
+                    }
+                }
+            }
+
+            if (buildInfo.HasValue)
+            {
+                var info = buildInfo.Value;
+                if (!string.IsNullOrEmpty(info.teamId))
+                    PlayerSettings.iOS.appleDeveloperTeamID = info.teamId;
                 
-                CopyProvisioningProfile(in setting.AppStoreBuildProfile);
-                CopyProvisioningProfile(in setting.AdHocBuildProfile);
+                PlayerSettings.iOS.appleEnableAutomaticSigning = info.automaticallySign;
+                if (!info.automaticallySign)
+                {
+                    if (!string.IsNullOrEmpty(info.profileName))
+                    {
+                        BuildProvisioningProfile? profileValue = null;
+                        if (setting.BuildProfiles != null)
+                        {
+                            foreach (var profile in setting.BuildProfiles)
+                            {
+                                if (profile.ProfileSpecifier.Equals(info.profileName))
+                                {
+                                    profileValue = profile;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (profileValue.HasValue)
+                        {
+                            var profile = profileValue.Value;
+                            PlayerSettings.iOS.iOSManualProvisioningProfileID = profile.ProfileId;
+                            PlayerSettings.iOS.iOSManualProvisioningProfileType = profile.ProfileType;
+                        }
+                        else
+                        {
+                            throw new BuildException($"Cannot find profile with name {info.profileName}");
+                        }
+                        
+                    }
+                }
             }
         }
 

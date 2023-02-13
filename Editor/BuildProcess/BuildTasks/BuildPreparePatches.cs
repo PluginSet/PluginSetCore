@@ -9,13 +9,10 @@ namespace PluginSet.Core.Editor
     {
         public override void Execute(BuildProcessorContext context)
         {
-            var manager = ResourcesManager.Instance;
-            if (manager == null) return;
-            var streamingAssetsPath = Path.Combine(Application.dataPath, manager.StreamingAssetsName);
-            streamingAssetsPath = Global.GetFullPath(streamingAssetsPath);
+            var streamingAssetsPath = context.StreamingAssetsPath;
+            if (string.IsNullOrEmpty(streamingAssetsPath))
+	            return;
             
-            context.Set("StreamingAssetsName", manager.StreamingAssetsName);
-            context.Set("StreamingAssetsPath", streamingAssetsPath);
             context.SetBuildingUpdatePatches();
 
 	        var modFiles = new List<string>();

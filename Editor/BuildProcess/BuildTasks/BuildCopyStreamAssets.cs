@@ -8,7 +8,7 @@ namespace PluginSet.Core.Editor
     {
         public override void Execute(BuildProcessorContext context)
         {
-	        var streamingAssetsPath = context.TryGet<string>("StreamingAssetsPath", null);
+            var streamingAssetsPath = context.StreamingAssetsPath;
 		    if (string.IsNullOrEmpty(streamingAssetsPath))
 				return;
 			

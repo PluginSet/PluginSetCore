@@ -16,7 +16,7 @@ namespace PluginSet.Core.Editor
         private GUIStyle lineFontStyle;
 
         private SerializedProperty dataItemsProp;
-        private bool _layouted;
+//        private bool _layouted;
 
         private void OnEnable()
         {

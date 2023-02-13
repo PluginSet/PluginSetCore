@@ -82,6 +82,21 @@ namespace PluginSet.Core.Editor
         public List<string> Symbols = new List<string>();
         public List<string> TemplatePaths = new List<string>();
 
+        public string StreamingAssetsName = ResourcesManager.Instance?.StreamingAssetsName;
+
+        public string StreamingAssetsPath
+        {
+            get
+            {
+                var manager = ResourcesManager.Instance;
+                if (manager == null) return null;
+                
+                var streamingAssetsPath = Path.Combine(Application.dataPath, manager.StreamingAssetsName);
+                streamingAssetsPath = Global.GetFullPath(streamingAssetsPath);
+                return streamingAssetsPath;
+            }
+        }
+
         private Dictionary<string, LinkTypes> LinkAssemblies = new Dictionary<string, LinkTypes>();
         
         public Dictionary<string, string> CommandArgs { get; private set; }

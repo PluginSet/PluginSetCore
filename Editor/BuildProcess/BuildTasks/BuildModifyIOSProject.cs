@@ -34,6 +34,8 @@ namespace PluginSet.Core.Editor
             public BuildTypeInfo appstore;
             [SerializeField]
             public BuildTypeInfo adHoc;
+            [SerializeField]
+            public BuildTypeInfo development;
         }
         
         [Serializable]
@@ -90,46 +92,140 @@ namespace PluginSet.Core.Editor
                 project.WorkSpaceSettings.root.values.Remove("BuildSystemType");
 
             var iosParams = context.BuildChannels.Get<IosBuildParams>();
-            var teamId = iosParams.TeamID;
-
-            var appStoreProfile = iosParams.AppStoreBuildProfile;
-            if (!iosParams.AutomaticallySign && !string.IsNullOrEmpty(appStoreProfile.ProfileFile))
-            {
-                pbxProject.SetBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY", "iPhone Distribution");
-                pbxProject.SetBuildProperty(mainTargetGuild, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", appStoreProfile.CodeSignIdentity);
-            }
-            project.Save();
-            
             var buildConfig = new BuildConfig
             {
                 info = "Info.plist",
                 scheme = "Unity-iPhone",
-                buildTypes = new BuildTypes
-                {
-                    appstore = new BuildTypeInfo
-                        {
-                            teamId = teamId,
-                            bundleId = bundleId,
-                            method = "app-store",
-                            signStyle = iosParams.AutomaticallySign ? "automatic" : "manual",
-                            profile = iosParams.AppStoreBuildProfile.ProfileId,
-                            cert = iosParams.AppStoreBuildProfile.CodeSignIdentity,
-                            biteCode = false,
-                        },
-                    adHoc = new BuildTypeInfo
-                        {
-                            teamId = teamId,
-                            bundleId = bundleId,
-                            method = "ad-hoc",
-                            signStyle = iosParams.AutomaticallySign ? "automatic" : "manual",
-                            profile = iosParams.AdHocBuildProfile.ProfileId,
-                            cert = iosParams.AdHocBuildProfile.CodeSignIdentity,
-                            biteCode = false,
-                        },
-                }
+                buildTypes = new BuildTypes()
             };
 
+            IosBuildTypeInfo? releaseBuild = null;
+            IosBuildTypeInfo? debugBuild = null;
+            BuildProvisioningProfile? releaseProfile = null;
+            BuildProvisioningProfile? debugProfile = null;
+            if (iosParams.BuildTypeInfos != null)
+            {
+                foreach (var info in iosParams.BuildTypeInfos)
+                {
+                    var buildTypeInfo = new BuildTypeInfo
+                    {
+                        teamId = info.teamId,
+                        bundleId = info.bundleId,
+                        method = GetBuildMethodDesc(info.method),
+                        signStyle = info.automaticallySign ? "automatic" : "manual",
+                        biteCode = info.biteCode,
+                    };
+
+                    BuildProvisioningProfile? profileValue = null;
+                    if (!info.automaticallySign)
+                    {
+                        var profile = FindBuildProvisioningProfile(iosParams, info.profileName);
+                        buildTypeInfo.profile = profile.ProfileId;
+                        buildTypeInfo.cert = profile.CodeSignIdentity;
+                        profileValue = profile;
+                    }
+
+                    switch (info.method)
+                    {
+                        case IosArchiveMethod.AppStore:
+                            buildConfig.buildTypes.appstore = buildTypeInfo;
+                            if (!releaseBuild.HasValue || info.method == iosParams.PresetMothod)
+                            {
+                                releaseBuild = info;
+                                releaseProfile = profileValue;
+                            }
+                            break;
+                        case IosArchiveMethod.AdHoc:
+                            buildConfig.buildTypes.adHoc = buildTypeInfo;
+                            if (!releaseBuild.HasValue || info.method == iosParams.PresetMothod)
+                            {
+                                releaseBuild = info;
+                                releaseProfile = profileValue;
+                            }
+                            break;
+                        case IosArchiveMethod.Development:
+                            buildConfig.buildTypes.development = buildTypeInfo;
+                            debugBuild = info;
+                            debugProfile = profileValue;
+                            break;
+                    }
+                }
+            }
+
+            if (releaseBuild.HasValue)
+            {
+                SetCodeSignWithConfig(project, "Release", releaseBuild.Value.teamId, releaseProfile);
+                SetCodeSignWithConfig(project, "ReleaseForProfiling", releaseBuild.Value.teamId, releaseProfile);
+                SetCodeSignWithConfig(project, "ReleaseForRunning", releaseBuild.Value.teamId, releaseProfile);
+            }
+
+            if (debugBuild.HasValue)
+            {
+                SetCodeSignWithConfig(project, "Debug", debugBuild.Value.teamId, debugProfile);
+            }
+            project.Save();
             File.WriteAllText(Path.Combine(IOSProjectPath, "build_config.json"), JsonUtility.ToJson(buildConfig));
+        }
+
+        private void SetCodeSignWithConfig(PBXProjectManager project, string configName, string teamId, BuildProvisioningProfile? profile)
+        {
+            var pbxProject = project.Project;
+            var target = project.MainFramework;
+            var config = pbxProject.BuildConfigByName(target, configName);
+            if (string.IsNullOrEmpty(config))
+                throw new BuildException($"Cannot find build config with name {configName}");
+            
+            pbxProject.SetBuildPropertyForConfig(config, "DEVELOPMENT_TEAM", teamId);
+            if (profile.HasValue)
+            {
+                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_STYLE", "Manual");
+                var codeSignIdentity = profile.Value.CodeSignIdentity;
+                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", codeSignIdentity);
+                if (codeSignIdentity.StartsWith("Apple Distribution:"))
+                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "Apple Distribution");
+                else if (codeSignIdentity.StartsWith("Apple Development:"))
+                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "Apple Development");
+                else if (codeSignIdentity.StartsWith("iPhone Distribution:"))
+                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "iOS Distribution");
+                else if (codeSignIdentity.StartsWith("iPhone Development:"))
+                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "iOS Development");
+            }
+            else
+            {
+                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_STYLE", "Automatic");
+                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "");
+                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", "");
+            }
+
+        }
+
+        private string GetBuildMethodDesc(IosArchiveMethod method)
+        {
+            switch (method)
+            {
+                case IosArchiveMethod.AppStore:
+                    return "app-store";
+                case IosArchiveMethod.AdHoc:
+                    return "ad-hoc";
+                case IosArchiveMethod.Development:
+                    return "development";
+                default:
+                    throw new BuildException($"Unknown build archive method : {method.ToString()}");
+            }
+        }
+
+        private BuildProvisioningProfile FindBuildProvisioningProfile(IosBuildParams iosBuildParams, string name)
+        {
+            if (iosBuildParams.BuildProfiles == null)
+                throw new BuildException($"No build profiles setting in iosBuildParams");
+
+            foreach (var info in iosBuildParams.BuildProfiles)
+            {
+                if (info.ProfileSpecifier.Equals(name))
+                    return info;
+            }
+            
+            throw new BuildException($"Cannot find build profile named ${name} in iosBuildParams");
         }
 
     }
