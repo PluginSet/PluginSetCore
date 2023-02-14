@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using UnityEditor.iOS.Xcode;
+using Debug = UnityEngine.Debug;
 
 namespace PluginSet.Core.Editor
 {
@@ -16,6 +17,8 @@ namespace PluginSet.Core.Editor
         public string ProjectPath => m_PbxProjectPath;
 
         private string m_PbxProjectPath;
+
+        private string m_EntitlementsPath;
         
 #if UNITY_2019_3_OR_NEWER
         // 2019.3以上的新接口
@@ -32,6 +35,7 @@ namespace PluginSet.Core.Editor
             : base(pbxProjectPath, entitlementFilePath, targetName)
         {
             m_PbxProjectPath = pbxProjectPath;
+            m_EntitlementsPath = entitlementFilePath;
             Project = this.project;
             var getOrCreateInfoDoc = typeof(ProjectCapabilityManager)
                 .GetMethod("GetOrCreateInfoDoc", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -63,16 +67,15 @@ namespace PluginSet.Core.Editor
         public bool TryAddCapability(
             string targetGuid,
             PBXCapabilityType capability,
-            string entitlementsFilePath = null,
             bool addOptionalFramework = false)
         {
             try
             {
-                return project.AddCapability(targetGuid, capability, entitlementsFilePath, addOptionalFramework);
+                return project.AddCapability(targetGuid, capability, m_EntitlementsPath, addOptionalFramework);
             }
             catch (WarningException e)
             {
-                Console.WriteLine(e);
+                Debug.LogWarning(e);
             }
 
             return false;
