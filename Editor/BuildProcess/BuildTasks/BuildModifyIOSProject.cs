@@ -69,8 +69,6 @@ namespace PluginSet.Core.Editor
                 , $"Unity-iPhone/{bundleStrings[bundleStrings.Length - 1]}.entitlements"
                 , "Unity-iPhone");
 
-            Global.CallCustomOrderMethods<iOSXCodeProjectModifyAttribute, BuildToolsAttribute>(context, project);
-
             //通用的必须加的包
             var pbxProject = project.Project;
             var targetGuid = project.UnityFramework;
@@ -163,6 +161,8 @@ namespace PluginSet.Core.Editor
             {
                 SetCodeSignWithConfig(project, "Debug", debugBuild.Value.teamId, debugProfile);
             }
+            
+            Global.CallCustomOrderMethods<iOSXCodeProjectModifyAttribute, BuildToolsAttribute>(context, project);
             project.Save();
             File.WriteAllText(Path.Combine(IOSProjectPath, "build_config.json"), JsonUtility.ToJson(buildConfig));
         }
