@@ -181,6 +181,7 @@ namespace PluginSet.Core.Editor
                 pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_STYLE", "Manual");
                 var codeSignIdentity = profile.Value.CodeSignIdentity;
                 pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", codeSignIdentity);
+                pbxProject.SetBuildPropertyForConfig(config, "PROVISIONING_PROFILE_APP", profile.Value.ProfileId);
                 if (codeSignIdentity.StartsWith("Apple Distribution:"))
                     pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "Apple Distribution");
                 else if (codeSignIdentity.StartsWith("Apple Development:"))
