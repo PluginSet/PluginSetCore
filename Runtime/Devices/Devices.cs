@@ -99,6 +99,7 @@ namespace PluginSet.Core
             var permission = CheckAdvertisingTrackingPermissionInternal(true);
             if (permission == DevicePermission.ShouldAsk)
             {
+                RecordRequestPermissions(nameof(RequestAdvertisingTracking), true);
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_READ_PHONE_STATE);
 #elif UNITY_IOS && !UNITY_EDITOR
@@ -141,6 +142,7 @@ namespace PluginSet.Core
             var permission = CheckMicrophonePermissionInternal(true);
             if (permission == DevicePermission.ShouldAsk)
             {
+                RecordRequestPermissions(nameof(RequestMicrophoneAuth), true);
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_RECORD_AUDIO);
 #elif UNITY_IOS && !UNITY_EDITOR
