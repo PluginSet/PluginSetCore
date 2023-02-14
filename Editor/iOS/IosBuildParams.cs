@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace PluginSet.Core.Editor
 {
@@ -103,9 +104,86 @@ namespace PluginSet.Core.Editor
         private static readonly string s_PatternTeamName = "<key>TeamName<\\/key>[\n\t]*<string>([^<>]*)</string>";
         private static readonly string s_PatternDeveloperCertificates = "<key>DeveloperCertificates<\\/key>[\n\t]*<array>[\n\t]*<data>([\\w\\/+=]+)<\\/data>";
         private static readonly string s_SubjectCN = "CN=\"([^=]+)\"";
-
+        
         private static readonly string DefaultProvisioningProfileSearchPath =
             "{Home}/Library/MobileDevice/Provisioning Profiles";
+
+        /**
+         * UID=U8GTR34PG2, CN=\"Apple Distribution: Hangzhou Yuesheng Technology Co., Ltd. (U8GTR34PG2)\", OU=U8GTR34PG2, O=\"Hangzhou Yuesheng Technology Co., Ltd.\", C=US 
+         */
+        private static Dictionary<string, string> ParseCertSubject(string subject)
+        {
+            var result = new Dictionary<string, string>();
+
+            string key = "";
+            string value = null;
+            int state = 0;
+            bool inQuot = false;
+            StringBuilder builder = new StringBuilder();
+
+            int i = 0;
+            while (i < subject.Length)
+            {
+                var @char = subject[i++];
+                if (@char == '\\')
+                {
+                    builder.Append(subject[i++]);
+                    continue;
+                }
+                if ((@char == '\"' && (i >= subject.Length || subject[i] == ',')) ||
+                    @char == ',' && !inQuot)
+                {
+                    if (state != 2)
+                        throw new Exception($"Unknown subject string at pos {i - 1}: {subject}");
+
+                    value = builder.ToString();
+                    builder.Clear();
+                    state = 0;
+
+                    result.Add(key, value);
+                    i++;
+                    inQuot = false;
+                    continue;
+                }
+
+                if (@char == '"')
+                {
+                    inQuot = true;
+                }
+                else if (@char == '=')
+                {
+                    if (state != 1)
+                        throw new Exception($"Unknown subject string at pos {i - 1}: {subject}");
+
+                    key = builder.ToString();
+                    builder.Clear();
+                    state = 2;
+                }
+                else if (@char == '\"')
+                {
+                    if (state != 2)
+                        throw new Exception($"Unknown subject string at pos {i - 1}: {subject}");
+
+                    if (i >= subject.Length || subject[i] == ',')
+                    {
+                        value = builder.ToString();
+                        builder.Clear();
+                        state = 0;
+
+                        result.Add(key, value);
+                        i++;
+                    }
+                }
+                else
+                {
+                    builder.Append(@char);
+                    if (state == 0)
+                        state = 1;
+                }
+            }
+
+            return result;
+        }
 
         private static void ParseFile(string filePath, out string profileId, out string profileSpecifier, out string codeSignIdentity, out ProvisioningProfileType type)
         {
@@ -141,10 +219,10 @@ namespace PluginSet.Core.Editor
                 type = ProvisioningProfileType.Automatic;
                 var data = Convert.FromBase64String(match2.Groups[1].Value);
                 var cert = new X509Certificate(data);
-                Match match = Regex.Match(cert.Subject, s_SubjectCN, RegexOptions.Singleline);
-                if (match.Success)
+                var result = ParseCertSubject(cert.Subject);
+                if (result.TryGetValue("CN", out var cn))
                 {
-                    codeSignIdentity = match.Groups[1].Value;
+                    codeSignIdentity = cn;
                     if (codeSignIdentity.StartsWith("iPhone Distribution:") || codeSignIdentity.StartsWith("Apple Distribution:"))
                         type = ProvisioningProfileType.Distribution;
                     else if (codeSignIdentity.StartsWith("iPhone Development:") || codeSignIdentity.StartsWith("Apple Development:"))
