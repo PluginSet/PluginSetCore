@@ -4,6 +4,7 @@ namespace PluginSet.Core
 {
     public partial class PluginsManager: IPrivacyAuthorizationCallback
     {
+        public bool IsPrivacyAuthorized { get; private set; }
         
         private List<IPrivacyAuthorizationCallback> _paCallbackPlugins;
 
@@ -26,6 +27,8 @@ namespace PluginSet.Core
 
         public void OnPrivacyAuthorization()
         {
+            IsPrivacyAuthorized = false;
+            
             foreach (var plugin in PACallbackPlugins)
             {
                 plugin.OnPrivacyAuthorization();
