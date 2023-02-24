@@ -27,8 +27,10 @@ namespace PluginSet.Core
 
         public void OnPrivacyAuthorization()
         {
-            IsPrivacyAuthorized = false;
+            if (IsPrivacyAuthorized)
+                return;
             
+            IsPrivacyAuthorized = true;
             foreach (var plugin in PACallbackPlugins)
             {
                 plugin.OnPrivacyAuthorization();
