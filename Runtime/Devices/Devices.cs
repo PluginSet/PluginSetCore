@@ -153,6 +153,18 @@ namespace PluginSet.Core
             return permission == DevicePermission.Granted;
         }
 
+        public static string GetUnityUniqueId()
+        {
+            var deviceId = SystemInfo.deviceUniqueIdentifier;
+#if UNITY_IOS && !UNITY_EDITOR
+            string services = iOSHelper._ReadInfoPlist("KeyChainServices", "com.pluginset.core");
+            if (string.IsNullOrEmpty(services))
+                services = "com.pluginset.core";
+            deviceId = iOSHelper._GetOrSaveKeyChain(services, "SystemInfo.deviceUniqueIdentifier", deviceId);
+#endif
+            return deviceId;
+        }
+
         public static string GetDeviceUniqueId()
         {
             var deviceId = string.Empty;
@@ -172,14 +184,7 @@ namespace PluginSet.Core
             }
 
             if (string.IsNullOrEmpty(deviceId))
-                deviceId = SystemInfo.deviceUniqueIdentifier;
-                
-#if UNITY_IOS && !UNITY_EDITOR
-            string services = iOSHelper._ReadInfoPlist("KeyChainServices", "com.pluginset.core");
-            if (string.IsNullOrEmpty(services))
-                services = "com.pluginset.core";
-            deviceId = iOSHelper._GetOrSaveKeyChain(services, "SystemInfo.deviceUniqueIdentifier", deviceId);
-#endif
+                deviceId = GetUnityUniqueId();
             return deviceId;
         }
 
