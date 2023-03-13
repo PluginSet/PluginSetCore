@@ -136,9 +136,9 @@ namespace PluginSet.Core
         /// </summary>
         bool IsLoggedIn { get; }
 
-        void Login(Action<Result> callback = null);
+        void Login(Action<Result> callback = null, string json = null);
 
-        void Logout(Action<Result> callback = null);
+        void Logout(Action<Result> callback = null, string json = null);
 
         /// <summary>
         /// Get user info json representation.

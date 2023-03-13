@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
 
+#if false
 namespace PluginSet.Core.Editor
 {
     public static class BuildPipelineProcesses
@@ -18,7 +19,12 @@ namespace PluginSet.Core.Editor
                 return;
 
             BuildProcessorContext context = BuildProcessorContext.Current;
-	        Logger.Debug("ResetPlayerDefaultBuildContext 1111111111111111111111");
+            if (context == null)
+            {
+	            Logger.Warn("Not supported platform");
+	            return;
+            }
+	            
             Global.CallCustomOrderMethods<OnCompileCompleteAttribute, BuildToolsAttribute>(context);
 			PlayerSettings.SplashScreen.showUnityLogo = context.BuildChannels.ShowUnityLogo;
         }
@@ -26,13 +32,19 @@ namespace PluginSet.Core.Editor
         [PostProcessBuild(-99999999 )]
         public static void BuildProcessModifyProject(BuildTarget target, string exportPath)
         {
+	        Logger.Debug("BuildProcessModifyProject 0000000000000000000000");
 	        var context = BuildProcessorContext.Current;
+            if (context == null)
+            {
+	            Debug.LogWarning("Not supported platform");
+	            return;
+            }
+            
 	        if (context.ExportProject)
 	        {
 		        context.ProjectPath = exportPath;
 	        }
 	        
-	        Logger.Debug("BuildProcessModifyProject 0000000000000000000000");
             var handler = new BuildTaskHandler();
             if (target == BuildTarget.iOS)
             {
@@ -46,14 +58,22 @@ namespace PluginSet.Core.Editor
         {
 	        Logger.Debug("BuildProcessCompleted 0000000000000000000000");
 	        var context = BuildProcessorContext.Current;
+            if (context == null)
+            {
+	            Debug.LogWarning("Not supported platform");
+	            return;
+            }
+            
 			context.SetBuildResult("unityVersion", Application.unityVersion);
 			
 #if UNITY_IOS
             context.SetBuildResult("bundleId", PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.iOS));
             context.SetBuildResult("platform", "iOS");
-#else
+#elif UNITY_ANDROID
             context.SetBuildResult("bundleId", PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android));
             context.SetBuildResult("platform", "Android");
+#elif UNITY_WEBGL
+            context.SetBuildResult("platform", "WebGL");
 #endif
 			
 			if (context.ExportProject)
@@ -104,3 +124,4 @@ namespace PluginSet.Core.Editor
         }
     }
 }
+#endif

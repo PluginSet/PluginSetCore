@@ -1,9 +1,10 @@
+#if UNITY_IOS
+#define UNITY_IOS_API
+#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
-using UnityEditor.Android;
-using UnityEditor.iOS;
 using UnityEngine;
 
 namespace PluginSet.Core.Editor
@@ -48,6 +49,9 @@ namespace PluginSet.Core.Editor
         
         [Tooltip("支持iOS平台")]
         public bool SupportIOS = true;
+        
+        [Tooltip("支持WebGL平台")]
+        public bool SupportWebGL = true;
 
         [Tooltip("参与打包的场景")]
         public BuildSceneInfo[] Scenes;
@@ -89,6 +93,8 @@ namespace PluginSet.Core.Editor
                     return SupportAndroid;
                 case BuildTarget.iOS:
                     return SupportIOS;
+                case BuildTarget.WebGL:
+                    return SupportWebGL;
                 default:
                     Debug.LogWarning("No property to match build target:: " + buildTarget);
                     return false;
@@ -197,16 +203,20 @@ namespace PluginSet.Core.Editor
                 var icon = asset.IconTexture;
                 if (context.BuildTarget == BuildTarget.Android)
                 {
-                    SetPlatformIcons(BuildTargetGroup.Android, AndroidPlatformIconKind.Legacy, icon);
-                    SetPlatformIcons(BuildTargetGroup.Android, AndroidPlatformIconKind.Round, icon);
+#if UNITY_ANDROID_API
+                    SetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Legacy, icon);
+                    SetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Round, icon);
+#endif
                 }
                 else if (context.BuildTarget == BuildTarget.iOS)
                 {
-                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Application, icon);
-                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Marketing, icon);
-                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Settings, icon);
-                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Notification, icon);
-                    SetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Spotlight, icon);
+#if UNITY_IOS_API
+                    SetPlatformIcons(BuildTargetGroup.iOS, UnityEditor.iOS.iOSPlatformIconKind.Application, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, UnityEditor.iOS.iOSPlatformIconKind.Marketing, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, UnityEditor.iOS.iOSPlatformIconKind.Settings, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, UnityEditor.iOS.iOSPlatformIconKind.Notification, icon);
+                    SetPlatformIcons(BuildTargetGroup.iOS, UnityEditor.iOS.iOSPlatformIconKind.Spotlight, icon);
+#endif
                 }
             }
             

@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace PluginSet.Core
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class, AllowMultiple = true)]
     public class VisibleCaseBoolValueAttribute: VisiblePropertyAttribute
     {
         private readonly string _targetName;

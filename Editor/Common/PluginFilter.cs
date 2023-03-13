@@ -56,7 +56,11 @@ namespace PluginSet.Core.Editor
 
         public bool ShouldIncludeInBuild(string path)
         {
-            return !Filter.Invoke(Path.GetFileName(path), BuildProcessorContext.Current);
+            var context = BuildProcessorContext.Current;
+            if (context == null)
+                return true;
+            
+            return !Filter.Invoke(Path.GetFileName(path), context);
         }
 
         private PluginFilter(string packageName, Func<string, BuildProcessorContext, bool> filter)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEditor;
@@ -70,24 +71,23 @@ namespace PluginSet.Core.Editor
                 , "Unity-iPhone");
 
             //通用的必须加的包
-            var pbxProject = project.Project;
             var targetGuid = project.UnityFramework;
             var mainTargetGuild = project.MainFramework;
 
 //            pbxProject.AddFrameworkToProject(targetGuid, "AppTrackingTransparency.framework", false); // TODO
             // 填写个假的token  https://blog.csdn.net/yinfourever/article/details/107385530
-            pbxProject.AddBuildProperty(mainTargetGuild, "USYM_UPLOAD_AUTH_TOKEN", "490e4f2bba5acc946a3eafb76c145605");
-            pbxProject.AddBuildProperty(targetGuid, "USYM_UPLOAD_AUTH_TOKEN", "490e4f2bba5acc946a3eafb76c145605");
+            project.AddBuildProperty(mainTargetGuild, "USYM_UPLOAD_AUTH_TOKEN", "490e4f2bba5acc946a3eafb76c145605");
+            project.AddBuildProperty(targetGuid, "USYM_UPLOAD_AUTH_TOKEN", "490e4f2bba5acc946a3eafb76c145605");
             
             // FIX:ERROR ITMS-90206: "Invalid Bundle. The bundle at 'xxx.app/Frameworks/UnityFramework.framework' contains disallowed file 'Frameworks'."
-            pbxProject.SetBuildProperty(targetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "NO");
+            project.SetBuildProperty(targetGuid, "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES", "NO");
 
 //            //推送权限处理  TODO
 //            var unityIphone = pbxProject.ProjectGuid();
 //            pbxProject.AddBuildProperty(unityIphone, "GCC_PREPROCESSOR_DEFINITIONS", "DISABLE_PUSH_NOTIFICATIONS=1");
 
             if (project.WorkSpaceSettings.HasPlistValue("BuildSystemType"))
-                project.WorkSpaceSettings.root.values.Remove("BuildSystemType");
+                project.WorkSpaceSettings.RemoveElement("BuildSystemType");
 
             var iosParams = context.BuildChannels.Get<IosBuildParams>();
             var buildConfig = new BuildConfig
@@ -169,35 +169,37 @@ namespace PluginSet.Core.Editor
 
         private void SetCodeSignWithConfig(PBXProjectManager project, string configName, string teamId, BuildProvisioningProfile? profile)
         {
-            var pbxProject = project.Project;
             var target = project.MainFramework;
-            var config = pbxProject.BuildConfigByName(target, configName);
-            if (string.IsNullOrEmpty(config))
-                throw new BuildException($"Cannot find build config with name {configName}");
-            
-            pbxProject.SetBuildPropertyForConfig(config, "DEVELOPMENT_TEAM", teamId);
             if (profile.HasValue)
             {
-                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_STYLE", "Manual");
                 var codeSignIdentity = profile.Value.CodeSignIdentity;
-                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", codeSignIdentity);
-                pbxProject.SetBuildPropertyForConfig(config, "PROVISIONING_PROFILE_APP", profile.Value.ProfileId);
+                var dict = new Dictionary<string, string>()
+                {
+                    {"DEVELOPMENT_TEAM", teamId},
+                    {"CODE_SIGN_STYLE", "Manual" },
+                    {"CODE_SIGN_IDENTITY[sdk=iphoneos*]", codeSignIdentity},
+                    {"PROVISIONING_PROFILE_APP", profile.Value.ProfileId},
+                };
                 if (codeSignIdentity.StartsWith("Apple Distribution:"))
-                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "Apple Distribution");
+                    dict.Add("CODE_SIGN_IDENTITY", "Apple Distribution");
                 else if (codeSignIdentity.StartsWith("Apple Development:"))
-                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "Apple Development");
+                    dict.Add("CODE_SIGN_IDENTITY", "Apple Development");
                 else if (codeSignIdentity.StartsWith("iPhone Distribution:"))
-                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "iOS Distribution");
+                    dict.Add("CODE_SIGN_IDENTITY", "iOS Distribution");
                 else if (codeSignIdentity.StartsWith("iPhone Development:"))
-                    pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "iOS Development");
+                    dict.Add("CODE_SIGN_IDENTITY", "iOS Development");
+                project.SetBuildPropertyForConfig(target, configName, dict);
             }
             else
             {
-                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_STYLE", "Automatic");
-                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY", "");
-                pbxProject.SetBuildPropertyForConfig(config, "CODE_SIGN_IDENTITY[sdk=iphoneos*]", "");
+                project.SetBuildPropertyForConfig(target, configName, new Dictionary<string, string>()
+                {
+                    {"DEVELOPMENT_TEAM", teamId },
+                    {"CODE_SIGN_STYLE", "Automatic"},
+                    {"CODE_SIGN_IDENTITY", ""},
+                    {"CODE_SIGN_IDENTITY[sdk=iphoneos*]", ""},
+                });
             }
-
         }
 
         private string GetBuildMethodDesc(IosArchiveMethod method)

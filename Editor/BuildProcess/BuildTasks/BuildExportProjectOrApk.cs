@@ -20,16 +20,14 @@ namespace PluginSet.Core.Editor
 			BuildOptions buildOption = BuildOptions.None;
 
 			bool debugMode = context.DebugMode;
+#if !UNITY_WEBGL
 			if (debugMode)
 			{
 				buildOption |= BuildOptions.Development;
 				buildOption |= BuildOptions.AllowDebugging;
 //				buildOption |= BuildOptions.ConnectWithProfiler;
 			}
-			else
-			{
-				buildOption |= BuildOptions.None;
-			}
+#endif
 
 			var target = context.BuildTarget;
 			var buildPath = context.ProjectPath;
@@ -60,6 +58,9 @@ namespace PluginSet.Core.Editor
 				context.SetBuildResult("keyaliasName", PlayerSettings.Android.keyaliasName);
 				context.SetBuildResult("keystorePass", PlayerSettings.Android.keystorePass);
 				context.SetBuildResult("keyaliasPass", PlayerSettings.Android.keyaliasPass);
+			}
+			else if (target == BuildTarget.WebGL)
+			{
 			}
 			else
 			{

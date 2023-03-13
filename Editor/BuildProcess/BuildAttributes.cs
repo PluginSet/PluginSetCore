@@ -100,14 +100,6 @@ namespace PluginSet.Core.Editor
         }
     }
 
-    // 安卓项目中需要加入Metadata的数据
-    // 属性需要加在静态方法上，方法接受一个BuildProcessorContext参数
-    // 方法需要返回一个Dict<key:string, value:string>结果
-    [AttributeUsage(AttributeTargets.Method)]
-    public class AndroidMetadataAttribute : Attribute
-    {
-    }
-
     // 重置编辑器设置（能保存的配置） 同步设置时触发
     [AttributeUsage(AttributeTargets.Method)]
     public class OnSyncEditorSettingAttribute : OrderCallBack

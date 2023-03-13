@@ -11,6 +11,7 @@ namespace PluginSet.Core.Editor
         public static void FrameworkInit()
         {
             BuildChannels.InitDefaultChannels();
+            Debug.Log("Selected channel " + EditorSetting.Asset.CurrentChannel); // Don't Delete This Line
         }
 
         [MenuItem("PluginSet/Copy fabric file")]
@@ -27,46 +28,16 @@ namespace PluginSet.Core.Editor
         [MenuItem("PluginSet/Build Android APK")]
 #elif UNITY_IOS
         [MenuItem("PluginSet/Build iOS Project")]
+#elif UNITY_WEBGL
+        [MenuItem("PluginSet/Build WebGL Project")]
 #endif
         public static void BuildDefaultTarget()
         {
-            var target = EditorUserBuildSettings.activeBuildTarget;
-            string buildPath = null;
-            if (target == BuildTarget.Android)
-            {
-                if (Directory.Exists(Path.Combine(Application.dataPath, "../Build")))
-                {
-                    buildPath = Path.Combine(Application.dataPath, "../Build");
-                }
-                else
-                {
-                    buildPath = Path.Combine(Application.dataPath, "../Build");
-                    Directory.CreateDirectory(buildPath);
-                }
-            }
-            else if (target == BuildTarget.iOS)
-            {
-                if (Directory.Exists(Path.Combine(Application.dataPath, "../Build")))
-                {
-                    buildPath = Path.Combine(Application.dataPath, "../Build");
-                    var tempPath = Path.Combine(buildPath, "appstore");
-                    if (Directory.Exists(tempPath))
-                        Directory.Delete(tempPath,true);
-                    var md5Path = Path.Combine(buildPath, "channelMd5.txt");
-                    if (File.Exists(md5Path))
-                        File.Delete(md5Path);
-                }
-                else
-                {
-                    buildPath = Path.Combine(Application.dataPath, "../Build");
-                    Directory.CreateDirectory(buildPath);
-                }
-            }
+            string buildPath = Path.Combine(Application.dataPath, "../Build");
+            if (!Directory.Exists(buildPath))
+                Directory.CreateDirectory(buildPath);
 
             Debug.Log($"start build: buildPath {buildPath}");
-            if (string.IsNullOrEmpty(buildPath))
-                return;
-
             BuildHelper.BuildAppDefault(buildPath);
         }
 

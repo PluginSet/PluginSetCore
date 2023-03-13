@@ -60,12 +60,12 @@ namespace PluginSet.Core
             return false;
         }
 
-        public void Login(Action<Result> callback = null)
+        public void Login(Action<Result> callback = null, string json = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
             {
-                LoginWith((string) context.Data, callback);
+                LoginWith((string) context.Data, callback, json);
                 PluginsEventContext.Return(context);
             };
 
@@ -82,13 +82,13 @@ namespace PluginSet.Core
             }
         }
 
-        public void LoginWith(string pluginName, Action<Result> callback = null)
+        public void LoginWith(string pluginName, Action<Result> callback = null, string json = null)
         {
             if (LoginPlugins.TryGetValue(pluginName, out var plugin))
             {
                 if (plugin.IsEnableLogin)
                 {
-                    plugin.Login(callback);
+                    plugin.Login(callback, json);
                     return;
                 }
             }
@@ -96,24 +96,24 @@ namespace PluginSet.Core
             InvalidCallback(callback, pluginName);
         }
 
-        public void Logout(Action<Result> callback = null)
+        public void Logout(Action<Result> callback = null, string json = null)
         {
             foreach (var plugin in LoginPlugins.Values)
             {
                 if (plugin.IsLoggedIn)
                 {
-                    plugin.Logout(callback);
+                    plugin.Logout(callback, json);
                 }
             }
         }
 
-        public void LogoutWith(string pluginName, Action<Result> callback = null)
+        public void LogoutWith(string pluginName, Action<Result> callback = null, string json = null)
         {
             if (LoginPlugins.TryGetValue(pluginName, out var plugin))
             {
                 if (plugin.IsEnableLogin)
                 {
-                    plugin.Logout(callback);
+                    plugin.Logout(callback, json);
                     return;
                 }
             }

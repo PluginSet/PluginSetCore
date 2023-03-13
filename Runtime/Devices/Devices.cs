@@ -43,6 +43,8 @@ namespace PluginSet.Core
             AndroidHelper.Vibrate(duration);
 #elif UNITY_IOS && !UNITY_EDITOR
             iOSHelper._Vibrate(level);
+#elif UNITY_WEBGL
+            // do nothing
 #else
             Handheld.Vibrate();
 #endif

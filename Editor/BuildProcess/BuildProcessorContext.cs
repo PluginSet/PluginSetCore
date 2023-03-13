@@ -38,7 +38,11 @@ namespace PluginSet.Core.Editor
                         throw new BuildException("Please load BuildProcessorContext first!!!");
 
 
+#if UNITY_ANDROID || UNITY_IOS || UNITY_WEBGL
                     return Default();
+#else
+                    return null;
+#endif
                 }
                 
                 return _current;
@@ -236,6 +240,10 @@ namespace PluginSet.Core.Editor
                 case BuildTarget.iOS:
                     BuildTargetGroup = BuildTargetGroup.iOS;
                     VersionCode = PlayerSettings.iOS.buildNumber;
+                    break;
+                case BuildTarget.WebGL:
+                    BuildTargetGroup = BuildTargetGroup.WebGL;
+                    VersionCode = "0";
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(target), target, $"BuildTarget:{target} is not support");

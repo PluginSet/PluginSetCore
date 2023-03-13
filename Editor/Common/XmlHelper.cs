@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using JetBrains.Annotations;
-using UnityEditor.iOS.Xcode;
 using UnityEditor.Rendering;
 
 namespace PluginSet.Core.Editor
@@ -34,90 +33,6 @@ namespace PluginSet.Core.Editor
             var doc = new XmlDocumentEx();
             doc.Load(file);
             return doc;
-        }
-        
-        public static bool HasPlistValue(this PlistDocument doc, string key)
-        {
-            return doc.root.values.ContainsKey(key);
-        }
-        
-        public static void AddPlistValue(this PlistDocument doc, string key, string value)
-        {
-            if (doc.HasPlistValue(key)) return;
-            doc.root.SetString(key, value);
-        }
-        
-        public static void AddPlistValue(this PlistDocument doc, string key, bool value)
-        {
-            if (doc.HasPlistValue(key)) return;
-            doc.root.SetBoolean(key, value);
-        }
-        
-        public static void AddPlistValue(this PlistDocument doc, string key, int value)
-        {
-            if (doc.HasPlistValue(key)) return;
-            doc.root.SetInteger(key, value);
-        }
-
-        public static void SetPlistValue(this PlistDocument doc, string key, string value)
-        {
-            doc.root.SetString(key, value);
-        }
-        
-        public static void SetPlistValue(this PlistDocument doc, string key, bool value)
-        {
-            doc.root.SetBoolean(key, value);
-        }
-        
-        public static void SetPlistValue(this PlistDocument doc, string key, int value)
-        {
-            doc.root.SetInteger(key, value);
-        }
-
-        public static void AddXcodeURLType(this PlistDocument doc, string id, string role, params string[] schemes)
-        {
-            PlistElementArray CFBundleURLTypes = doc.root.FindOrCreateArray("CFBundleURLTypes");
-
-            PlistElementDict node = CFBundleURLTypes.values.Find(element => element.AsDict().values["CFBundleURLName"].AsString().Equals(id))?.AsDict();
-            if (node == null)
-            {
-                node = CFBundleURLTypes.AddDict();
-            }
-            
-            node.SetString("CFBundleTypeRole", role);
-            node.SetString("CFBundleURLName", id);
-
-            PlistElementArray schemeList = node.FindOrCreateArray("CFBundleURLSchemes");
-
-            foreach (var scheme in schemes)
-            {
-                schemeList.AddStringIfNo(scheme);
-            }
-        }
-
-        public static void AddApplicationQueriesSchemes(this PlistDocument doc, string scheme)
-        {
-            doc.root.FindOrCreateArray("LSApplicationQueriesSchemes").AddStringIfNo(scheme);
-        }
-
-        public static PlistElementArray FindOrCreateArray(this PlistElementDict dict, string key)
-        {
-            if (dict.values.ContainsKey(key))
-            {
-                return dict[key].AsArray();
-            }
-            else
-            {
-                return dict.CreateArray(key);
-            }
-        }
-
-        public static void AddStringIfNo(this PlistElementArray array, string value)
-        {
-            if (array.values.Find(element => element.AsString().Equals(value)) == null)
-            {
-                array.AddString(value);
-            }
         }
         
         public static XmlNode cloneNode(this XmlDocument doc, XmlNode node)

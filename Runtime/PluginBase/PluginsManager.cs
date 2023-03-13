@@ -125,6 +125,16 @@ namespace PluginSet.Core
                 select (T) plugin;
         }
 
+        public bool ContainsPlugin(string pluginName)
+        {
+            return _plugins.Any(plugin => plugin.Name.Equals(pluginName));
+        }
+
+        public bool ContainsPlugins(params string[] pluginNames)
+        {
+            return _plugins.Any(plugin => pluginNames.Contains(plugin.Name));
+        }
+
         // 重启游戏
         public void Restart()
         {

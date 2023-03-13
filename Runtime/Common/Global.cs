@@ -823,26 +823,6 @@ namespace PluginSet.Core
             return result;
         }
 
-#if UNITY_IOS
-        public static void EnableSwiftCompile(PBXProject project, string projectPath, string xcodeTarget)
-        {
-            // 首先需要一个空的Swift文件
-            var swiftPath = Path.Combine(projectPath, "Classes", "EmptySwift.swift");
-            if (!File.Exists(swiftPath))
-            {
-                File.WriteAllText(swiftPath, "// emtpy swift script for compile OC with swift");
-            }
-
-            var subPath = GetSubPath(projectPath, swiftPath);
-            var fileGuid = project.AddFile(subPath, subPath);
-            project.AddFileToBuild(xcodeTarget, fileGuid);
-
-            // 然后要打开 Build Settings -> Build Options -> Always Embed Swift Standard Libraries 修改为YES
-            project.SetBuildProperty(xcodeTarget, "EMBEDDED_CONTENT_CONTAINS_SWIFT", "YES");
-            project.SetBuildProperty(xcodeTarget, "SWIFT_VERSION", "4.0");
-        }
-#endif
-        
         public static bool CheckGitLibImported(string libName, string gitHttpAddress)
         {
 

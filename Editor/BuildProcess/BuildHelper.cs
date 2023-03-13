@@ -1,8 +1,10 @@
+#if UNITY_IOS
+#define UNITY_IOS_API
+#endif
 using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.iOS;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -55,7 +57,8 @@ namespace PluginSet.Core.Editor
 
             var appIconPath = Path.Combine(templatePath, "app.png");
             
-            var icons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.iOS, iOSPlatformIconKind.Application);
+#if UNITY_IOS_API
+            var icons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.iOS, UnityEditor.iOS.iOSPlatformIconKind.Application);
             if (icons != null && icons.Length > 0)
             {
                 var icon = icons[0].GetTexture();
@@ -67,6 +70,7 @@ namespace PluginSet.Core.Editor
                 }
             }
             File.Copy(appIconPath, Path.Combine(output, "app.png"), true);
+#endif
         }
 
         public static void PreBuildWithContext(BuildProcessorContext context)
@@ -224,18 +228,11 @@ namespace PluginSet.Core.Editor
             if (!Directory.Exists(context.ProjectPath))
                 throw new BuildException("There is no exported project");
 
+            var projectManager = BuildUtils.GetProjectManager(context.ProjectPath);
 #if UNITY_ANDROID
-            var projectManager = new AndroidProjectManager(context.ProjectPath);
             Global.CallCustomOrderMethods<AndroidMultipleBuildSetupAttribute, BuildToolsAttribute>(context, projectManager);
 #elif UNITY_IOS
-            string xcodeProjectPath = Path.Combine(context.ProjectPath, "Unity-iPhone.xcodeproj", "project.pbxproj");
-            var bundleId = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.iOS);
-            var bundleStrings = bundleId.Split('.');
-            var project = new PBXProjectManager(xcodeProjectPath
-                , $"Unity-iPhone/{bundleStrings[bundleStrings.Length - 1]}.entitlements"
-                , "Unity-iPhone");
-
-            Global.CallCustomOrderMethods<iOSMultipleBuildSetupAttribute, BuildToolsAttribute>(context, project);
+            Global.CallCustomOrderMethods<iOSMultipleBuildSetupAttribute, BuildToolsAttribute>(context, projectManager);
 #endif
         }
 

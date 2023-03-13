@@ -103,7 +103,6 @@ namespace PluginSet.Core.Editor
         private static readonly string s_PatternSpecifier = "<key>Name<\\/key>[\n\t]*<string>([^<>]*)</string>";
         private static readonly string s_PatternTeamName = "<key>TeamName<\\/key>[\n\t]*<string>([^<>]*)</string>";
         private static readonly string s_PatternDeveloperCertificates = "<key>DeveloperCertificates<\\/key>[\n\t]*<array>[\n\t]*<data>([\\w\\/+=]+)<\\/data>";
-        private static readonly string s_SubjectCN = "CN=\"([^=]+)\"";
         
         private static readonly string DefaultProvisioningProfileSearchPath =
             "{Home}/Library/MobileDevice/Provisioning Profiles";
@@ -354,12 +353,12 @@ namespace PluginSet.Core.Editor
             if (buildParams.EnableAppTrackingTransparency)
             {
                 plist.AddPlistValue("NSUserTrackingUsageDescription",buildParams.UserTrackingUsageDescription);
-                project.Project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
+                project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
             }
             
             var xcodeTarget = project.UnityFramework;
-            project.Project.AddBuildProperty(xcodeTarget, "CLANG_ENABLE_MODULES", "YES");
-            project.Project.AddBuildProperty(xcodeTarget, "LD_RUNPATH_SEARCH_PATHS", "$(inherited)");
+            project.AddBuildProperty(xcodeTarget, "CLANG_ENABLE_MODULES", "YES");
+            project.AddBuildProperty(xcodeTarget, "LD_RUNPATH_SEARCH_PATHS", "$(inherited)");
         }
 
 
