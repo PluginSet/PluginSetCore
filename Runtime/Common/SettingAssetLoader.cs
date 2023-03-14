@@ -28,12 +28,14 @@ namespace PluginSet.Core
             SavePath = savePath;
         }
 
+#if UNITY_EDITOR
         public void RemoveMainAsset<T>()
         {
             var fileName = GetFullName(typeof(T).Name);
             AssetDatabase.DeleteAsset(fileName);
             AssetDatabase.Refresh();
         }
+#endif
 
         public T GetMain<T>() where T: ScriptableObject, ISettingAsset
         {

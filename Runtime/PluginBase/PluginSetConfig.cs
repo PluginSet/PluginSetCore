@@ -33,6 +33,7 @@ namespace PluginSet.Core
             }
         }
 
+#if UNITY_EDITOR
         public static PluginSetConfig NewAsset
         {
             get
@@ -41,6 +42,7 @@ namespace PluginSet.Core
                 return Asset;
             }
         }
+#endif
 
 
         private static List<SerializedType> pluginSetSerializedTypes;
