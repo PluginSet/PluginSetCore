@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
 
-#if false
 namespace PluginSet.Core.Editor
 {
     public static class BuildPipelineProcesses
@@ -124,4 +123,3 @@ namespace PluginSet.Core.Editor
         }
     }
 }
-#endif
