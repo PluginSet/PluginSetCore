@@ -10,7 +10,7 @@ namespace PluginSet.Core.Editor
     {
         public override void Execute(BuildProcessorContext context)
         {
-            var config = PluginSetConfig.Asset;
+            var config = PluginSetConfig.NewAsset;
             context.Set("pluginsConfig", config);
             
             // sync context

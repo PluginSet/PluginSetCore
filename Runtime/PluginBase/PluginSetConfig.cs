@@ -33,6 +33,15 @@ namespace PluginSet.Core
             }
         }
 
+        public static PluginSetConfig NewAsset
+        {
+            get
+            {
+                SettingAssetLoader.MainSettingLoader.RemoveMainAsset<PluginSetConfig>();
+                return Asset;
+            }
+        }
+
 
         private static List<SerializedType> pluginSetSerializedTypes;
 

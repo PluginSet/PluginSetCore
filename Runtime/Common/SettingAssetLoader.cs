@@ -28,6 +28,13 @@ namespace PluginSet.Core
             SavePath = savePath;
         }
 
+        public void RemoveMainAsset<T>()
+        {
+            var fileName = GetFullName(typeof(T).Name);
+            AssetDatabase.DeleteAsset(fileName);
+            AssetDatabase.Refresh();
+        }
+
         public T GetMain<T>() where T: ScriptableObject, ISettingAsset
         {
             return GetMain<T>(typeof(T).Name);
