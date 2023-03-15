@@ -63,8 +63,8 @@ namespace PluginSet.Core
                         val = 0;
                     }
                 }
-
-                versionNum += val *  (int)Math.Pow(100, MaxVersionSegment - i);
+                versionNum *= 100;
+                versionNum += val;
             }
 
             return versionNum;
