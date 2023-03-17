@@ -15,7 +15,7 @@ namespace PluginSet.Core.Editor
                 File.WriteAllText(md5FileName, md5Context);
 
             var outJson = context.TryGet<Dictionary<string, object>>("buildResultJson", null);
-            if (outJson != null && !string.IsNullOrEmpty(context.BuildPath))
+            if (outJson != null && !string.IsNullOrEmpty(context.BuildPath) && Directory.Exists(context.BuildPath))
             {
                 outJson["channel"] = context.Channel;
                 outJson["version"] = context.VersionName;

@@ -177,9 +177,15 @@ namespace PluginSet.Core.Editor
 
             var packageName = asset.PackageName;
             if (string.IsNullOrEmpty(packageName))
-                throw new BuildException($"PackageName not configured in {asset.name}");
-            if (PlayerSettings.GetApplicationIdentifier(context.BuildTargetGroup) != packageName)
-                PlayerSettings.SetApplicationIdentifier(context.BuildTargetGroup, packageName);
+            {
+                if (context.BuildTarget != BuildTarget.WebGL)
+                    throw new BuildException($"PackageName not configured in {asset.name}");
+            }
+            else
+            {
+                if (PlayerSettings.GetApplicationIdentifier(context.BuildTargetGroup) != packageName)
+                    PlayerSettings.SetApplicationIdentifier(context.BuildTargetGroup, packageName);
+            }
 
             var productName = asset.ProductName;
             if (!string.IsNullOrEmpty(productName))

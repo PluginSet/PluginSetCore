@@ -504,17 +504,19 @@ namespace PluginSet.Core
 
         private static void SetFileExecutable(string workDir, string fileName)
         {
-            if (string.IsNullOrEmpty(workDir))
-                return;
+//            if (Regex.IsMatch(fileName, @"\s*[\w]+\s*"))
+//                return;
+//
+            var path = fileName;
+            if (!string.IsNullOrEmpty(workDir) && !Path.IsPathRooted(path))
+            {
+                path = Path.Combine(workDir, fileName);
+            }
 
-            if (Regex.IsMatch(fileName, @"\s*[\w]+\s*"))
-                return;
-
-            var path = Path.Combine(workDir, fileName);
             if (!File.Exists(path))
                 return;
             
-            ExecuteCommand("chmod", false, "u+x ", Path.Combine(workDir, fileName));
+            ExecuteCommand("chmod", false, "u+x ", path);
         }
         
         public static void ExecuteCommand(string fileName, string workDir, bool useShell, params string[] args)
@@ -733,8 +735,10 @@ namespace PluginSet.Core
         public static Dictionary<string, string> GetCommandParams(string[] args, string param_start = "-")
         {
             var result = new Dictionary<string, string>();
+            if (args == null || args.Length <= 0)
+                return result;
+            
             var start_len = param_start.Length;
-
             string lastKey = null;
             for (int i = 0; i < args.Length; i++)
             {

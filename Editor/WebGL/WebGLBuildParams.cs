@@ -43,14 +43,14 @@ namespace PluginSetCore.Editor.WebGL
             PlayerSettings.defaultWebScreenHeight = setting.DefaultCanvasHeight;
             PlayerSettings.runInBackground = setting.RunInBackground;
             PlayerSettings.WebGL.compressionFormat = setting.CompressionFormat;
+            PlayerSettings.WebGL.decompressionFallback = setting.CompressionFormat != WebGLCompressionFormat.Disabled;
+            PlayerSettings.WebGL.debugSymbols = context.DebugMode;
 
             switch (setting.WebGLTemplate)
             {
                 case WebGLTemplates.Default:
                 case WebGLTemplates.Minimal:
-                    var templatePath = Path.Combine(EditorApplication.applicationPath, "..", "PlaybackEngines",
-                        "WebGLSupport", "BuildTools", "WebGLTemplates", setting.WebGLTemplate.ToString());
-                    PlayerSettings.WebGL.template = templatePath;
+                    PlayerSettings.WebGL.template = $"APPLICATION:{setting.WebGLTemplate.ToString()}";
                     break;
                 default:
                     throw new BuildException("Unsupported webGL template:: " + setting.WebGLTemplate);

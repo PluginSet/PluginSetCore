@@ -46,6 +46,8 @@ namespace PluginSet.Core
 			return "file:///" + Application.streamingAssetsPath + "/";
 #elif UNITY_ANDROID
             return Application.streamingAssetsPath + "/";
+#elif UNITY_WEBGL
+            return Application.streamingAssetsPath + "/";
 #else
             return "file://" + Application.streamingAssetsPath + "/";
 #endif
