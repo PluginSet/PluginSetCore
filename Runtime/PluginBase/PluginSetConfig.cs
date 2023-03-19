@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace PluginSet.Core
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class)]
     public class PluginSetConfigAttribute : Attribute
     {
         public string Key;

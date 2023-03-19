@@ -34,7 +34,7 @@ namespace PluginSet.Core.Editor
         {
 //            _layouted = false;
             SerializedDataSet self = (SerializedDataSet) target;
-            self.CheckDataItems();
+            self.OnLoad();
 
             serializedObject.Update();
             DataItemProperties.Clear();

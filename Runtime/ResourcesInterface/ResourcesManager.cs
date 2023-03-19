@@ -59,7 +59,7 @@ namespace PluginSet.Core
         {
             get
             {
-#if UNITY_IOS || UNITY_ANDROID || UNITY_EDITOR_OSX
+#if UNITY_IOS || UNITY_ANDROID || UNITY_EDITOR_OSX || UNITY_WEBGL
                 return "file://" + PatchesSavePath + "/";
 #elif UNITY_EDITOR
                 return "file:///" + PatchesSavePath + "/";

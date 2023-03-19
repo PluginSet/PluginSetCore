@@ -70,6 +70,42 @@ namespace PluginSet.Core
 
         public abstract IEnumerable<SerializedType> SerializedTypes { get; }
 
+        private Dictionary<string, SerializedType> _validKeysMap;
+        private Dictionary<Type, SerializedType> _validTypesMap;
+
+        private void LoadValidMap()
+        {
+            _validKeysMap = new Dictionary<string, SerializedType>();
+            _validTypesMap = new Dictionary<Type, SerializedType>();
+            foreach (var info in SerializedTypes)
+            {
+                _validKeysMap.Add(info.Key, info);
+                _validTypesMap.Add(info.ClassType, info);
+            }
+        }
+
+        public Dictionary<string, SerializedType> ValidKeysMap
+        {
+            get
+            {
+                if (_validKeysMap == null) 
+                    LoadValidMap();
+
+                return _validKeysMap;
+            }
+        }
+
+        private Dictionary<Type, SerializedType> ValidTypesMap
+        {
+            get
+            {
+                if (_validTypesMap == null)
+                    LoadValidMap();
+
+                return _validTypesMap;
+            }
+        }
+
         private Dictionary<string, SerializedDataItem> _itemsMap;
         private Dictionary<string, SerializedDataItem> ItemsMap
         {
@@ -92,26 +128,20 @@ namespace PluginSet.Core
             CheckDataItems();
         }
 
+#if UNITY_EDITOR
         public void Reload()
         {
             DataItems.Clear();
-            CheckDataItems();
+            OnLoad();
         }
+#endif
 
-        public void CheckDataItems()
+        private void CheckDataItems()
         {
             if (_isLoading)
                 return;
 
             _isLoading = true;
-            
-            List<string> validKeys = new List<string>();
-            Dictionary<string, Type> validTypes = new Dictionary<string, Type>();
-            foreach (var info in SerializedTypes)
-            {
-                validKeys.Add(info.Key);
-                validTypes[GetTypeId(info.ClassType)] = info.ClassType;
-            }
             
             if (_itemsMap == null)
                 _itemsMap = new Dictionary<string, SerializedDataItem>();
@@ -120,7 +150,7 @@ namespace PluginSet.Core
             
             foreach (var item in DataItems)
             {
-                if (validKeys.Contains(item.Key) && validTypes.TryGetValue(item.ClassID, out var type))
+                if (ValidKeysMap.ContainsKey(item.Key))
                 {
                     _itemsMap.Add(item.Key, item);
                 }
@@ -235,7 +265,14 @@ namespace PluginSet.Core
 #endif
             return item;
         }
-        
+
+        protected void OnSerializedTypesChange()
+        {
+            _validKeysMap = null;
+            _validTypesMap = null;
+            OnLoad();
+        }
+
         private static string GetTypeId(Type type)
         {
             return type.FullName ?? type.Name;
