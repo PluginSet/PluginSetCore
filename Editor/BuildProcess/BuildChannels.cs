@@ -9,16 +9,16 @@ using UnityEngine;
 
 namespace PluginSet.Core.Editor
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class)]
     public class BuildChannelsParamsAttribute : Attribute
     {
-        public string Key;
+        public string Alias;
         public int Order;
         public string ToolTips;
 
-        public BuildChannelsParamsAttribute(string key, int order = 0, string toolTips = null)
+        public BuildChannelsParamsAttribute(string alias, int order = 0, string toolTips = null)
         {
-            Key = key;
+            Alias = alias;
             Order = order;
             ToolTips = toolTips;
         }
@@ -115,8 +115,8 @@ namespace PluginSet.Core.Editor
                     foreach (var attr in type.GetCustomAttributes(typeof(BuildChannelsParamsAttribute), false))
                     {
                         var paramAttr = (BuildChannelsParamsAttribute) attr;
-                        orders.Add(paramAttr.Key, paramAttr.Order);
-                        buildChannelSerializedTypes.Add(SerializedType.Create(paramAttr.Key, type, paramAttr.ToolTips));
+                        orders.Add(paramAttr.Alias, paramAttr.Order);
+                        buildChannelSerializedTypes.Add(SerializedType.Create(paramAttr.Alias, type, paramAttr.ToolTips));
                     }
                 }
 

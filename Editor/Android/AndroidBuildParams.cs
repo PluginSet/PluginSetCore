@@ -48,7 +48,7 @@ namespace PluginSet.Core.Editor
                 return;
 
             var asset = context.BuildChannels;
-            var setting = asset.Get<AndroidBuildParams>("Android");
+            var setting = asset.Get<AndroidBuildParams>();
 
             if (!setting.UseCustomKeystore || string.IsNullOrEmpty(setting.KeyStorePath))
             {

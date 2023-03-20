@@ -63,6 +63,8 @@ namespace PluginSet.Core.Editor
             EditorUtility.SetDirty(config);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+            
+            Debug.Log($"config asset::{string.Join("\n", config.DataItems.Select(item => item.ToString()).ToArray())}");
         }
     }
 }

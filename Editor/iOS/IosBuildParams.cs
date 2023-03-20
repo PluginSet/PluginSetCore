@@ -263,7 +263,7 @@ namespace PluginSet.Core.Editor
                 return;
 
             var asset = context.BuildChannels;
-            var setting = asset.Get<IosBuildParams>("iOS");
+            var setting = asset.Get<IosBuildParams>();
             
             if (setting.BuildProfiles != null)
             {
@@ -330,7 +330,7 @@ namespace PluginSet.Core.Editor
         public static void OnIosXCodeProjectModify(BuildProcessorContext context, PBXProjectManager project)
         {
             var plist = project.PlistDocument;
-            var buildParams = context.BuildChannels.Get<IosBuildParams>("iOS");
+            var buildParams = context.BuildChannels.Get<IosBuildParams>();
             //ios一系类权限请求文本
             plist.AddPlistValue("NSLocationUsageDescription", buildParams.LocationUsageDescription);
             plist.AddPlistValue("NSLocationAlwaysUsageDescription", buildParams.LocationAlwaysUsageDescription);

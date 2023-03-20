@@ -37,7 +37,7 @@ namespace PluginSetCore.Editor.WebGL
                 return;
 
             var asset = context.BuildChannels;
-            var setting = asset.Get<WebGLBuildParams>("WebGL");
+            var setting = asset.Get<WebGLBuildParams>();
 
             PlayerSettings.defaultWebScreenWidth = setting.DefaultCanvasWidth;
             PlayerSettings.defaultWebScreenHeight = setting.DefaultCanvasHeight;

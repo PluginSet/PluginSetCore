@@ -1,21 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace PluginSet.Core
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class PluginSetConfigAttribute : Attribute
-    {
-        public string Key;
-
-        public PluginSetConfigAttribute(string key)
-        {
-            Key = key;
-        }
-    }
-
-
     public class PluginSetConfig : SerializedDataSet
     {
         private static PluginSetConfig _instance;
@@ -42,35 +29,37 @@ namespace PluginSet.Core
                 return Asset;
             }
         }
+
+        public T AddConfig<T>(string alias = null) where T : UnityEngine.ScriptableObject
+        {
+            if (string.IsNullOrEmpty(alias))
+                alias = GetTypeId(typeof(T));
+            var type = SerializedType.Create<T>(alias);
+            var item = Add(type);
+            
+            var data = CreateInstance<T>();
+            data.name = alias;
+            item.Data = data;
+            
+            var path = UnityEditor.AssetDatabase.GetAssetPath(this);
+            UnityEditor.AssetDatabase.AddObjectToAsset(data, path);
+            OnSerializedTypesChange();
+            return data;
+        }
 #endif
-
-
-        private static List<SerializedType> pluginSetSerializedTypes;
 
         public override IEnumerable<SerializedType> SerializedTypes
         {
             get
             {
-                if (pluginSetSerializedTypes != null)
-                    return pluginSetSerializedTypes;
-
-                pluginSetSerializedTypes = new List<SerializedType>();
-
-                var list = from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                    from type in assembly.GetTypes()
-                    where type.IsDefined(typeof(PluginSetConfigAttribute), false)
-                    select type;
-
-                foreach (var type in list)
+                foreach (var item in DataItems)
                 {
-                    foreach (var attr in type.GetCustomAttributes(typeof(PluginSetConfigAttribute), false))
+                    if (item.ClassType == null)
                     {
-                        var paramAttr = (PluginSetConfigAttribute) attr;
-                        pluginSetSerializedTypes.Add(SerializedType.Create(paramAttr.Key, type, string.Empty));
+                        item.ClassType = SerializedType.Create(item.Key, item.Data.GetType(), null);
                     }
                 }
-
-                return pluginSetSerializedTypes;
+                return DataItems.Select(item => item.ClassType);
             }
         }
     }

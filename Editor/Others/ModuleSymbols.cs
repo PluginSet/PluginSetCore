@@ -15,7 +15,7 @@ namespace PluginSet.Core.Editor
         [OnSyncEditorSetting]
         public static void CollectAllModuleSymbols(BuildProcessorContext context)
         {
-            var buildParams = context.BuildChannels.Get<ModuleIncludeParams>("ModuleInclude");
+            var buildParams = context.BuildChannels.Get<ModuleIncludeParams>();
             
             buildParams.IncludePhysics = buildParams.IncludePhysics || IncludePackage("com.unity.modules.physics");
             buildParams.IncludeAudio = buildParams.IncludeAudio || IncludePackage("com.unity.modules.audio");

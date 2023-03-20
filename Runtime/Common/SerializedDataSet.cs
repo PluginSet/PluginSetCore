@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using ItemObjectType = UnityEngine.ScriptableObject;
 using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Compilation;
 
 #endif
 
@@ -48,6 +46,9 @@ namespace PluginSet.Core
         
         [SerializeField]
         public ItemObjectType Data;
+        
+        [NonSerialized]
+        public SerializedType ClassType;
 
         [NonSerialized]
         public string ToolTips;
@@ -70,17 +71,19 @@ namespace PluginSet.Core
 
         public abstract IEnumerable<SerializedType> SerializedTypes { get; }
 
-        private Dictionary<string, SerializedType> _validKeysMap;
-        private Dictionary<Type, SerializedType> _validTypesMap;
+        private Dictionary<string, SerializedType> validKeysMap { get; set; }
+        private Dictionary<Type, SerializedType> validTypesMap { get; set; }
+
+        private bool isLoading { get; set; }
 
         private void LoadValidMap()
         {
-            _validKeysMap = new Dictionary<string, SerializedType>();
-            _validTypesMap = new Dictionary<Type, SerializedType>();
+            validKeysMap = new Dictionary<string, SerializedType>();
+            validTypesMap = new Dictionary<Type, SerializedType>();
             foreach (var info in SerializedTypes)
             {
-                _validKeysMap.Add(info.Key, info);
-                _validTypesMap.Add(info.ClassType, info);
+                validKeysMap.Add(info.Key, info);
+                validTypesMap.Add(info.ClassType, info);
             }
         }
 
@@ -88,10 +91,10 @@ namespace PluginSet.Core
         {
             get
             {
-                if (_validKeysMap == null) 
+                if (validKeysMap == null) 
                     LoadValidMap();
 
-                return _validKeysMap;
+                return validKeysMap;
             }
         }
 
@@ -99,10 +102,10 @@ namespace PluginSet.Core
         {
             get
             {
-                if (_validTypesMap == null)
+                if (validTypesMap == null)
                     LoadValidMap();
 
-                return _validTypesMap;
+                return validTypesMap;
             }
         }
 
@@ -121,8 +124,6 @@ namespace PluginSet.Core
             }
         }
 
-        private bool _isLoading;
-
         public void OnLoad()
         {
             CheckDataItems();
@@ -138,10 +139,10 @@ namespace PluginSet.Core
 
         private void CheckDataItems()
         {
-            if (_isLoading)
+            if (isLoading)
                 return;
 
-            _isLoading = true;
+            isLoading = true;
             
             if (_itemsMap == null)
                 _itemsMap = new Dictionary<string, SerializedDataItem>();
@@ -157,55 +158,55 @@ namespace PluginSet.Core
             }
 
 #if UNITY_EDITOR
-        try
-        {
-            var path = AssetDatabase.GetAssetPath(this);
-            var subAssets = new List<Object>(AssetDatabase.LoadAllAssetRepresentationsAtPath(path));
-            bool dirty = false;
-#endif
-            foreach (var info in SerializedTypes)
+            try
             {
-                var key = info.Key;
-                if (_itemsMap.ContainsKey(key))
-                    continue;
-
-
-#if UNITY_EDITOR
+                var path = AssetDatabase.GetAssetPath(this);
+                var subAssets = new List<Object>(AssetDatabase.LoadAllAssetRepresentationsAtPath(path));
                 subAssets.RemoveAll(o => o == null);
-                var subAsset = subAssets.Find(val => val.name.Equals(key));
-                if (subAsset != null)
-                {
-                    var item = new SerializedDataItem();
-                    item.Key = key;
-                    item.ClassID = GetTypeId(subAsset.GetType());
-                    item.ToolTips = info.ToolTips;
-                    item.Data = (ItemObjectType) subAsset;
-                    
-                    DataItems.Add(item);
-                    _itemsMap.Add(key, item);
-                    
-                    Debug.Log("========== add back item " + item);
-                    continue;
-                }
                 
-                dirty = true;
+                bool dirty = false;
 #endif
-                Add(key, info.ClassType, info.ToolTips);
-            }
+                foreach (var info in SerializedTypes)
+                {
+                    var key = info.Key;
+                    if (_itemsMap.ContainsKey(key))
+                        continue;
+
+                    var item = Add(info);
+#if UNITY_EDITOR
+                    var subAsset = subAssets.Find(val => val.name.Equals(key));
+                    if (subAsset != null)
+                    {
+                        item.Data = (ItemObjectType) subAsset;
+                        Debug.Log("========== add back item " + item);
+                        continue;
+                    }
+                    
+                    dirty = true;
+#endif
+                    var data = ScriptableObject.CreateInstance(info.ClassType);
+                    data.name = key;
+                    item.Data = (ItemObjectType) data;
+            
+#if UNITY_EDITOR
+                    AssetDatabase.AddObjectToAsset(data, path);
+                    Debug.Log($"================== Add {key} data({info.ToolTips}) to {path}");
+#endif
+                }
 
 #if UNITY_EDITOR
-            if (dirty)
-            {
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
+                if (dirty)
+                {
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
+                }
             }
-        }
-        finally
-        {
-            _isLoading = false;
-        }
+            finally
+            {
+                isLoading = false;
+            }
 
 #endif
-            _isLoading = false;
+            isLoading = false;
         }
 
         /// <summary>
@@ -214,7 +215,7 @@ namespace PluginSet.Core
         /// <param name="key"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(string key) where T: ItemObjectType
+        private T Get<T>(string key) where T: ItemObjectType
         {
             if (ItemsMap == null)
             {
@@ -230,7 +231,16 @@ namespace PluginSet.Core
             return default(T);
         }
 
-        public T TryGet<T>(string key, T defaultValue) where T: ItemObjectType
+        public T Get<T>() where T : ItemObjectType
+        {
+            if (ValidTypesMap.TryGetValue(typeof(T), out var info))
+                return Get<T>(info.Key);
+            
+            Debug.LogError($"SerializedDataSet has no valid type:{typeof(T).Name}!");
+            return default(T);
+        }
+
+        private T TryGet<T>(string key, T defaultValue) where T: ItemObjectType
         {
             if (ItemsMap.TryGetValue(key, out var existItem))
             {
@@ -239,41 +249,43 @@ namespace PluginSet.Core
 
             return defaultValue;
         }
+        
+        public T TryGet<T>(T defaultValue) where T : ItemObjectType
+        {
+            if (ValidTypesMap.TryGetValue(typeof(T), out var info))
+                return TryGet<T>(info.Key, defaultValue);
+            
+            Debug.LogError($"SerializedDataSet has no valid type:{typeof(T).Name}!");
+            return default(T);
+        }
 
         public SerializedDataItem GetItem(string key)
         {
             return ItemsMap[key];
         }
 
-        private SerializedDataItem Add(string key, Type type, string toolTips = null)
+        protected SerializedDataItem Add(SerializedType type)
         {
-            var item = new SerializedDataItem();
-            item.Key = key;
-            item.ClassID = GetTypeId(type);
-            item.ToolTips = toolTips;
-            var data = ScriptableObject.CreateInstance(type);
-            data.name = key;
-            item.Data = (ItemObjectType) data;
-            
+            var item = new SerializedDataItem
+            {
+                Key = type.Key,
+                ClassType = type,
+                ClassID = GetTypeId(type.ClassType),
+                ToolTips = type.ToolTips
+            };
+
+            ItemsMap.Add(type.Key, item);
             DataItems.Add(item);
-            ItemsMap.Add(key, item);
-            
-#if UNITY_EDITOR
-            var path = AssetDatabase.GetAssetPath(this);
-            AssetDatabase.AddObjectToAsset(data, path);
-            Debug.Log($"================== Add {key} data({toolTips}) to {path}");
-#endif
             return item;
         }
 
         protected void OnSerializedTypesChange()
         {
-            _validKeysMap = null;
-            _validTypesMap = null;
-            OnLoad();
+            validKeysMap = null;
+            validTypesMap = null;
         }
 
-        private static string GetTypeId(Type type)
+        protected static string GetTypeId(Type type)
         {
             return type.FullName ?? type.Name;
         }
@@ -282,6 +294,20 @@ namespace PluginSet.Core
         public virtual void OnChildChanged()
         {
             
+        }
+        
+        public bool IsSomeAssetLose()
+        {
+            if (_itemsMap == null)
+                return true;
+            
+            foreach (var type in SerializedTypes)
+            {
+                if (!_itemsMap.ContainsKey(type.Key))
+                    return true;
+            }
+            
+            return false;
         }
 #endif
     }

@@ -76,13 +76,9 @@ namespace PluginSet.Core.Editor
 
             // check props
             SerializedDataSet self = (SerializedDataSet) target;
-            foreach (var info in self.SerializedTypes)
+            if (self.IsSomeAssetLose())
             {
-                if (self.TryGet<ScriptableObject>(info.Key, null) == null)
-                {
-                    ResetProps();
-                    break;
-                }
+                ResetProps();
             }
 
             if (GUILayout.Button("拷贝渠道配置"))
