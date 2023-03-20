@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace PluginSet.Core
@@ -13,6 +14,11 @@ namespace PluginSet.Core
     public static class Devices
     {
         private static readonly Logger Logger = LoggerManager.GetLogger("Devices");
+        
+#if UNITY_WEBGL
+        [DllImport("__Internal")]
+        private static extern void syncfs();
+#endif
         
         /// <summary>
         /// return meta data with name on Android platform
@@ -274,6 +280,13 @@ namespace PluginSet.Core
             return AndroidHelper.OSAvailable(version);
 #else
             return true;
+#endif
+        }
+
+        public static void SyncFileSystem()
+        {
+#if UNITY_WEBGL
+            syncfs();
 #endif
         }
     }
