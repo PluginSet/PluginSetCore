@@ -30,6 +30,9 @@ namespace PluginSet.Core.Editor
 
 			context.Set("UpdatePatchModFiles", modFiles);
 			context.Set("UpdatePatchAddFiles", addFiles);
+			
+			context.SetBuildResult("UpdatePatchModFiles", string.Join(",", modFiles));
+			context.SetBuildResult("UpdatePatchAddFiles", string.Join(",", addFiles));
 				
 			Global.CheckAndDeletePath(streamingAssetsPath);
 			Directory.CreateDirectory(streamingAssetsPath);
