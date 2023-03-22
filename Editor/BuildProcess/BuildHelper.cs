@@ -175,10 +175,11 @@ namespace PluginSet.Core.Editor
             BuildBundlesWithContext(context);
         }
 
-        public static void BuildPatchesDefault(string buildPath)
+        public static void BuildPatchesDefault(string buildPath, PatchFiles patchFiles = null)
         {
             var context = BuildProcessorContext.Default();
             context.BuildPath = buildPath;
+            context.PatchFiles = patchFiles;
             var path1 = Path.Combine(Application.dataPath, "Lua/UI/UIValid.lua");
             context.PatchFiles = JsonUtility.FromJson<PatchFiles>($"{{\"AddFiles\": [], \"ModFiles\": [\"{path1}\"]}}");
             BuildPatchesWithContext(context);

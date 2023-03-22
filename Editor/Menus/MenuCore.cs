@@ -80,7 +80,10 @@ namespace PluginSet.Core.Editor
             EditorUtility.DisplayProgressBar("Build Patches", "patching...", 0);
             try
             {
-                BuildHelper.BuildPatchesDefault(Application.streamingAssetsPath);
+                BuildHelper.BuildPatchesDefault(Application.streamingAssetsPath, new PatchFiles
+                {
+                    ModFiles = Directory.GetFiles(Path.Combine(Application.dataPath, "Resources"), "*.*")
+                });
             }
             catch (Exception e)
             {
