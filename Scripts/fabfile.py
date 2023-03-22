@@ -964,14 +964,14 @@ def build_patches(channel, platform, version_name, build_number, out_path, root,
             continue
         if not check_is_assets(filename):
             continue
-        add_files.append(os.path.join(PROTJECT_PATH, filename))
+        add_files.append(os.path.join(PROTJECT_PATH, add.b_path))
     for mod in diff.iter_change_type("M"):
         filename = mod.b_path.lower()
         if filename.endswith(".meta"):
             filename = filename[0:-5]
         if not check_is_assets(filename):
             continue
-        change_files.append(os.path.join(PROTJECT_PATH, filename))
+        change_files.append(os.path.join(PROTJECT_PATH, mod.b_path))
     for ren in diff.iter_change_type("R"):
         filename = ren.b_path.lower()
         if filename.endswith(".meta"):
@@ -979,9 +979,9 @@ def build_patches(channel, platform, version_name, build_number, out_path, root,
         if not check_is_assets(filename):
             continue
         if ren.a_blob == ren.b_blob:
-            add_files.append(os.path.join(PROTJECT_PATH, filename))
+            add_files.append(os.path.join(PROTJECT_PATH, ren.b_path))
         else:
-            change_files.append(os.path.join(PROTJECT_PATH, filename))
+            change_files.append(os.path.join(PROTJECT_PATH, ren.b_path))
     patchdata = {
         "AddFiles": list(set(add_files)),
         "ModFiles": list(set(change_files)),
