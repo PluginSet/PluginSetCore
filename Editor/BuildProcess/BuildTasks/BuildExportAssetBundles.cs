@@ -11,10 +11,11 @@ namespace PluginSet.Core.Editor
 	        if (string.IsNullOrEmpty(streamingAssetsName) || string.IsNullOrEmpty(streamingAssetsPath))
 		        return;
 
+	        var isBuildPatch = context.IsBuildingUpdatePatches();
 			var manifest = context.BuildAssetBundle(streamingAssetsPath);
 			if (manifest == null)
 			{
-				Global.CallCustomOrderMethods<OnBuildBundlesCompletedAttribute, BuildToolsAttribute>(context, streamingAssetsPath, streamingAssetsName, null, false);
+				Global.CallCustomOrderMethods<OnBuildBundlesCompletedAttribute, BuildToolsAttribute>(context, streamingAssetsPath, streamingAssetsName, null, isBuildPatch);
 				if (context.BuildNothing())
 					return;
 				throw new BuildException("BuildAssetBundles: Nothing build!");
@@ -22,7 +23,7 @@ namespace PluginSet.Core.Editor
 
 			context.Set("AssetBundleManifest", manifest);
 
-			Global.CallCustomOrderMethods<OnBuildBundlesCompletedAttribute, BuildToolsAttribute>(context, streamingAssetsPath, streamingAssetsName, manifest, context.IsBuildingUpdatePatches());
+			Global.CallCustomOrderMethods<OnBuildBundlesCompletedAttribute, BuildToolsAttribute>(context, streamingAssetsPath, streamingAssetsName, manifest, isBuildPatch);
 
 			AssetDatabase.Refresh();
         }
