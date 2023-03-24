@@ -1685,7 +1685,6 @@ def buildUploadFlow(context, platform, channelIds, out_path
         channel = build_result.get("channel", None)
         version_name = build_result.get("version", None)
         build_number = build_result.get("build", None)
-        patches_path = build_result.get("patchesPath", None)
         if channel is None or version_name is None or build_number is None:
             return FAILURE("Error build result :" + str(build_result))
 
@@ -1702,7 +1701,8 @@ def buildUploadFlow(context, platform, channelIds, out_path
             else:
                 raise Exception("not support platform " + platform)
 
-        if patches_path:
+        if build_result.__contains__("patchesPath"):
+            patches_path = os.path.join(out_path, "Patches")
             upload_patches(patches_path, id, secret, bucketname, endpoint, resources_key)
         
         write_all_file_versions(build_result, channelIds, id, secret, bucketname, endpoint, version_file, streamtemplate, patchtemplate
