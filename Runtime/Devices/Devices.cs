@@ -289,14 +289,14 @@ namespace PluginSet.Core
 
         public static void RequestAudio()
         {
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
             requestAudio();
 #endif
         }
 
         public static void SyncFileSystem()
         {
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
             syncfs();
 #endif
         }
