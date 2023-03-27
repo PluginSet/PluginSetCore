@@ -160,7 +160,7 @@ namespace PluginSet.Core
 #elif UNITY_WEBGL && !UNITY_EDITOR
                 // TODO
                 requestAudio();
-                return DevicePermission.Granted;
+                return true;
 #endif
             }
 
