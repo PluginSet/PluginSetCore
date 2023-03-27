@@ -6,4 +6,8 @@ mergeInto(LibraryManager.library, {
            }
        }); 
     },
+    
+    requestAudio: function() {
+        return navigator.mediaDevices.getUserMedia({ audio: true });
+    },
 });

@@ -18,6 +18,8 @@ namespace PluginSet.Core
 #if UNITY_WEBGL
         [DllImport("__Internal")]
         private static extern void syncfs();
+        [DllImport("__Internal")]
+        private static extern void requestAudio();
 #endif
         
         /// <summary>
@@ -258,8 +260,10 @@ namespace PluginSet.Core
         {
 #if !UNITY_EDITOR && UNITY_IOS
             return iOSHelper._EnableOpenSettings();
-#else
+#elif UNITY_ANDROID
             return true;
+#else
+            return false;
 #endif
         }
 
@@ -280,6 +284,13 @@ namespace PluginSet.Core
             return AndroidHelper.OSAvailable(version);
 #else
             return true;
+#endif
+        }
+
+        public static void RequestAudio()
+        {
+#if UNITY_WEBGL
+            requestAudio();
 #endif
         }
 
