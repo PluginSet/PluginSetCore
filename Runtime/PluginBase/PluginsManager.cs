@@ -179,8 +179,6 @@ namespace PluginSet.Core
         private IEnumerator StartAll()
         {
             _isStarting = true;
-            
-            Devices.RequestAudio();
 
             if (_startPlugins == null)
             {

@@ -157,6 +157,10 @@ namespace PluginSet.Core
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_RECORD_AUDIO);
 #elif UNITY_IOS && !UNITY_EDITOR
                 return iOSHelper._RequestMicrophoneAuth();
+#elif UNITY_WEBGL && !UNITY_EDITOR
+                // TODO
+                requestAudio();
+                return DevicePermission.Granted;
 #endif
             }
 
@@ -284,13 +288,6 @@ namespace PluginSet.Core
             return AndroidHelper.OSAvailable(version);
 #else
             return true;
-#endif
-        }
-
-        public static void RequestAudio()
-        {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            requestAudio();
 #endif
         }
 
