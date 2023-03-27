@@ -43,6 +43,7 @@ namespace PluginSetCore.Editor.WebGL
             PlayerSettings.defaultWebScreenHeight = setting.DefaultCanvasHeight;
             PlayerSettings.runInBackground = setting.RunInBackground;
             PlayerSettings.WebGL.compressionFormat = setting.CompressionFormat;
+            PlayerSettings.WebGL.decompressionFallback = setting.CompressionFormat != WebGLCompressionFormat.Disabled;
             PlayerSettings.WebGL.debugSymbols = context.DebugMode;
 
             switch (setting.WebGLTemplate)
