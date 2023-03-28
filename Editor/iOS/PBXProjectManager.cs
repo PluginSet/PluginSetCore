@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Debug = UnityEngine.Debug;
 
@@ -113,7 +114,7 @@ namespace PluginSet.Core.Editor
 #if UNITY_IOS_API
             TryAddCapability(MainFramework, UnityEditor.iOS.Xcode.PBXCapabilityType.AssociatedDomains);
             const string domainKey = "com.apple.developer.associated-domains";
-            Entitlements.AddArrayElement(domainKey, links);
+            Entitlements.AddArrayElement(domainKey, links.Select(link => $"applinks:{link}").ToArray());
 #endif
         }
         

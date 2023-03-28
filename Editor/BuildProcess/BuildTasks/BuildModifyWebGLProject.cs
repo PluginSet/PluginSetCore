@@ -29,6 +29,7 @@ namespace PluginSet.Core.Editor
                     File.Copy(file, Path.Combine(ProjectPath, path), true);
                 }
             }
+            
         }
     }
 }
