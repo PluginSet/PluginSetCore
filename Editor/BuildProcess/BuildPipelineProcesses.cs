@@ -49,6 +49,10 @@ namespace PluginSet.Core.Editor
             {
                 handler.AddNextTask(new BuildModifyIOSProject(exportPath));
             }
+            else if (target == BuildTarget.WebGL)
+            {
+                handler.AddNextTask(new BuildModifyWebGLProject(exportPath));
+            }
             handler.Execute(BuildProcessorContext.Current);
         }
         
