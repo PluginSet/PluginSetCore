@@ -1,4 +1,3 @@
-using System.IO;
 using PluginSet.Core;
 using PluginSet.Core.Editor;
 using UnityEditor;
@@ -9,7 +8,7 @@ namespace PluginSetCore.Editor.WebGL
     [BuildTools]
     [BuildChannelsParams("WebGL", -9998, "h5打包相关设置")]
     [VisibleCaseBoolValue("SupportWebGL", true)]
-    public class WebGLBuildParams: ScriptableObject
+    public class WebGLBuildParams : ScriptableObject
     {
         public enum WebGLTemplates
         {
@@ -17,19 +16,18 @@ namespace PluginSetCore.Editor.WebGL
             Minimal,
         }
 
-        [Tooltip("导出时设置的默认画布宽度")]
-        public int DefaultCanvasWidth = 960;
-        [Tooltip("导出时设置的默认画布高度")]
-        public int DefaultCanvasHeight = 640;
-        [Tooltip("导出时设置的在后台运行")]
-        public bool RunInBackground = true;
-        [Tooltip("导出时设置的导出模板")]
-        public WebGLTemplates WebGLTemplate = WebGLTemplates.Default;
+        [Tooltip("导出时设置的默认画布宽度")] public int DefaultCanvasWidth = 960;
+        [Tooltip("导出时设置的默认画布高度")] public int DefaultCanvasHeight = 640;
+        [Tooltip("导出时设置的在后台运行")] public bool RunInBackground = true;
+        [Tooltip("导出时设置的导出模板")] public WebGLTemplates WebGLTemplate = WebGLTemplates.Default;
 
         public WebGLCompressionFormat CompressionFormat = WebGLCompressionFormat.Gzip;
-        
+
         public Object[] PreloadAssets = null;
-        
+
+        [Tooltip("额外模板资源")] [BrowserPath("Choose a Directory")]
+        public string ExtraTemplates;
+
         [OnSyncEditorSetting]
         public static void OnSyncExportSetting_webgl(BuildProcessorContext context)
         {
@@ -46,6 +44,9 @@ namespace PluginSetCore.Editor.WebGL
             PlayerSettings.WebGL.decompressionFallback = setting.CompressionFormat != WebGLCompressionFormat.Disabled;
             PlayerSettings.WebGL.debugSymbols = context.DebugMode;
 
+            if (context.ProductMode)
+                PlayerSettings.SetStackTraceLogType(LogType.Exception, StackTraceLogType.None);
+
             switch (setting.WebGLTemplate)
             {
                 case WebGLTemplates.Default:
@@ -55,7 +56,7 @@ namespace PluginSetCore.Editor.WebGL
                 default:
                     throw new BuildException("Unsupported webGL template:: " + setting.WebGLTemplate);
             }
-            
+
             PlayerSettings.SetPreloadedAssets(setting.PreloadAssets);
         }
     }

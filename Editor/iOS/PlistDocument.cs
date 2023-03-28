@@ -147,7 +147,7 @@ namespace PluginSet.Core.Editor
         public void AddXcodeURLType(string id, string role, params string[] schemes)
         {
 #if UNITY_IOS_API
-            var cfBundleUrlTypes = FindOrCreateArray("CFBundleURLTypes");
+            var cfBundleUrlTypes = FindOrCreateArray(root, "CFBundleURLTypes");
 
             var node = cfBundleUrlTypes.values.Find(element => element.AsDict().values["CFBundleURLName"].AsString().Equals(id))?.AsDict();
             if (node == null)
@@ -158,7 +158,7 @@ namespace PluginSet.Core.Editor
             node.SetString("CFBundleTypeRole", role);
             node.SetString("CFBundleURLName", id);
             
-            var schemeList = FindOrCreateArray("CFBundleURLSchemes");
+            var schemeList = FindOrCreateArray(node, "CFBundleURLSchemes");
             foreach (var scheme in schemes)
             {
                 AddStringIfNo(schemeList, scheme);
@@ -169,7 +169,7 @@ namespace PluginSet.Core.Editor
         public void AddApplicationQueriesSchemes(string scheme)
         {
 #if UNITY_IOS_API
-            AddStringIfNo(FindOrCreateArray("LSApplicationQueriesSchemes"), scheme);
+            AddStringIfNo(FindOrCreateArray(root, "LSApplicationQueriesSchemes"), scheme);
 #endif
         }
         
@@ -186,19 +186,19 @@ namespace PluginSet.Core.Editor
             }
         }
 
-        private UnityEditor.iOS.Xcode.PlistElementArray FindOrCreateArray(string key)
+        private static UnityEditor.iOS.Xcode.PlistElementArray FindOrCreateArray(UnityEditor.iOS.Xcode.PlistElementDict node, string key)
         {
-            if (root.values.ContainsKey(key))
+            if (node.values.ContainsKey(key))
             {
-                return root[key].AsArray();
+                return node[key].AsArray();
             }
             else
             {
-                return root.CreateArray(key);
+                return node.CreateArray(key);
             }
         }
 
-        private void AddStringIfNo(UnityEditor.iOS.Xcode.PlistElementArray array, string value)
+        private static void AddStringIfNo(UnityEditor.iOS.Xcode.PlistElementArray array, string value)
         {
             if (array.values.Find(element => element.AsString().Equals(value)) == null)
             {
