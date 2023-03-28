@@ -112,7 +112,7 @@ namespace PluginSet.Core.Editor
         public void AddArrayElement(string arrayKey, params string[] values)
         {
 #if UNITY_IOS_API
-            var array = FindOrCreateArray(arrayKey);
+            var array = FindOrCreateArray(root, arrayKey);
             foreach (var value in values)
             {
                 AddStringIfNo(array, value);
