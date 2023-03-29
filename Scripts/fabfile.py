@@ -1646,7 +1646,7 @@ def upload_bugly_symbols(build_result:dict):
     'gitcommit': "gitcommit号，用来标识资源版本TAG",
 })
 def buildAppsFlow(context, platform, channel, channelIds, version_name, build_number, out_path
-    , apk_name_template, debug=False, log=True, product=False, gitcommit=None):
+    , apk_name_template=None, debug=False, log=True, product=False, gitcommit=None):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
     try:
