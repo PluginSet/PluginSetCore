@@ -16,7 +16,7 @@ namespace PluginSet.Core.Editor
         {
             var buildParams = context.BuildChannels.Get<WebGLBuildParams>();
             var templatePath = buildParams.ExtraTemplates;
-            if (!string.IsNullOrEmpty(templatePath))
+            if (!string.IsNullOrEmpty(templatePath) && Directory.Exists(templatePath))
             {
                 foreach (var file in Directory.GetFiles(templatePath, "*.*", SearchOption.AllDirectories))
                 {
@@ -26,7 +26,7 @@ namespace PluginSet.Core.Editor
                     if (Path.GetFileNameWithoutExtension(path).StartsWith("."))
                         continue;
                     
-                    File.Copy(file, Path.Combine(ProjectPath, path), true);
+                    Global.CopyFile(file, Path.Combine(ProjectPath, path), null);
                 }
             }
             
