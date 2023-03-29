@@ -51,6 +51,22 @@ namespace PluginSet.Core.Editor
         }
     }
 
+    // WebGL项目设定项目导出目录时调用该接口
+    // 该接口有序调用，接收BuildProccessorContext, string
+    [AttributeUsage(AttributeTargets.Method)]
+    public class WebGLProjectModifyAttribute : OrderCallBack
+    {
+        public WebGLProjectModifyAttribute()
+            : base(0)
+        {
+        }
+
+        public WebGLProjectModifyAttribute(int order)
+            : base(order)
+        {
+        }
+    }
+    
     // 安卓项目多渠道ID数据构建时，不重新导出项目，直接修改安卓工程
     // 该接口有序调用，接收BuildProccessorContext, AndroidProjectManager
     public class AndroidMultipleBuildSetupAttribute : OrderCallBack
@@ -84,6 +100,23 @@ namespace PluginSet.Core.Editor
         }
     }
 
+    // WebGL项目多渠道ID数据构建时，不重新导出项目，直接修改安卓工程
+    // 该接口有序调用，接收BuildProccessorContext, string
+    public class WebGLMultipleBuildSetupAttribute : OrderCallBack
+    {
+        public WebGLMultipleBuildSetupAttribute()
+            : base(0)
+        {
+            
+        }
+
+        public WebGLMultipleBuildSetupAttribute(int order)
+            : base(order)
+        {
+            
+        }
+    }
+    
     [AttributeUsage(AttributeTargets.Method)]
     public class AssetBundleFilePathsCollectorAttribute : OrderCallBack
     {

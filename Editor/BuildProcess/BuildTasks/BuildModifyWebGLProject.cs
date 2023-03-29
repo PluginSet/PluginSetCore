@@ -29,6 +29,8 @@ namespace PluginSet.Core.Editor
                     File.Copy(file, Path.Combine(ProjectPath, path), true);
                 }
             }
+            
+            Global.CallCustomOrderMethods<WebGLProjectModifyAttribute, BuildToolsAttribute>(context, ProjectPath);
         }
     }
 }

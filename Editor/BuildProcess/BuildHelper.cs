@@ -227,11 +227,14 @@ namespace PluginSet.Core.Editor
             if (!Directory.Exists(context.ProjectPath))
                 throw new BuildException("There is no exported project");
 
-            var projectManager = BuildUtils.GetProjectManager(context.ProjectPath);
 #if UNITY_ANDROID
+            var projectManager = BuildUtils.GetProjectManager(context.ProjectPath);
             Global.CallCustomOrderMethods<AndroidMultipleBuildSetupAttribute, BuildToolsAttribute>(context, projectManager);
 #elif UNITY_IOS
+            var projectManager = BuildUtils.GetProjectManager(context.ProjectPath);
             Global.CallCustomOrderMethods<iOSMultipleBuildSetupAttribute, BuildToolsAttribute>(context, projectManager);
+#elif UNITY_WEBGL
+            Global.CallCustomOrderMethods<WebGLMultipleBuildSetupAttribute, BuildToolsAttribute>(context, context.ProjectPath);
 #endif
         }
 

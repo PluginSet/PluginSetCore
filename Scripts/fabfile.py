@@ -677,6 +677,7 @@ class BuildToolIOS(object):
 BUILD_TARGETS = {
     "ios": "iOS"
     , "android": "Android"
+    , "h5": "WebGL"
 }
 
 
@@ -1010,7 +1011,7 @@ def create(context, path):
 
 
 @task(help={
-    "platform": "编译目标平台，目前支持ios与android",
+    "platform": "编译目标平台，目前支持ios、android和h5",
     "channel": "目标渠道",
     "channelId": "目标渠道ID",
     "version_name": "版本号名称",
@@ -1028,7 +1029,7 @@ def buildApp(context, platform, channel, channelId, version_name, build_number, 
 
 
 @task(help={
-    "platform": "编译目标平台，目前支持ios与android",
+    "platform": "编译目标平台，目前支持ios、android和h5",
     "channel": "目标渠道",
     "channelIds": "目标渠道ID，多渠道ID以逗号','隔开",
     "version_name": "版本号名称",
@@ -1048,7 +1049,7 @@ def buildMultiApp(context, platform, channel, channelIds, version_name, build_nu
 
 @task(help={
     "channel": "目标渠道",
-    "platform": "编译目标平台，目前支持ios与android",
+    "platform": "编译目标平台，目前支持ios、android和h5",
     "version_name": "版本号名称",
     "build_number": "build号",
     "out_path": "输出目录",
@@ -1066,7 +1067,7 @@ def buildPatches(context, platform, version_name, build_number, out_path, root, 
 
 
 @task(help={
-    "platform": "编译目标平台，目前支持ios与android",
+    "platform": "编译目标平台，目前支持ios、android和h5",
     "version_name": "版本号",
     "commit_id": "TAG对应的commit sha值",
     "root": "上传至的根目录(环境标识)",
@@ -1265,7 +1266,7 @@ def writeVersionOld(name, version_name, id, secret, bucketname, upload_keys, key
       , cname=cname, key=key, name=name, version_name=version_name, build=build)
 
 @task(help={
-    'platform': "平台",
+    'platform': "编译目标平台，目前支持ios、android和h5",
     'version_name': "版本号",
     "channels": "目标渠道，多渠道以逗号','隔开",
     'id': "登录使用的AccessKeyId",
@@ -1573,6 +1574,18 @@ def upload_ipa_installer(installer_path, id, secret, bucketname, key, cname=None
     uploadDirToOss(installer_path, key, bucket)
 
 
+def build_h5_web(channel, channelId, version_name, build_number, temp_path
+                        , debug, cache_log, product, gitcommit):
+    dump_now("start build h5 web")
+    export_project("h5", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
+    dump_now("export h5 project completed")
+    build_result = get_build_result(temp_path)
+    h5_project_path = build_result.get("projectPath", None)
+    if h5_project_path is None:
+        return FAILURE("Cannot get h5 project path")
+    return build_result
+
+
 def upload_bugly_symbols(build_result:dict):
     if build_result is None:
         return
@@ -1618,7 +1631,7 @@ def upload_bugly_symbols(build_result:dict):
 
 # -----------------
 @task(help={
-    "platform": "编译目标平台，目前支持ios与android",
+    "platform": "编译目标平台，目前支持ios、android和h5",
     "channel": "目标渠道",
     "channelIds": "目标渠道ID，多渠道ID以逗号','隔开",
     "version_name": "版本号名称",
@@ -1645,6 +1658,8 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
             apks_path = os.path.join(temp_path, "apks")
             build_result = build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
               , debug, log, product, gitcommit)
+        elif platform == "h5":
+            build_result = build_h5_web(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
         else:
             raise Exception("not support platform " + platform)
         upload_bugly_symbols(build_result)
@@ -1659,7 +1674,7 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
 
 
 @task(help={
-    "platform": "编译目标平台，目前支持ios与android",
+    "platform": "编译目标平台，目前支持ios、android和h5",
     "channelIds": "目标渠道ID，多渠道ID以逗号','隔开",
     "out_path": "输出目录",
 
@@ -1698,6 +1713,8 @@ def buildUploadFlow(context, platform, channelIds, out_path
                 apks_path = os.path.join(out_path, "apks")
                 apks_key = replace_string(apktemplate, platform=platform, channel=channel, version_name=version_name, build_number=build_number)
                 upload_apks(apks_path, id, secret, bucketname, endpoint, apks_key)
+            elif platform == "h5":
+                pass
             else:
                 raise Exception("not support platform " + platform)
 
@@ -1714,7 +1731,7 @@ def buildUploadFlow(context, platform, channelIds, out_path
     return SUCESS("Build Completed")
 
 @task(help={
-    "platform": "编译目标平台，目前支持ios与android",
+    "platform": "编译目标平台，目前支持ios、android和h5",
     "channel": "目标渠道",
     "version_name": "版本号名称",
     "build_number": "build号",
