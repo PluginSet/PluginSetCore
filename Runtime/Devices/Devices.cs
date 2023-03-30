@@ -170,7 +170,19 @@ namespace PluginSet.Core
         public static string GetUnityUniqueId()
         {
             var deviceId = SystemInfo.deviceUniqueIdentifier;
-#if UNITY_IOS && !UNITY_EDITOR
+#if UNITY_WEBGL
+            var savedId = PlayerPrefs.GetString("deviceUniqueIdentifier");
+            if (string.IsNullOrEmpty(savedId))
+            {
+                PlayerPrefs.SetString("deviceUniqueIdentifier", deviceId);
+                PlayerPrefs.Save();
+                SyncFileSystem();
+            }
+            else
+            {
+                deviceId = savedId;
+            }
+#elif UNITY_IOS && !UNITY_EDITOR
             string services = iOSHelper._ReadInfoPlist("KeyChainServices", "com.pluginset.core");
             if (string.IsNullOrEmpty(services))
                 services = "com.pluginset.core";
