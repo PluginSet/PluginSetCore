@@ -169,26 +169,27 @@ namespace PluginSet.Core
 
         public static string GetUnityUniqueId()
         {
-            var deviceId = SystemInfo.deviceUniqueIdentifier;
 #if UNITY_WEBGL
-            var savedId = PlayerPrefs.GetString("deviceUniqueIdentifier");
-            if (string.IsNullOrEmpty(savedId))
+            var randomId = PlayerPrefs.GetString("deviceUniqueIdentifier");
+            if (string.IsNullOrEmpty(randomId))
             {
-                PlayerPrefs.SetString("deviceUniqueIdentifier", deviceId);
+                randomId = PluginUtil.CreateUUID();
+                PlayerPrefs.SetString("deviceUniqueIdentifier", randomId);
                 PlayerPrefs.Save();
                 SyncFileSystem();
             }
-            else
-            {
-                deviceId = savedId;
-            }
-#elif UNITY_IOS && !UNITY_EDITOR
+
+            return randomId;
+#else
+            var deviceId = SystemInfo.deviceUniqueIdentifier;
+#if UNITY_IOS && !UNITY_EDITOR
             string services = iOSHelper._ReadInfoPlist("KeyChainServices", "com.pluginset.core");
             if (string.IsNullOrEmpty(services))
                 services = "com.pluginset.core";
             deviceId = iOSHelper._GetOrSaveKeyChain(services, "SystemInfo.deviceUniqueIdentifier", deviceId);
 #endif
             return deviceId;
+#endif
         }
 
         public static string GetDeviceUniqueId()

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace PluginSet.Core
 {
@@ -164,6 +165,29 @@ namespace PluginSet.Core
                 return 10 + (int)c - 97;
             else
                 return 0;
+        }
+        
+        private static readonly char[] HexDigits = new[]
+            {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+        public static string CreateUUID()
+        {
+            char[] s = new char[36];
+            for (int i = 0; i < 36; i++)
+            {
+                s[i] = HexDigits[Random.Range(0, 15)];
+            }
+
+            // bits 12-15 of the time_hi_and_version field to 0010
+            s[14] = '4';
+            
+            // bits 6-7 of the clock_seq_hi_and_reserved to 01
+            s[19] = HexDigits[(s[19] & 0x3) | 0x8];
+
+            s[8] = s[13] = s[18] = s[23] = '-';
+
+            var uuid = string.Join("", s);
+            return uuid; 
         }
     }
 }

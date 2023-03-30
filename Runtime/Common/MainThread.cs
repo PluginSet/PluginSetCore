@@ -48,10 +48,14 @@ namespace PluginSet.Core
         {
             if (_isDispose) return;
             
+#if !UNITY_WEBGL
             lock (_actions)
             {
+#endif
                 _actions.Enqueue(action);
+#if !UNITY_WEBGL
             }
+#endif
         }
 
         private void Update()
@@ -60,14 +64,18 @@ namespace PluginSet.Core
             
             while (true)
             {
+#if !UNITY_WEBGL
                 lock (_actions)
                 {
+#endif
                     if (_actions.Count <= 0)
                         return;
 
                     next = _actions.Dequeue();
+#if !UNITY_WEBGL
                 }
-
+#endif
+                
                 try
                 {
                     next.Invoke();
@@ -82,10 +90,14 @@ namespace PluginSet.Core
         private void OnDestroy()
         {
             _isDispose = true;
+#if !UNITY_WEBGL
             lock (_actions)
             {
+#endif
                 _actions.Clear();
+#if !UNITY_WEBGL
             }
+#endif
         }
     }
 }
