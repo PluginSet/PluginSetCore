@@ -15,6 +15,9 @@ namespace PluginSet.Core
             var inst = Activator.CreateInstance<T>();
             Instance = inst;
             Instance.OnCreate();
+#if UNITY_WEBGL
+            Debug.Log($"PatchesRootPath :: {PatchesSavePath}");
+#endif
             return inst;
         }
 

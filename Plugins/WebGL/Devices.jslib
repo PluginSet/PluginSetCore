@@ -3,6 +3,8 @@ mergeInto(LibraryManager.library, {
        FS.syncfs(false, function (err) {
            if (err) {
                console.log("Error: syncfs failed!"); 
+           } else {
+               console.log("Success: syncfs completed!"); 
            }
        }); 
     },
