@@ -61,6 +61,7 @@ namespace PluginSet.Core.Editor
 			}
 			else if (target == BuildTarget.WebGL)
 			{
+				PlayerSettings.WebGL.emscriptenArgs = "-s \"BINARYEN_TRAP_MODE='clamp'\"";
 			}
 			else
 			{
