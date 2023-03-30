@@ -1,5 +1,6 @@
 using System.IO;
 using PluginSetCore.Editor.WebGL;
+using UnityEngine;
 
 namespace PluginSet.Core.Editor
 {
@@ -16,7 +17,10 @@ namespace PluginSet.Core.Editor
         {
             var buildParams = context.BuildChannels.Get<WebGLBuildParams>();
             var templatePath = buildParams.ExtraTemplates;
-            if (!string.IsNullOrEmpty(templatePath) && Directory.Exists(templatePath))
+            if (!string.IsNullOrEmpty(templatePath))
+                templatePath = Path.GetFullPath(Path.Combine(Application.dataPath, buildParams.ExtraTemplates));
+                
+            if (Directory.Exists(templatePath))
             {
                 foreach (var file in Directory.GetFiles(templatePath, "*.*", SearchOption.AllDirectories))
                 {
