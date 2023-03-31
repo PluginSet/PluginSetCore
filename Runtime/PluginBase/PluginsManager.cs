@@ -22,11 +22,6 @@ namespace PluginSet.Core
 
     public sealed partial class PluginsManager : PluginBase
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        [DllImport("__Internal")]
-        private static extern void requestFullScreen();
-#endif
-        
         private static readonly Logger Logger = LoggerManager.GetLogger("PluginsManager");
 
         private static List<Type> PluginTypes;
@@ -179,9 +174,6 @@ namespace PluginSet.Core
 
         private void Start()
         {
-#if UNITY_WEBGL && !UNITY_EDITOR
-            requestFullScreen();
-#endif
             StartCoroutine(StartAll());
         }
 
