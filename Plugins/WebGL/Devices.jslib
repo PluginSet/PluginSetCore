@@ -14,7 +14,7 @@ mergeInto(LibraryManager.library, {
     },
     
     requestFullScreen: function() {
-        document.getElementById('unity-container').requestFullScreen();
+        Browser.requestFullScreen();
     },
     
 });
