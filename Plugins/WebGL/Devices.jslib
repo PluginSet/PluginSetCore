@@ -12,4 +12,9 @@ mergeInto(LibraryManager.library, {
     requestAudio: function() {
         return navigator.mediaDevices.getUserMedia({ audio: true });
     },
+    
+    requestFullScreen(): function() {
+        document.getElementById('unity-container').requestFullScreen();
+    },
+    
 });
