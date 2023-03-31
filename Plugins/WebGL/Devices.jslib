@@ -13,7 +13,7 @@ mergeInto(LibraryManager.library, {
         return navigator.mediaDevices.getUserMedia({ audio: true });
     },
     
-    requestFullScreen(): function() {
+    requestFullScreen: function() {
         document.getElementById('unity-container').requestFullScreen();
     },
     
