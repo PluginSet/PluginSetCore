@@ -50,6 +50,16 @@ namespace PluginSet.Core.Editor
             
             dict[key] = value;
         }
+        
+        public static void RemoveBuildResult(this BuildProcessorContext context, string key)
+        {
+            var dict = context.TryGet<Dictionary<string, object>>("buildResultJson", null);
+            if (dict == null)
+                return;
+
+            if (dict.ContainsKey(key))
+                dict.Remove(key);
+        }
 
         public static List<string> CollectBuildPaths(this BuildProcessorContext context, List<string> originPaths)
         {
