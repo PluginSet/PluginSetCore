@@ -79,6 +79,9 @@ namespace PluginSet.Core
 
         private IPluginBase[] _plugins;
 
+        private int lastScreenWidth;
+        private int lastScreenHeight;
+
         private void InitPlugins()
         {
             _instance = this;
@@ -86,6 +89,9 @@ namespace PluginSet.Core
             var o = gameObject;
             o.name = Name;
             DontDestroyOnLoad(o);
+
+            lastScreenWidth = Screen.width;
+            lastScreenHeight = Screen.height;
 
             MainThread.Init();
             
@@ -247,6 +253,16 @@ namespace PluginSet.Core
             // 重新启动
             _needRestart = false;
             yield return StartAll();
+        }
+
+        private void Update()
+        {
+            if (lastScreenWidth != Screen.width || lastScreenHeight != Screen.height)
+            {
+                SendNotification(PluginConstants.SCREEN_SIZE_CHANGE);
+                lastScreenWidth = Screen.width;
+                lastScreenHeight = Screen.height;
+            }
         }
 
         private void OnDestroy()

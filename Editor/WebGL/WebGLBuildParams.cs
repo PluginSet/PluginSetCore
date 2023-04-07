@@ -18,7 +18,6 @@ namespace PluginSetCore.Editor.WebGL
 
         [Tooltip("导出时设置的默认画布宽度")] public int DefaultCanvasWidth = 960;
         [Tooltip("导出时设置的默认画布高度")] public int DefaultCanvasHeight = 640;
-        [Tooltip("导出时设置的默认全局模式")] public FullScreenMode FullScreenMode = FullScreenMode.FullScreenWindow;
         [Tooltip("导出时设置的在后台运行")] public bool RunInBackground = true;
         [Tooltip("导出时设置的导出模板")] public WebGLTemplates WebGLTemplate = WebGLTemplates.Default;
 
@@ -40,7 +39,6 @@ namespace PluginSetCore.Editor.WebGL
 
             PlayerSettings.defaultWebScreenWidth = setting.DefaultCanvasWidth;
             PlayerSettings.defaultWebScreenHeight = setting.DefaultCanvasHeight;
-            PlayerSettings.fullScreenMode = setting.FullScreenMode;
             PlayerSettings.runInBackground = setting.RunInBackground;
             PlayerSettings.WebGL.compressionFormat = setting.CompressionFormat;
             PlayerSettings.WebGL.decompressionFallback = setting.CompressionFormat != WebGLCompressionFormat.Disabled;

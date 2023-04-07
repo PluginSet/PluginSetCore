@@ -6,7 +6,8 @@ namespace PluginSet.Core
         public const int CancelCode = -1;
         public const int InvalidCode = 404;
         public const int FailDefaultCode = 9999;
-        
+
+        public const string SCREEN_SIZE_CHANGE = "SCREEN_SIZE_CHANGE";
         public const string NOTIFY_RESTART = "NOTIFY_RESTART";
 
         public const string NOTIFY_REPORT = "NOTIFY_REPORT";
