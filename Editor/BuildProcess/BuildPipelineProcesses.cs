@@ -143,6 +143,7 @@ namespace PluginSet.Core.Editor
 			var propertiesFile = Path.Combine(targetPath, "gradle-wrapper.properties");
 			var properties = File.ReadAllLines(propertiesFile);
 			properties[properties.Length - 1] = $"distributionUrl=dists/{gradleVersion}.zip";
+			File.WriteAllLines(propertiesFile, properties);
 			
 			Global.CopyFileTo(Path.Combine(wrapperPath, "dists", $"{gradleVersion}.zip"), Path.Combine(targetPath, "dists"));
         }
