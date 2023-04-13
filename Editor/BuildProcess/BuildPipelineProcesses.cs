@@ -92,8 +92,7 @@ namespace PluginSet.Core.Editor
 					string command = Path.Combine(exportPath, gradlewFileName);
 					if (!File.Exists(command))
 					{
-						var corePath = Global.GetPackageFullPath("com.pluginset.core");
-						Global.CopyFilesTo( exportPath, Path.Combine(corePath, "AndroidTools~"), "*");
+						CopyGradleFiles(exportPath);
 					}
 					
 					var androidProject = new AndroidProjectManager(exportPath);
@@ -124,6 +123,28 @@ namespace PluginSet.Core.Editor
 				handler.AddNextTask(new BuildEnd());
 				handler.Execute(context);
             }
+        }
+
+        private static void CopyGradleFiles(string targetPath)
+        {
+			var corePath = Global.GetPackageFullPath("com.pluginset.core");
+			var toolsPath = Path.Combine(corePath, "AndroidTools~");
+			Global.CopyFilesTo( targetPath, toolsPath, "*", SearchOption.TopDirectoryOnly);
+
+			var wrapperPath = Path.Combine(toolsPath, "gradle", "wrapper");
+			targetPath = Path.Combine(targetPath, "gradle", "wrapper");
+			Global.CopyFilesTo( targetPath, wrapperPath, "*", SearchOption.TopDirectoryOnly);
+
+#if UNITY_2020_3_OR_NEWER
+			var gradleVersion = "gradle-6.1.1-bin";
+#else
+			var gradleVersion = "gradle-5.6.4-bin";
+#endif
+			var propertiesFile = Path.Combine(targetPath, "gradle-wrapper.properties");
+			var properties = File.ReadAllLines(propertiesFile);
+			properties[properties.Length - 1] = $"distributionUrl=dists/{gradleVersion}.zip";
+			
+			Global.CopyFileTo(Path.Combine(wrapperPath, "dist", $"{gradleVersion}.zip"), Path.Combine(targetPath, "dist"));
         }
     }
 }

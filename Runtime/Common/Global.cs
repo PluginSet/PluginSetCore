@@ -216,14 +216,14 @@ namespace PluginSet.Core
             CopyFile(file, dst, copy);
         }
         
-        public static void CopyFilesTo(string dstPath, string srcPath, string pattern)
+        public static void CopyFilesTo(string dstPath, string srcPath, string pattern, SearchOption option = SearchOption.AllDirectories)
         {
             if (!Directory.Exists(srcPath))
                 return;
 
             srcPath = Path.GetFullPath(srcPath);
             dstPath = Path.GetFullPath(dstPath);
-            foreach (var file in Directory.GetFiles(srcPath, pattern, SearchOption.AllDirectories))
+            foreach (var file in Directory.GetFiles(srcPath, pattern, option))
             {
                 CopyFile(file, file.Replace(srcPath, dstPath), null);
             }
