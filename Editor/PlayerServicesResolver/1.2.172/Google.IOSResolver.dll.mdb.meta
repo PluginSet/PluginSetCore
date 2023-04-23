@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 869d0d34dc04c462fa7f4a42b24056bb
+guid: 7da94b5102bf845c49f0b2c02aea0f16
 labels:
 - gvh
 - gvh_version-9.5.0
-- gvhp_exportpath-ExternalDependencyManager/Editor/LICENSE
+- gvhp_exportpath-ExternalDependencyManager/Editor/1.2.172/Google.IOSResolver.dll.mdb
 DefaultImporter:
   externalObjects: {}
   userData: 

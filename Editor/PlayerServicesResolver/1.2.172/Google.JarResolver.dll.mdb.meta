@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 869d0d34dc04c462fa7f4a42b24056bb
+guid: 4493505bda64a44ca80effe23c3b93e8
 labels:
 - gvh
 - gvh_version-9.5.0
-- gvhp_exportpath-ExternalDependencyManager/Editor/LICENSE
+- gvhp_exportpath-ExternalDependencyManager/Editor/1.2.172/Google.JarResolver.dll.mdb
 DefaultImporter:
   externalObjects: {}
   userData: 
