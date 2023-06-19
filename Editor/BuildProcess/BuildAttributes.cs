@@ -116,6 +116,22 @@ namespace PluginSet.Core.Editor
             
         }
     }
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class BuildCompletedCallbackAttribute : OrderCallBack
+    {
+        public BuildCompletedCallbackAttribute()
+            : base(0)
+        {
+            
+        }
+
+        public BuildCompletedCallbackAttribute(int order)
+            : base(order)
+        {
+            
+        }
+    }
     
     [AttributeUsage(AttributeTargets.Method)]
     public class AssetBundleFilePathsCollectorAttribute : OrderCallBack

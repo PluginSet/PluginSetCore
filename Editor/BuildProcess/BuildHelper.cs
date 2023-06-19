@@ -238,6 +238,18 @@ namespace PluginSet.Core.Editor
 #endif
         }
 
+        public static void BuildCompleted()
+        {
+            if (!Application.isBatchMode)
+                throw new BuildException("Application is not in batch mode");
+            
+            var context = BuildProcessorContext.BatchMode();
+            if (!Directory.Exists(context.ProjectPath))
+                throw new BuildException("There is no exported project");
+            
+            Global.CallCustomOrderMethods<BuildCompletedCallbackAttribute, BuildToolsAttribute>(context);
+        }
+
         private static string AppendSpaces(string text, int targetLen)
         {
             var diff = targetLen - text.Length;

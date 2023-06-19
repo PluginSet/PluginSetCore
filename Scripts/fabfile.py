@@ -41,8 +41,8 @@ def SUCESS(tip):
     raise Exit(code=0, message="SUCCESS:%s" % tip)
 
 
-def FAILURE(err, code=1):
-    if len(LogFiles) > 0:
+def FAILURE(err, code=1, printLog=False):
+    if printLog and len(LogFiles) > 0:
         file = LogFiles.pop()
         if os.path.exists(file):
             print('start print log file:: ', file)
@@ -87,17 +87,17 @@ PROTJECT_PATH = WORK_PATH
 PROTJECT_ASSETS = os.path.join(PROTJECT_PATH, "Assets")
 UNITY_HUB = os.environ.get("UNITY_HUB", None)
 UNITY_PATH = os.environ.get("UNITY_PATH", None)
-log.info("PROTJECT_PATH=\"%s\"" % (PROTJECT_PATH))
-log.info("PROTJECT_ASSETS=\"%s\"" % (PROTJECT_ASSETS))
-log.info("UNITY_HUB=\"%s\"" % (UNITY_HUB))
-log.info("UNITY_PATH=\"%s\"" % (UNITY_PATH))
+log.info('PROTJECT_PATH="%s"' % (PROTJECT_PATH))
+log.info('PROTJECT_ASSETS="%s"' % (PROTJECT_ASSETS))
+log.info('UNITY_HUB="%s"' % (UNITY_HUB))
+log.info('UNITY_PATH="%s"' % (UNITY_PATH))
 if UNITY_HUB:
     unity_version = get_unity_dict(os.path.join(PROTJECT_PATH, "ProjectSettings", "ProjectVersion.txt"))
-    log.info("unity_version=\"%s\"" % (unity_version))
+    log.info('unity_version="%s"' % (unity_version))
     path = os.path.join(UNITY_HUB, unity_version.get("m_EditorVersion", "unknow"))
     if os.path.exists(path):
         if is_win_platform():
-            UNITY_PATH = os.path.join(path, "Unity.exe")
+            UNITY_PATH = os.path.join(path, "Editor", "Unity.exe")
         else:
             UNITY_PATH = os.path.join(path, "Unity.app", "Contents", "MacOS", "Unity")
         log.info("Set UNITY_PATH to hub version " + UNITY_PATH)
@@ -107,6 +107,8 @@ if UNITY_HUB:
 if not UNITY_PATH or not os.path.exists(UNITY_PATH):
     FAILURE("请先设置正确的UNITY_PATH或UNITY_HUB目录")
 
+if is_win_platform():
+    UNITY_PATH = '"%s"' % UNITY_PATH
 
 def check_path(path):
     if os.path.exists(path):
@@ -742,13 +744,13 @@ def build_unity(platform, log_path, **kwargs):
             , True
             , os.path.join(log_path, "prebuildLog") if log_path else None
             , **kwargs):
-        return FAILURE("Unity prebuild fail!")
+        return FAILURE("Unity prebuild fail!", printLog=True)
     if call_unity_func(build_target
             , "PluginSet.Core.Editor.BuildHelper.Build"
             , False
             , os.path.join(log_path, "buildLog") if log_path else None
             , **kwargs):
-        return FAILURE("Unity build fail!")
+        return FAILURE("Unity build fail!", printLog=True)
 
 
 def build_unity_patches(platform, log_path, **kwargs):
@@ -760,23 +762,24 @@ def build_unity_patches(platform, log_path, **kwargs):
             , True
             , os.path.join(log_path, "prebuildLog") if log_path else None
             , **kwargs):
-        return FAILURE("Unity prebuild fail!")
+        return FAILURE("Unity prebuild fail!", printLog=True)
     if call_unity_func(build_target
             , "PluginSet.Core.Editor.BuildHelper.BuildPatch"
             , False
             , os.path.join(log_path, "patchLog") if log_path else None
             , **kwargs):
-        return FAILURE("Unity build fail!")
+        return FAILURE("Unity build fail!", printLog=True)
 
 
 def generateApk(android_project_path, debug):
+    gradlew = "./gradlew"
+    if is_win_platform():
+        gradlew = '"./gradlew.bat"'
     cmd = [
-        "./gradlew",
-        "-p",
-        ".",
+        gradlew,
         "assembleDebug" if debug else "assembleRelease"
     ]
-    execall("cd %s && %s" % (android_project_path, " ".join(cmd)))
+    execall('cd "%s" && %s' % (android_project_path, " ".join(cmd)))
     mode = "debug" if debug else "release"
     apk_name = "launcher-%s.apk" % mode
     build_apk_file = os.path.join(android_project_path, "launcher", "build", "outputs", "apk", mode, apk_name)
@@ -834,6 +837,18 @@ def build_multi(platform, channel, channelId, version_name, build_number, temp_p
             , channel=channel, debug=debug, product=product, channelId=channelId):
         return FAILURE("Unity build fail!")
 
+def build_completed(platform, channel, version_name, build_number, temp_path, debug, cache_log, product):
+    build_target = BUILD_TARGETS.get(platform.lower(), None)
+    log_path = temp_path if cache_log else None
+    if build_target is None:
+        return FAILURE("暂不支持该平台(%s)导出" % platform)
+    if call_unity_func(build_target
+            , "PluginSet.Core.Editor.BuildHelper.BuildCompleted"
+            , True
+            , os.path.join(log_path, "multiLog") if log_path else None
+            , version_name=version_name, build_number=build_number, out_path=temp_path
+            , channel=channel, debug=debug, product=product):
+        return FAILURE("Unity build fail!")
 
 def build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, cache_log, product):
     check_path(temp_path)
@@ -1662,7 +1677,8 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
             build_result = build_h5_web(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
         else:
             raise Exception("not support platform " + platform)
-        upload_bugly_symbols(build_result)
+#         upload_bugly_symbols(build_result)
+        build_completed(platform, channel, version_name, build_number, temp_path, debug, log, product)
     except Exit as exit:
         shutil.move(temp_path, out_path)
         return FAILURE(exit.message)
