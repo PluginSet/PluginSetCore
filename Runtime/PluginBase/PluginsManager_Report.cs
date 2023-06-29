@@ -23,19 +23,28 @@ namespace PluginSet.Core
             }
         }
         
-        public void OnUserRegister()
+        public void OnUserRegister(string method = "Indefinite")
         {
-            foreach (var plugin in _reportPlugins)
+            foreach (var plugin in ReportPlugins)
             {
-                plugin.OnUserRegister();
+                plugin.OnUserRegister(method);
             }
         }
         
         public void OnUserRealName()
         {
-            foreach (var plugin in _reportPlugins)
+            foreach (var plugin in ReportPlugins)
             {
                 plugin.OnUserRealName();
+            }
+        }
+
+        public void OnUserPurchase(bool success, string currency, float price, string paymentMethod, int amount = 1,
+            string productId = null, string productName = null, string productType = null)
+        {
+            foreach (var plugin in ReportPlugins)
+            {
+                plugin.OnUserPurchase(success, currency, price, paymentMethod, amount, productId, productName, productType);
             }
         }
     }

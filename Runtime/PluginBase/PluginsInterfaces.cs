@@ -91,9 +91,12 @@ namespace PluginSet.Core
 
     public interface IReport : IPluginBase
     {
-        void OnUserRegister();
+        void OnUserRegister(string method = "Indefinite");
 
         void OnUserRealName();
+
+        void OnUserPurchase(bool success, string currency, float price, string paymentMethod
+            , int amount = 1, string productId = null, string productName = null, string productType = null);
     }
 
     public interface IUserSet : IPluginBase
