@@ -222,6 +222,9 @@ namespace PluginSet.Core.Editor
             if (string.IsNullOrEmpty(ResourceVersion))
                 ResourceVersion = $"{VersionName}-{VersionCode}";
             ProjectPath = Path.Combine(BuildPath, Channel);
+            var patchFile = CommandArgs.TryGet("patchfile", null);
+            if (!string.IsNullOrEmpty(patchFile))
+                PatchFiles = JsonUtility.FromJson<PatchFiles>(File.ReadAllText(patchFile));
             Debug.Log("InitDataWithCommand::: build commands:: " + Json.Serialize(CommandArgs));
         }
 
@@ -289,12 +292,14 @@ namespace PluginSet.Core.Editor
 
         public void RemoveBuildBundle(string name)
         {
+            Debug.Log("RemoveBuildBundle ::" + name);
             if (_buildMap.ContainsKey(name))
                 _buildMap.Remove(name);
         }
 
         public void AddBuildBundle(string name, params string[] files)
         {
+            Debug.Log("AddBuildBundle ::" + name);
             List<string> list;
             name = name.ToLower(); // 保持bundle名称为全小写
             string[] paths = Global.GetLowerSubPaths(".", files);
@@ -323,6 +328,7 @@ namespace PluginSet.Core.Editor
             List<AssetBundleBuild> builds = new List<AssetBundleBuild>();
             foreach (var kv in _buildMap)
             {
+                Debug.Log("GetBundleBuilds ::" + kv.Value + " :: variant:" + variant);
                 AssetBundleBuild build = new AssetBundleBuild();
                 if (string.IsNullOrEmpty(variant))
                     build.assetBundleName = kv.Key;

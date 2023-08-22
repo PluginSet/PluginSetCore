@@ -685,7 +685,7 @@ BUILD_TARGETS = {
 
 def call_unity_func(build_target, func_name, quit, log_name, channel=None
                     , channelId=None, out_path=None, version_name=None
-                    , build_number=None, patch_data=None, debug=False, product=False,gitcommit=None):
+                    , build_number=None, patch_file=None, debug=False, product=False,gitcommit=None):
     buf = [
         UNITY_PATH
         , "-batchmode"
@@ -721,9 +721,9 @@ def call_unity_func(build_target, func_name, quit, log_name, channel=None
         buf.append(build_number)
         buf.append("-versioncode")
         buf.append(build_number)
-    if patch_data is not None:
-        buf.append("-patchdata")
-        buf.append(patch_data)
+    if patch_file is not None:
+        buf.append("-patchfile")
+        buf.append(patch_file)
     if gitcommit is not None:
         buf.append("-gitcommit")
         buf.append(gitcommit)
@@ -850,7 +850,7 @@ def build_completed(platform, channel, version_name, build_number, temp_path, de
             , channel=channel, debug=debug, product=product):
         return FAILURE("Unity build fail!")
 
-def build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, cache_log, product):
+def build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, cache_log, product, iosBuildType="adHoc"):
     check_path(temp_path)
     platform = platform.lower()
     try:
@@ -888,7 +888,7 @@ def build_one(platform, channel, channelId, version_name, build_number, temp_pat
         rm_file(out_file)
         copy_file(apk_file_name, out_file)
     elif platform == 'ios':
-        ipa_file_name = generateIpa(build_path, version_name, build_number, debug, "adHoc")
+        ipa_file_name = generateIpa(build_path, version_name, build_number, debug, iosBuildType)
         if not os.path.exists(ipa_file_name):
             return FAILURE("找不到构建的IPA:" + ipa_file_name)
         if out_path.endswith(".ipa"):
@@ -1005,10 +1005,14 @@ def build_patches(channel, platform, version_name, build_number, out_path, root,
     print("patchdata::::::\n%s" % json.dumps(patchdata, indent="  "))
     temp_path = os.path.join(PROTJECT_PATH, "Build", "patches", platform)
     rm_dir(temp_path)
+    temp_file = os.path.join(PROTJECT_PATH, "Build", "patchdata-%s-%s.json" % (version_name, build_number))
+    with open(temp_file, 'w') as f:
+        json.dump(patchdata, f)
+
     try:
         build_unity_patches(platform, temp_path if cache_log else None,
                             version_name=version_name, out_path=out_path, build_number=build_number,
-                            patch_data="'%s'" % json.dumps(patchdata),debug=debug,channel=channel,
+                            patch_file=os.path.abspath(temp_file),debug=debug,channel=channel,
                             product=product,gitcommit=gitcommit)
     except Exception as err:
         return FAILURE(err)
@@ -1036,10 +1040,10 @@ def create(context, path):
     "log": "保存log文件",
     "product": "是否为生产模式",
 })
-def buildApp(context, platform, channel, channelId, version_name, build_number, out_path, debug=False, log=True, product=False):
+def buildApp(context, platform, channel, channelId, version_name, build_number, out_path, debug=False, log=True, product=False, iosBuildType="adHoc"):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
-    build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, log, product)
+    build_one(platform, channel, channelId, version_name, build_number, temp_path, out_path, debug, log, product, iosBuildType)
     return SUCESS("Build Completed")
 
 
@@ -1054,11 +1058,11 @@ def buildApp(context, platform, channel, channelId, version_name, build_number, 
     "log": "保存log文件",
     "product": "是否为生产模式",
 })
-def buildMultiApp(context, platform, channel, channelIds, version_name, build_number, out_path, debug=False, log=True, product=False):
+def buildMultiApp(context, platform, channel, channelIds, version_name, build_number, out_path, debug=False, log=True, product=False, iosBuildType="adHoc"):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
     for c in channelIds.split(','):
-        build_one(platform, channel, c.strip(), version_name, build_number, temp_path, out_path, debug, log, product)
+        build_one(platform, channel, c.strip(), version_name, build_number, temp_path, out_path, debug, log, product, iosBuildType)
     return SUCESS("Build Completed")
 
 
@@ -1534,7 +1538,7 @@ def build_all_apks(apks_path, apk_name_tempalte, channel, channelIds, version_na
 
 
 def build_ios_installer(installer_path, channel, channelId, version_name, build_number, temp_path
-    , debug, cache_log, product, gitcommit):
+    , debug, cache_log, product, gitcommit, iosBuildType="adHoc"):
     dump_now("start build ios installer")
     export_project("ios", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
     dump_now("export ios project completed")
@@ -1542,7 +1546,7 @@ def build_ios_installer(installer_path, channel, channelId, version_name, build_
     ios_project_path = build_result.get("projectPath", None)
     if ios_project_path is None:
         return FAILURE("Cannot get ios project path")
-    ipa_file_name = generateIpa(ios_project_path, version_name, build_number, debug, "adHoc")
+    ipa_file_name = generateIpa(ios_project_path, version_name, build_number, debug, iosBuildType)
     dump_now("generated ipa")
     if not os.path.exists(ipa_file_name):
         return FAILURE("找不到构建的IPA:" + ipa_file_name)
@@ -1661,14 +1665,14 @@ def upload_bugly_symbols(build_result:dict):
     'gitcommit': "gitcommit号，用来标识资源版本TAG",
 })
 def buildAppsFlow(context, platform, channel, channelIds, version_name, build_number, out_path
-    , apk_name_template=None, debug=False, log=True, product=False, gitcommit=None):
+    , apk_name_template=None, debug=False, log=True, product=False, gitcommit=None, iosBuildType="adHoc"):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
     try:
         build_result = None
         if platform == 'ios':
             installer_path = os.path.join(temp_path, "installer")
-            build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
+            build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit, iosBuildType)
         elif platform == "android":
             apks_path = os.path.join(temp_path, "apks")
             build_result = build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
