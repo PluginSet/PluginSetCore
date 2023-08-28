@@ -1003,9 +1003,11 @@ def build_patches(channel, platform, version_name, build_number, out_path, root,
         "ModFiles": list(set(change_files)),
     }
     print("patchdata::::::\n%s" % json.dumps(patchdata, indent="  "))
-    temp_path = os.path.join(PROTJECT_PATH, "Build", "patches", platform)
+    build_path = os.path.join(PROTJECT_PATH, "Build")
+    temp_path = os.path.join(build_path, "patches", platform)
     rm_dir(temp_path)
-    temp_file = os.path.join(PROTJECT_PATH, "Build", "patchdata-%s-%s.json" % (version_name, build_number))
+    temp_file = os.path.join(build_path, "patchdata-%s-%s.json" % (version_name, build_number))
+    check_path(build_path)
     with open(temp_file, 'w') as f:
         json.dump(patchdata, f)
 
