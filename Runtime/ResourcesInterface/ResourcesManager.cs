@@ -134,6 +134,11 @@ namespace PluginSet.Core
 
         public abstract Object LoadAsset(string bundleName, string assetName, Type type);
 
+        public abstract AssetBundle GetAssetBundle(Object asset);
+        
+        public abstract void RetainAsset(Object asset);
+        public abstract void ReleaseAsset(Object asset);
+
         public abstract AsyncOperationHandle<T> LoadAssetAsync<T>(string bundleName, string assetName) where T : Object;
 
         public abstract AsyncOperationHandle<Object> LoadAssetAsync(string bundleName, string assetName, Type type);
