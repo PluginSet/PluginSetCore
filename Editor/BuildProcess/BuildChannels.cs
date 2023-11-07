@@ -212,6 +212,9 @@ namespace PluginSet.Core.Editor
 #if UNITY_ANDROID_API
                     SetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Legacy, icon);
                     SetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Round, icon);
+#if UNITY_2019_3_OR_NEWER
+                    SetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Adaptive, icon);
+#endif
 #endif
                 }
                 else if (context.BuildTarget == BuildTarget.iOS)
