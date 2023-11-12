@@ -9,11 +9,6 @@ namespace PluginSet.Core.Editor
     {
         public override void Execute(BuildProcessorContext context)
         {
-            var md5FileName = context.TryGet<string>("md5FileName", null);
-            var md5Context = context.TryGet<string>("md5Context", null);
-            if (!string.IsNullOrEmpty(md5FileName) && !string.IsNullOrEmpty(md5Context))
-                File.WriteAllText(md5FileName, md5Context);
-
             var outJson = context.TryGet<Dictionary<string, object>>("buildResultJson", null);
             if (outJson != null && !string.IsNullOrEmpty(context.BuildPath) && Directory.Exists(context.BuildPath))
             {

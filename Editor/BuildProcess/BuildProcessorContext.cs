@@ -195,8 +195,8 @@ namespace PluginSet.Core.Editor
         {
             Reset();
 
-            ForceBuildBundles = false;
-            ForceExportProject = false;
+            ForceBuildBundles = true;
+            ForceExportProject = true;
             ExportProject = true;
             DebugMode = false;
 

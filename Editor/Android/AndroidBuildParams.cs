@@ -31,6 +31,9 @@ namespace PluginSet.Core.Editor
         [Tooltip("已设定的KeyStore别名密码")]
         [VisibleCaseBoolValue("UseCustomKeystore", true)]
         public string KeyAliasPassword;
+        
+        [Tooltip("是否使用分包")]
+        public bool SplitApplicationBinary;
 
 //        [Tooltip("Manifest中的application的name属性")]
 //        public string ApplicationName;
@@ -67,6 +70,8 @@ namespace PluginSet.Core.Editor
             PlayerSettings.Android.keyaliasPass = setting.KeyAliasPassword;
 
             PlayerSettings.Android.targetSdkVersion = setting.TargetSdkVersion;
+            
+            PlayerSettings.Android.useAPKExpansionFiles = setting.SplitApplicationBinary;
         }
     }
 }

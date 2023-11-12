@@ -11,15 +11,14 @@ namespace PluginSet.Core.Editor
             string projectPath = context.ProjectPath;
 
             var buildAssets = false;
-            var projectChanged = CheckProjectChanged(context);
-            if (projectChanged || context.CheckNeedRebuildAssetBundles())
+            if (context.CheckNeedRebuildAssetBundles())
             {
                 task = handler.AddNextTask(new BuildPrepareBundles(), task);
                 task = handler.AddNextTask(new BuildExportAssetBundles(), task);
                 buildAssets = true;
             }
             
-            if (projectChanged || context.ForceExportProject || CheckNeedExportProject(context))
+            if (context.ForceExportProject || CheckNeedExportProject(context))
             {
                 Global.CheckAndDeletePath(projectPath);
                 
@@ -29,23 +28,6 @@ namespace PluginSet.Core.Editor
             {
                 handler.AddNextTask(new BuildCopyStreamAssets(), task);
             }
-        }
-
-        private static bool CheckProjectChanged(BuildProcessorContext context)
-        {
-            string tag = context.BuildExportProjectTag();
-            string md5FileName = Path.Combine(context.ProjectPath, "channelMd5.txt");
-            if (File.Exists(md5FileName))
-            {
-                if (File.ReadAllText(md5FileName).Equals(tag))
-                    return false;
-
-                File.Delete(md5FileName);
-            }
-
-            context.Set("md5FileName", md5FileName);
-            context.Set("md5Context", tag);
-            return true;
         }
 
         private static bool CheckNeedExportProject(BuildProcessorContext context)

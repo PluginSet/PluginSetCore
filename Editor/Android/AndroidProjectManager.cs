@@ -85,6 +85,9 @@ namespace PluginSet.Core.Editor
             
             Proguard = new StringBuilder();
             Global.AppendProguardInLib(Proguard, "PluginSet.Core");
+
+            var node = LibraryGradle.ROOT.GetOrCreateNode("android/defaultConfig");
+            node.AppendContentNode("consumerProguardFiles \'proguard-user.txt\'");
             
             SetApplication("com.pluginset.core.PluginSetBaseApplication", null, true);
             SetMainActivity("com.pluginset.core.PluginSetBaseActivity", true);

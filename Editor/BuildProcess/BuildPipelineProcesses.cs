@@ -98,31 +98,11 @@ namespace PluginSet.Core.Editor
 					var androidProject = new AndroidProjectManager(exportPath);
 					context.SetBuildResult("targetSdkVersion", androidProject.LauncherGradle.TargetSdkVersion);
 				}
-				
-				var md5FileName = context.TryGet<string>("md5FileName", null);
-				var md5Context = context.TryGet<string>("md5Context", null);
-				if (!string.IsNullOrEmpty(md5FileName) && !string.IsNullOrEmpty(md5Context))
-					File.WriteAllText(md5FileName, md5Context);
 			}
 			else
 			{
 				context.SetBuildResult("apkPath", Path.GetFullPath(exportPath));
 			}
-            
-            if (!Application.isBatchMode)
-            {
-				string tag = context.BuildExportProjectTag();
-				string md5FileName = Path.Combine(context.ProjectPath, "channelMd5.txt");
-				md5FileName = context.TryGet("md5FileName", md5FileName);
-				tag = context.TryGet("md5Context", tag);
-				
-				context.Set("md5FileName", md5FileName);
-				context.Set("md5Context", tag);
-				
-				var handler = new BuildTaskHandler();
-				handler.AddNextTask(new BuildEnd());
-				handler.Execute(context);
-            }
         }
 
         private static void CopyGradleFiles(string targetPath)
