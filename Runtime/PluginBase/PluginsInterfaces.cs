@@ -245,24 +245,36 @@ namespace PluginSet.Core
         void HideAllBanners();
     }
 
+    public enum AdErrorCode
+    {
+        Success = 0,
+        IsLoading = 1,
+        IsShowing = 2,
+        NotLoaded = 3,
+        ShowFail  = 4,
+        Dismissed = 5,
+    }
+
     public interface IRewardAdPlugin : IPluginBase
     {
         bool IsEnableShowRewardAd { get; }
 
         bool IsReadyToShowRewardAd { get; }
 
-        void LoadRewardAd(Action success = null, Action<string> fail = null);
+        void LoadRewardAd(Action success = null, Action<int> fail = null);
 
-        void ShowRewardAd(Action<bool, string> dismiss = null);
+        void ShowRewardAd(Action<bool, int> dismiss = null);
     }
 
     public interface IInterstitialAdPlugin : IPluginBase
     {
         bool IsEnableShowInterstitialAd { get; }
 
-        void LoadInterstitialAd(Action success = null, Action<string> fail = null);
+        bool IsReadyToShowInterstitialAd { get; }
 
-        void ShowInterstitialAd(Action<bool, string> dismiss = null);
+        void LoadInterstitialAd(Action success = null, Action<int> fail = null);
+
+        void ShowInterstitialAd(Action<bool, int> dismiss = null);
     }
 
     /// <summary>

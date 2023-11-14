@@ -66,7 +66,7 @@ namespace PluginSet.Core
             return false;
         }
 
-        public void LoadRewardAd(Action success = null, Action<string> fail = null)
+        public void LoadRewardAd(Action success = null, Action<int> fail = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
@@ -77,12 +77,12 @@ namespace PluginSet.Core
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_LOAD_REWARD_AD_TYPE, context))
             {
-                fail?.Invoke("LoadRewardAd need point to a plugin with name");
+                fail?.Invoke(PluginConstants.InvalidCode);
                 PluginsEventContext.Return(context);
             }
         }
 
-        public void LoadRewardAdWith(string pluginName, Action success = null, Action<string> fail = null)
+        public void LoadRewardAdWith(string pluginName, Action success = null, Action<int> fail = null)
         {
             if (RewardAdPlugins.TryGetValue(pluginName, out var plugin))
             {
@@ -93,10 +93,10 @@ namespace PluginSet.Core
                 }
             }
 
-            fail?.Invoke("Invalid plugin name to load reward ad");
+            fail?.Invoke(PluginConstants.InvalidCode);
         }
 
-        public void ShowRewardAd(Action<bool, string> dismiss = null)
+        public void ShowRewardAd(Action<bool, int> dismiss = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
@@ -109,14 +109,14 @@ namespace PluginSet.Core
             {
                 var plugin = GetReadyRewardAdPlugin();
                 if (string.IsNullOrEmpty(plugin))
-                    dismiss?.Invoke(false, "ShowRewardAd need point to a plugin with name");
+                    dismiss?.Invoke(false, PluginConstants.InvalidCode);
                 else
                     ShowRewardAdWith(plugin, dismiss);
                 PluginsEventContext.Return(context);
             }
         }
 
-        public void ShowRewardAdWith(string pluginName, Action<bool, string> dismiss = null)
+        public void ShowRewardAdWith(string pluginName, Action<bool, int> dismiss = null)
         {
             if (RewardAdPlugins.TryGetValue(pluginName, out var plugin))
             {
@@ -127,7 +127,7 @@ namespace PluginSet.Core
                 }
             }
 
-            dismiss?.Invoke(false, "Invalid plugin name to show reward ad");
+            dismiss?.Invoke(false, PluginConstants.InvalidCode);
         }
     }
 }

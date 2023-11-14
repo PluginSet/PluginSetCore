@@ -26,6 +26,8 @@ namespace PluginSet.Core
         }
 
         public bool IsEnableShowInterstitialAd => GetValidInterstitialTypes().Length > 0;
+        
+        public bool IsReadyToShowInterstitialAd => InterstitialAdPlugins.Any(kv => kv.Value.IsReadyToShowInterstitialAd);
 
         public string[] GetInterstitialTypes()
         {
@@ -36,6 +38,25 @@ namespace PluginSet.Core
         {
             return InterstitialAdPlugins.Where(kv => kv.Value.IsEnableShowInterstitialAd).Select(kv => kv.Key).ToArray();
         }
+        
+        public string GetReadyInterstitialPlugin()
+        {
+            foreach (var plugin in InterstitialAdPlugins.Values)
+            {
+                if (plugin.IsReadyToShowInterstitialAd)
+                    return plugin.Name;
+            }
+
+            return null;
+        }
+        
+        public bool IsReadyShowInterstitialAd(string pluginName)
+        {
+            if (InterstitialAdPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.IsReadyToShowInterstitialAd;
+
+            return false;
+        }
 
         public bool EnableShowInterstitial(string pluginName)
         {
@@ -45,7 +66,7 @@ namespace PluginSet.Core
             return false;
         }
 
-        public void LoadInterstitialAd(Action success = null, Action<string> fail = null)
+        public void LoadInterstitialAd(Action success = null, Action<int> fail = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
@@ -56,12 +77,12 @@ namespace PluginSet.Core
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_INTERSTITIAL_AD_TYPE, context))
             {
-                fail?.Invoke("LoadInterstitialAd need point to a plugin with name");
+                fail?.Invoke(PluginConstants.InvalidCode);
                 PluginsEventContext.Return(context);
             }
         }
 
-        public void LoadInterstitialAdWith(string pluginName, Action success = null, Action<string> fail = null)
+        public void LoadInterstitialAdWith(string pluginName, Action success = null, Action<int> fail = null)
         {
             if (InterstitialAdPlugins.TryGetValue(pluginName, out var plugin))
             {
@@ -71,11 +92,11 @@ namespace PluginSet.Core
                     return;
                 }
             }
-            
-            fail?.Invoke("Invalid plugin name to load interstitial ad");
+
+            fail?.Invoke(PluginConstants.InvalidCode);
         }
 
-        public void ShowInterstitialAd(Action<bool, string> dismiss = null)
+        public void ShowInterstitialAd(Action<bool, int> dismiss = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
@@ -86,12 +107,12 @@ namespace PluginSet.Core
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_INTERSTITIAL_AD_TYPE, context))
             {
-                dismiss?.Invoke(false, "ShowInterstitialAd need point to a plugin with name");
+                dismiss?.Invoke(false, PluginConstants.InvalidCode);
                 PluginsEventContext.Return(context);
             }
         }
 
-        public void ShowInterstitialAdWith(string pluginName, Action<bool, string> dismiss = null)
+        public void ShowInterstitialAdWith(string pluginName, Action<bool, int> dismiss = null)
         {
             if (InterstitialAdPlugins.TryGetValue(pluginName, out var plugin))
             {
@@ -102,7 +123,7 @@ namespace PluginSet.Core
                 }
             }
             
-            dismiss?.Invoke(false, "Invalid plugin name to show interstitial ad");
+            dismiss?.Invoke(false, PluginConstants.InvalidCode);
         }
     }
 }
