@@ -88,6 +88,13 @@ namespace PluginSet.Core
     {
         void CustomEvent(string customEventName, Dictionary<string, object> eventData = null);
     }
+    
+    public interface IPageAnalytics : IPluginBase
+    {
+        void PageStart(string pageName, string pageClassOverride);
+
+        void PageEnd(string pageName);
+    }
 
     public interface IReport : IPluginBase
     {
