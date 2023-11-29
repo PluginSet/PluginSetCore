@@ -74,13 +74,16 @@ namespace PluginSet.Core.Editor
         }
 
         public static EditorSetting Asset => assetLoader.GetMain<EditorSetting>("EditorSetting");
+        
+        internal static BuildChannels _currentBuildChannel;
 
         public static BuildChannels CurrentBuildChannel
         {
             get
             {
                 if (Application.isBatchMode)
-                    throw new BuildException("Don't use this value in batch mode");
+                    return _currentBuildChannel;
+                
                 return BuildChannels.GetAsset(Asset.CurrentChannel);
             }
         }

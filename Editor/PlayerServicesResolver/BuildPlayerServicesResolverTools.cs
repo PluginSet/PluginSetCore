@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace PluginSet.Tool.PlayerServicesResolver.Editor
 {
-    [BuildTools]
+    // [BuildTools]
     public static class BuildPlayerServicesResolverTools
     {
         private static string[] POD_SEARCH_PATHS = new string[] {
@@ -18,7 +18,7 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
             "/usr/bin",
         };
         
-        [OnSyncEditorSetting(int.MinValue)]
+        // [OnSyncEditorSetting(int.MinValue)]
         public static void OnSyncEditorSetting(BuildProcessorContext context)
         {
             var dependenciesPath = Path.Combine(Application.dataPath, "PluginDependencies", "Editor");
@@ -28,7 +28,7 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
             Global.CopyDependenciesInLib("com.pluginset.core");
         }
         
-        [OnSyncEditorSetting(int.MaxValue)]
+        // [OnSyncEditorSetting(int.MaxValue)]
         public static void OnSyncEditorSetting_after(BuildProcessorContext context)
         {
             if (context.BuildTarget != BuildTarget.Android)
@@ -45,7 +45,7 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
             }
         }
 
-        [iOSXCodeProjectModify(int.MaxValue)]
+        // [iOSXCodeProjectModify(int.MaxValue)]
         public static void OnIOSXCodeProjectModifyCompleted(BuildProcessorContext context, PBXProjectManager projectManager)
         {
 //            RemoveUnityIphoneTargetInPodFile(projectManager.ProjectPath);

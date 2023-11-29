@@ -12,6 +12,7 @@ namespace PluginSet.Core.Editor
         private List<BuildProcessorTask> _tasks = new List<BuildProcessorTask>();
         private int _currentTaskIndex = 0;
         private BuildProcessorContext _context;
+        private long _startTime;
         
         public BuildProcessorTask AddNextTask(BuildProcessorTask task, BuildProcessorTask place = null)
         {
@@ -48,6 +49,19 @@ namespace PluginSet.Core.Editor
             _currentTaskIndex = 0;
             
             ExecuteNext();
+        }
+
+        private void OnBuildStopWaiting()
+        {
+            _context.OnBuildStopWaiting -= OnBuildStopWaiting;
+            Debug.Log($"Task async ended <<<<<<<<<<<<<<<<<<< used time: {(DateTime.Now.Ticks - _startTime)/10000000}s");
+            ExecuteNext();
+        }
+        
+        private int WaitBuildStop()
+        {
+            _context.OnBuildStopWaiting += OnBuildStopWaiting;
+            return 3;
         }
         
 #if UNITY_2020_1_OR_NEWER
@@ -110,12 +124,22 @@ namespace PluginSet.Core.Editor
                 Debug.Log("execute task isUpdating");
                 return WaitUpdating();
             }
+            
+            if (_context.IsWaiting)
+            {
+                Debug.Log("Build context isWaiting");
+                return WaitBuildStop();
+            }
 
             var task = _tasks[_currentTaskIndex++];
-            var startTime = DateTime.Now.Ticks;
+            _startTime = DateTime.Now.Ticks;
             Debug.Log($"Task {task.GetType().Name} begin >>>>>>>>>>>>>>>>>>>");
             task.Execute(_context);
-            Debug.Log($"Task {task.GetType().Name} ended <<<<<<<<<<<<<<<<<<< used time: {(DateTime.Now.Ticks - startTime)/10000000}s");
+            if (_context.IsWaiting)
+            {
+                return WaitBuildStop();
+            }
+            Debug.Log($"Task {task.GetType().Name} ended <<<<<<<<<<<<<<<<<<< used time: {(DateTime.Now.Ticks - _startTime)/10000000}s");
 
             return ExecuteNext();
         }

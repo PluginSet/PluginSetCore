@@ -105,7 +105,7 @@ namespace PluginSet.Core.Editor
 			}
         }
 
-        private static void CopyGradleFiles(string targetPath)
+        public static void CopyGradleFiles(string targetPath)
         {
 			var corePath = Global.GetPackageFullPath("com.pluginset.core");
 			var toolsPath = Path.Combine(corePath, "AndroidTools~");
@@ -116,6 +116,7 @@ namespace PluginSet.Core.Editor
 			Global.CopyFilesTo( targetPath, wrapperPath, "*", SearchOption.TopDirectoryOnly);
 
 #if UNITY_2020_3_OR_NEWER
+			// var gradleVersion = "gradle-6.7.1-all";
 			var gradleVersion = "gradle-6.1.1-bin";
 #else
 			var gradleVersion = "gradle-5.6.4-bin";

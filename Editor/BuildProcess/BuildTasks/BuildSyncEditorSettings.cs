@@ -2,7 +2,6 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 namespace PluginSet.Core.Editor
 {
@@ -13,9 +12,46 @@ namespace PluginSet.Core.Editor
             var config = PluginSetConfig.NewAsset;
             context.Set("pluginsConfig", config);
             
+            var toolPath = Path.Combine(Application.dataPath, "..", "Temp", "PlayServicesResolverGradle");
+            var toolFile = Path.Combine(toolPath, "gradlew.bat");
+            if (!File.Exists(toolFile))
+            {
+                if (!Directory.Exists(toolPath))
+                    Directory.CreateDirectory(toolPath);
+                
+                BuildPipelineProcesses.CopyGradleFiles(toolPath);
+            }
+            
+            var dependenciesPath = Path.Combine(Application.dataPath, "PluginDependencies", "Editor");
+            Global.CheckAndDeletePath(dependenciesPath);
+            context.Set("pluginDependenciesPath", dependenciesPath);
+            Directory.CreateDirectory(dependenciesPath);
+            Global.CopyDependenciesInLib("com.pluginset.core");
+            
             // sync context
             Global.CallCustomOrderMethods<OnSyncEditorSettingAttribute, BuildToolsAttribute>(context);
+            
+#if UNITY_ANDROID
+            context.IsWaiting = true;
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
+            // GooglePlayServices.PlayServicesResolver.ResolveSync(true);
+            // CompleteEditorSettings(context);
+            GooglePlayServices.PlayServicesResolver.Resolve(null, true, delegate(bool b)
+            {
+                if (!b)
+                    throw new BuildException("PlayServicesResolver ResolveSync failed");
+                
+                CompleteEditorSettings(context, config);
+            });
+
+#else
+            CompleteEditorSettings(context, config);
+#endif
+        }
+
+        private static void CompleteEditorSettings(BuildProcessorContext context, PluginSetConfig config)
+        {
             // sync setting
             PlayerSettings.SplashScreen.show = false;
 
@@ -65,6 +101,7 @@ namespace PluginSet.Core.Editor
             AssetDatabase.Refresh();
             
             Debug.Log($"config asset::{string.Join("\n", config.DataItems.Select(item => item.ToString()).ToArray())}");
+            context.IsWaiting = false;
         }
     }
 }

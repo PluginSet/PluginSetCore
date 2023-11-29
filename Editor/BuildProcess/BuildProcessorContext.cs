@@ -27,7 +27,7 @@ namespace PluginSet.Core.Editor
         }
 
         private static BuildProcessorContext _current;
-
+        
         public static BuildProcessorContext Current
         {
             get
@@ -65,7 +65,23 @@ namespace PluginSet.Core.Editor
         public BuildTargetGroup BuildTargetGroup;
         public bool ForEditor = false;
 
-        public string Channel;
+        public string Channel { get; private set; }
+
+        private bool _isWaiting;
+
+        public event Action OnBuildStopWaiting;
+
+        public bool IsWaiting
+        {
+            get => _isWaiting;
+            set
+            {
+                _isWaiting = value;
+                if (!value)
+                    OnBuildStopWaiting?.Invoke();
+            }
+        }
+
         public bool DebugMode;
         /// <summary>
         /// 是否需要符号表 android
@@ -143,9 +159,6 @@ namespace PluginSet.Core.Editor
         {
             get
             {
-                if (_buildChannels == null)
-                    _buildChannels = BuildChannels.GetAsset(Channel);
-
                 if (_buildChannels == null)
                     throw new BuildException($"Cannot load BuildChannel with {Channel} at platform {BuildTarget}");
 
@@ -226,6 +239,9 @@ namespace PluginSet.Core.Editor
             if (!string.IsNullOrEmpty(patchFile))
                 PatchFiles = JsonUtility.FromJson<PatchFiles>(File.ReadAllText(patchFile));
             Debug.Log("InitDataWithCommand::: build commands:: " + Json.Serialize(CommandArgs));
+            
+            _buildChannels = BuildChannels.GetAsset(Channel);
+            EditorSetting._currentBuildChannel = _buildChannels;
         }
 
         private void Reset()

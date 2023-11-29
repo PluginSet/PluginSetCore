@@ -10,6 +10,7 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
     {
         const string Namespace = "GooglePlayServices.";
         private const string AutoResolveKey = Namespace + "AutoResolverEnabled";
+        private const string AutoResolveOnBuildKey = Namespace + "AutoResolveOnBuild";
         
         static DefaultResolverSetting()
         {
@@ -24,6 +25,7 @@ namespace PluginSet.Tool.PlayerServicesResolver.Editor
         {
             var projectSettings = new ProjectSettings(Namespace);
             projectSettings.SetBool(AutoResolveKey, value);
+            projectSettings.SetBool(AutoResolveOnBuildKey, value);
         }
     }
 }

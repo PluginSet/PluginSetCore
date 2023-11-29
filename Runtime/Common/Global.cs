@@ -705,10 +705,11 @@ namespace PluginSet.Core
             var dependenciesPath = Path.Combine(Application.dataPath, "PluginDependencies", "Editor");
             foreach (var file in Directory.GetFiles(srcPath, "*.xml", SearchOption.AllDirectories))
             {
-                if (filter != null && filter.Invoke(Path.GetFileNameWithoutExtension(file)))
+                var subPath = GetSubPath(srcPath, file);
+                if (filter != null && filter.Invoke(subPath))
                     continue;
                     
-                CopyFileTo(file, dependenciesPath);
+                CopyFile(file, Path.Combine(dependenciesPath, subPath), null);
             }
         }
 
