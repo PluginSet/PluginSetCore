@@ -103,6 +103,7 @@ namespace PluginSet.Core
             }
         }
 
+        [Obsolete("Use PaymentCompleteWith instead")]
         public void PaymentComplete(string transactionId)
         {
             Logger.Error("Cannot call PaymentComplete without plugin name");
@@ -118,16 +119,17 @@ namespace PluginSet.Core
             }
         }
 
+        [Obsolete("Use AddOnPaymentCompletedWith instead")]
         public void AddOnPaymentCompleted(Action<string> completed)
         {
             Logger.Error("Cannot call AddOnPaymentCompleted without plugin name");
         }
 
+        [Obsolete("Use AddOnPaymentCompletedWith instead")]
         public void RemoveOnPaymentCompleted(Action<string> completed)
         {
             Logger.Error("Cannot call RemoveOnPaymentCompleted without plugin name");
         }
-
 
         public void AddOnPaymentCompletedWith(string pluginName, Action<string> completed)
         {
@@ -149,6 +151,26 @@ namespace PluginSet.Core
                 else
                     Logger.Warn($"Payment plugin {pluginName} need not call RemoveOnPaymentCompleted");
             }
+        }
+
+        [Obsolete("Use RestorePaymentsWith instead")]
+        public void RestorePayments(Action<Result> callback = null, string json = null)
+        {
+            Logger.Error("Cannot call RestorePayments without plugin name");
+        }
+
+        public void RestorePaymentsWith(string pluginName, Action<Result> callback = null, string json = null)
+        {
+            if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
+            {
+                if (plugin is IIAPurchasePlugin purchasePlugin)
+                {
+                    purchasePlugin.RestorePayments(callback, json);
+                    return;
+                }
+            }
+            
+            InvalidCallback(callback, pluginName, json);
         }
     }
 }

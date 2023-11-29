@@ -61,11 +61,15 @@ namespace PluginSet.Core
     {
         public abstract bool AvailableToPurchase { get; }
         public abstract string ProductId { get; }
-        public abstract float Price { get; }
+        public abstract ProductType Type { get; }
+        public abstract int Price { get; }
         public abstract string Currency { get; }
         public abstract string PriceString { get; }
         public abstract string Title { get; }
         public abstract string Description { get; }
+        
+        public abstract string Payload { get; }
+        public abstract string Receipt { get; }
     }
 
     public interface IPluginBase
@@ -156,6 +160,27 @@ namespace PluginSet.Core
         /// <returns></returns>
         string GetUserLoginData();
     }
+    
+    public enum ProductType
+    {
+        /// <summary>
+        /// Consumables may be purchased more than once.
+        ///
+        /// Purchase history is not typically retained by store
+        /// systems once consumed.
+        /// </summary>
+        Consumable,
+
+        /// <summary>
+        /// Non consumables cannot be repurchased and are owned indefinitely.
+        /// </summary>
+        NonConsumable,
+
+        /// <summary>
+        /// Subscriptions have a finite window of validity.
+        /// </summary>
+        Subscription
+    }
 
     public interface IPaymentPlugin : IPluginBase
     {
@@ -179,6 +204,8 @@ namespace PluginSet.Core
         void AddOnPaymentCompleted(Action<string> completed);
         
         void RemoveOnPaymentCompleted(Action<string> completed);
+
+        void RestorePayments(Action<Result> callback = null, string json = null);
     }
 
     public interface ISharePlugin : IPluginBase
