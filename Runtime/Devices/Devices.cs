@@ -13,6 +13,10 @@ namespace PluginSet.Core
     
     public static class Devices
     {
+#if UNITY_WEBGL
+        internal static string ApplicationId { private get; set; }
+#endif
+        
         private static readonly Logger Logger = LoggerManager.GetLogger("Devices");
         
 #if UNITY_WEBGL
@@ -65,6 +69,15 @@ namespace PluginSet.Core
         public static Rect GetSafeArea()
         {
             return Screen.safeArea;
+        }
+
+        public static string GetApplicationIdentifier()
+        {
+#if UNITY_WEBGL
+            return ApplicationId;
+#else
+            return Application.identifier;
+#endif
         }
 
         private static bool RecordRequestPermissions(string key, bool doRecord = true)

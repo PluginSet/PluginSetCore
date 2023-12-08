@@ -2,6 +2,7 @@ using PluginSet.Core;
 using PluginSet.Core.Editor;
 using UnityEditor;
 using UnityEngine;
+using WebGLSupport;
 
 namespace PluginSetCore.Editor.WebGL
 {
@@ -33,9 +34,13 @@ namespace PluginSetCore.Editor.WebGL
         {
             if (context.BuildTarget != BuildTarget.WebGL)
                 return;
-
+            
             var asset = context.BuildChannels;
             var setting = asset.Get<WebGLBuildParams>();
+
+            var pluginConfig = context.Get<PluginSetConfig>("pluginsConfig");
+            var config = pluginConfig.AddConfig<WebGLRuntimeConfig>("WebGL");
+            config.ApplicationId = asset.PackageName;
 
             PlayerSettings.defaultWebScreenWidth = setting.DefaultCanvasWidth;
             PlayerSettings.defaultWebScreenHeight = setting.DefaultCanvasHeight;

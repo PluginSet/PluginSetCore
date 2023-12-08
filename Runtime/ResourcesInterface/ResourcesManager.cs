@@ -34,6 +34,9 @@ namespace PluginSet.Core
 #else
         public static readonly string PatchesSavePath = Path.Combine(
             PatchesRootPath,
+#if UNITY_WEBGL
+            Devices.GetApplicationIdentifier().Replace(".", "_"),
+#endif
             PatchesWriteFlag
         );
 #endif

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Common;
 using UnityEngine;
+using WebGLSupport;
 
 namespace PluginSet.Core
 {
@@ -175,6 +176,11 @@ namespace PluginSet.Core
 
         protected override void Init(PluginSetConfig config)
         {
+#if UNITY_WEBGL
+            var cfg = config.Get<WebGLRuntimeConfig>();
+            Devices.ApplicationId = cfg.ApplicationId;
+#endif
+            
             AddEventListener(PluginConstants.NOTIFY_RESTART, Restart);
         }
 
