@@ -17,6 +17,23 @@ namespace PluginSet.Core.Editor
         {
         }
     }
+        
+    // 构建
+    [AttributeUsage(AttributeTargets.Method)]
+    public class BuildPrepareCallbackAttribute : OrderCallBack
+    {
+        public BuildPrepareCallbackAttribute()
+            : base(0)
+        {
+            
+        }
+
+        public BuildPrepareCallbackAttribute(int order)
+            : base(order)
+        {
+            
+        }
+    }
     
     // 安卓项目设定工程时调用该接口
     // 该接口有序调用，接收BuildProccessorContext, AndroidProjectManager
@@ -116,7 +133,11 @@ namespace PluginSet.Core.Editor
             
         }
     }
-
+    
+    /**
+     * 项目构建完成后回调(在fabfile中调用的流程，不使用fab命令打包时，不会进入该流程。该流程主要在于安卓build完成之后才会生成symbols文件）
+     * 该接口有序调用，接收BuildProccessorContext
+     */
     [AttributeUsage(AttributeTargets.Method)]
     public class BuildCompletedCallbackAttribute : OrderCallBack
     {

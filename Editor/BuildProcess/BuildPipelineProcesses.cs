@@ -76,6 +76,7 @@ namespace PluginSet.Core.Editor
             context.SetBuildResult("bundleId", PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android));
             context.SetBuildResult("platform", "Android");
 #elif UNITY_WEBGL
+            context.SetBuildResult("bundleId", context.BuildChannels.PackageName);
             context.SetBuildResult("platform", "WebGL");
 #endif
 			
