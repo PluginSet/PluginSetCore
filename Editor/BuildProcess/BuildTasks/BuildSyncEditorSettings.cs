@@ -35,15 +35,21 @@ namespace PluginSet.Core.Editor
             context.IsWaiting = true;
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
-            // GooglePlayServices.PlayServicesResolver.ResolveSync(true);
-            // CompleteEditorSettings(context);
-            GooglePlayServices.PlayServicesResolver.Resolve(null, true, delegate(bool b)
+            if (UnityEngine.Device.Application.isBatchMode)
             {
-                if (!b)
-                    throw new BuildException("PlayServicesResolver ResolveSync failed");
-                
+                GooglePlayServices.PlayServicesResolver.ResolveSync(true);
                 CompleteEditorSettings(context, config);
-            });
+            }
+            else
+            {
+                GooglePlayServices.PlayServicesResolver.Resolve(null, true, delegate(bool b)
+                {
+                    if (!b)
+                        throw new BuildException("PlayServicesResolver ResolveSync failed");
+                    
+                    CompleteEditorSettings(context, config);
+                });
+            }
 
 #else
             CompleteEditorSettings(context, config);
