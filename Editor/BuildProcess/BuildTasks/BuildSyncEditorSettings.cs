@@ -35,7 +35,7 @@ namespace PluginSet.Core.Editor
             context.IsWaiting = true;
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
-            if (UnityEngine.Device.Application.isBatchMode)
+            if (Application.isBatchMode)
             {
                 GooglePlayServices.PlayServicesResolver.ResolveSync(true);
                 CompleteEditorSettings(context, config);
