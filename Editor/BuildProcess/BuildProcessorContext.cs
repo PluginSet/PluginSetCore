@@ -65,6 +65,8 @@ namespace PluginSet.Core.Editor
         public BuildTargetGroup BuildTargetGroup;
         public bool ForEditor = false;
 
+        internal bool SkipResolveAndroidLibs = false;
+
         public string Channel { get; private set; }
 
         private bool _isWaiting;

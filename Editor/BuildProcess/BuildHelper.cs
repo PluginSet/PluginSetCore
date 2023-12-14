@@ -146,9 +146,10 @@ namespace PluginSet.Core.Editor
             }
         }
 
-        public static void SyncPluginsConfig()
+        public static void SyncPluginsConfig(bool resolveAndroidLibs = true)
         {
             var context = BuildProcessorContext.Default();
+            context.SkipResolveAndroidLibs = !resolveAndroidLibs;
             PreBuildWithContext(context);
         }
 

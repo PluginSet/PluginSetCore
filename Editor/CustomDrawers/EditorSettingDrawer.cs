@@ -205,6 +205,13 @@ namespace PluginSet.Core.Editor
             {
                 BuildHelper.SyncPluginsConfig();
             }
+            
+            var syncSettings2 = GUILayout.Button("同步设置（忽略同步安卓依赖）");
+
+            if (syncSettings2)
+            {
+                BuildHelper.SyncPluginsConfig(false);
+            }
 
             AssetDatabase.SaveAssets();
         }

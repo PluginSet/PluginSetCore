@@ -32,6 +32,12 @@ namespace PluginSet.Core.Editor
             Global.CallCustomOrderMethods<OnSyncEditorSettingAttribute, BuildToolsAttribute>(context);
             
 #if UNITY_ANDROID
+            if (context.SkipResolveAndroidLibs)
+            {
+                CompleteEditorSettings(context, config);
+                return;
+            }
+            
             context.IsWaiting = true;
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
