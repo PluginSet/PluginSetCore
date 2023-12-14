@@ -10,6 +10,8 @@
     "pluginsetcore"
   ],
   "dependencies": {
+    "com.pluginset.tools.psr": "1.2.172",
+    "com.pluginset.tools.platform": "1.0.0",
     "com.unity.scriptablebuildpipeline": "1.12.0",
     "com.unity.modules.assetbundle": "1.0.0"
   },

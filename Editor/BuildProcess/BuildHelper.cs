@@ -15,7 +15,7 @@ namespace PluginSet.Core.Editor
     {
         public static void BuildIpaInstallerInternal(string ipa, string output, string remote)
         {
-            var libPath = Global.GetPackageFullPath("com.pluginset.core");
+            var libPath = Global.GetPackageFullPath("com.pluginset.tools.platform");
             var templatePath = Path.Combine(libPath, "IosTools~");
 
             var ipaName = string.Empty;
