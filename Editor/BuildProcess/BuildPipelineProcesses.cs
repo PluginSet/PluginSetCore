@@ -42,6 +42,20 @@ namespace PluginSet.Core.Editor
 	        if (context.ExportProject)
 	        {
 		        context.ProjectPath = exportPath;
+		        
+				if (target == BuildTarget.Android)
+				{
+#if UNITY_EDITOR_OSX
+					const string gradlewFileName = "gradlew";
+#else
+					const string gradlewFileName = "gradlew.bat";
+#endif
+					string command = Path.Combine(exportPath, gradlewFileName);
+					if (!File.Exists(command))
+					{
+						CopyGradleFiles(exportPath);
+					}
+				}
 	        }
 	        
             var handler = new BuildTaskHandler();
@@ -53,7 +67,13 @@ namespace PluginSet.Core.Editor
             {
                 handler.AddNextTask(new BuildModifyWebGLProject(exportPath));
             }
-            handler.Execute(BuildProcessorContext.Current);
+
+			handler.AddNextTask(new BuildSimpleTask(delegate(BuildProcessorContext processorContext)
+			{
+				Global.CallCustomOrderMethods<BuildProjectCompletedAttribute, BuildToolsAttribute>(processorContext, exportPath);
+			}));
+            
+            handler.Execute(context);
         }
         
         [PostProcessBuild(99999999)]
@@ -85,17 +105,6 @@ namespace PluginSet.Core.Editor
 				context.SetBuildResult("projectPath", Path.GetFullPath(exportPath));
 				if (target == BuildTarget.Android)
 				{
-#if UNITY_EDITOR_OSX
-					const string gradlewFileName = "gradlew";
-#else
-					const string gradlewFileName = "gradlew.bat";
-#endif
-					string command = Path.Combine(exportPath, gradlewFileName);
-					if (!File.Exists(command))
-					{
-						CopyGradleFiles(exportPath);
-					}
-					
 					var androidProject = new AndroidProjectManager(exportPath);
 					context.SetBuildResult("targetSdkVersion", androidProject.LauncherGradle.TargetSdkVersion);
 				}

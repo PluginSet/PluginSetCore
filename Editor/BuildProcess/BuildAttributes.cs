@@ -35,6 +35,23 @@ namespace PluginSet.Core.Editor
         }
     }
     
+    // 构建完成后回调，接受BuildProccessorContext
+    [AttributeUsage(AttributeTargets.Method)]
+    public class BuildProjectCompletedAttribute : OrderCallBack
+    {
+        public BuildProjectCompletedAttribute()
+            : base(0)
+        {
+            
+        }
+
+        public BuildProjectCompletedAttribute(int order)
+            : base(order)
+        {
+            
+        }
+    }
+    
     // 安卓项目设定工程时调用该接口
     // 该接口有序调用，接收BuildProccessorContext, AndroidProjectManager
     [AttributeUsage(AttributeTargets.Method)]

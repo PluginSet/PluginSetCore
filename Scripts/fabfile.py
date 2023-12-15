@@ -770,6 +770,20 @@ def build_unity_patches(platform, log_path, **kwargs):
             , **kwargs):
         return FAILURE("Unity build fail!", printLog=True)
 
+def generateAab(android_project_path, debug):
+    gradlew = "./gradlew"
+    if is_win_platform():
+        gradlew = '"./gradlew.bat"'
+    cmd = [
+        gradlew,
+        "bundleDebug" if debug else "bundleRelease"
+    ]
+    execall('cd "%s" && %s' % (android_project_path, " ".join(cmd)))
+    mode = "debug" if debug else "release"
+    aab_name = "launcher-%s.apk" % mode
+    build_aab_file = os.path.join(android_project_path, "launcher", "build", "outputs", "bundle", mode, aab_name)
+    return build_aab_file
+    
 
 def generateApk(android_project_path, debug):
     gradlew = "./gradlew"
@@ -1477,8 +1491,28 @@ def sign_apk(sign_tool, align_tool, targetSdkVersion, keystore, keystoreAlias, k
         rm_file(temp_file_name)
     return dst
 
+def build_single_aab(aab_path, apk_name_template, channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit):
+    dump_now("start build all apks")
+    export_project("android", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
+    dump_now("export android project")
+    build_result = get_build_result(temp_path)
+    android_project_path = build_result.get("projectPath", None)
+    if android_project_path is None:
+        print("buld_result >>>>>>> ", str(build_result))
+        return FAILURE("Cannot get android project path")
+    aab_file_name = generateAab(android_project_path, debug)
+    dump_now("generate aab completed")
+    if not os.path.exists(aab_file_name):
+        return FAILURE("找不到构建的安卓AAB" + aab_file_name)
+    aab_name = replace_string(apk_name_template, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
+    aab_name = aab_name.replace(".apk", ".aab")
+    target_aab_file = os.path.join(aab_name, aab_name)
+    check_path(aab_path)
+    rm_file(target_aab_file)
+    shutil.move(aab_file_name, target_aab_file)
+    
 
-def build_all_apks(apks_path, apk_name_tempalte, channel, channelIds, version_name, build_number, temp_path
+def build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
     , debug, cache_log, product, gitcommit):
     channelId_list = channelIds.split(',')
     channelId = channelId_list[0]
@@ -1494,7 +1528,7 @@ def build_all_apks(apks_path, apk_name_tempalte, channel, channelIds, version_na
     dump_now("generate first apk")
     if not os.path.exists(apk_file_name):
         return FAILURE("找不到构建的安卓APK" + apk_file_name)
-    apk_name = replace_string(apk_name_tempalte, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
+    apk_name = replace_string(apk_name_template, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
     target_apk_file = os.path.join(apks_path, apk_name)
     check_path(apks_path)
     rm_file(target_apk_file)
@@ -1521,7 +1555,7 @@ def build_all_apks(apks_path, apk_name_tempalte, channel, channelIds, version_na
                 })
                 inzip.writestr(channel_file, channel_info, compress_type=zipfile.ZIP_DEFLATED)
                 inzip.close()
-            apk_name = replace_string(apk_name_tempalte, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
+            apk_name = replace_string(apk_name_template, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
             sign_apk(sign_tool, align_tool, targetSdkVersion, keystoreFile, keyaliasName, keystorePass, keyaliasPass, unsigned_apk_path, os.path.join(apks_path, apk_name) )
             dump_now("complted generate channel %s apk" % channelId)
             
@@ -1530,7 +1564,7 @@ def build_all_apks(apks_path, apk_name_tempalte, channel, channelIds, version_na
             # dump_now("generate a channel apk")
             # if not os.path.exists(apk_file_name):
             #     return FAILURE("构建渠道包%s时找不到构建的安卓APK%s" % (channelId ,apk_file_name))
-            # apk_name = replace_string(apk_name_tempalte, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
+            # apk_name = replace_string(apk_name_template, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
             # target_apk_file = os.path.join(apks_path, apk_name)
             # check_path(apks_path)
             # rm_file(target_apk_file)
@@ -1665,9 +1699,10 @@ def upload_bugly_symbols(build_result:dict):
 
     'apk_name_template' : "APK目标文件名称模版",
     'gitcommit': "gitcommit号，用来标识资源版本TAG",
+    'buildBundle': "是否构建bundle文件，无该选项时默认构建APK",
 })
 def buildAppsFlow(context, platform, channel, channelIds, version_name, build_number, out_path
-    , apk_name_template=None, debug=False, log=True, product=False, gitcommit=None, iosBuildType="adHoc"):
+    , apk_name_template=None, debug=False, log=True, product=False, gitcommit=None, iosBuildType="adHoc", buildBundle=False):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
     try:
@@ -1676,9 +1711,14 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
             installer_path = os.path.join(temp_path, "installer")
             build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit, iosBuildType)
         elif platform == "android":
-            apks_path = os.path.join(temp_path, "apks")
-            build_result = build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
-              , debug, log, product, gitcommit)
+            if buildBundle:
+                aab_path = os.path.join(temp_path, "aab")
+                build_result = build_single_aab(aab_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
+                                              , debug, log, product, gitcommit)
+            else:
+                apks_path = os.path.join(temp_path, "apks")
+                build_result = build_all_apks(apks_path, apk_name_template, channel, channelIds, version_name, build_number, temp_path
+                  , debug, log, product, gitcommit)
         elif platform == "h5":
             build_result = build_h5_web(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
         else:

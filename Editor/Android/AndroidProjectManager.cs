@@ -59,10 +59,10 @@ namespace PluginSet.Core.Editor
         }
 
 
-        private string ProjectPath;
+        public string ProjectPath { get; private set; }
 
-        public string LibraryPath;
-        public string LauncherPath;
+        public string LibraryPath { get; private set; }
+        public string LauncherPath { get; private set; }
 
         private string _currentApplicationName = null;
         private bool _currentApplicationReplaceable = true;
