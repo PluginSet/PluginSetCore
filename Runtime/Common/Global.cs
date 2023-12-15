@@ -502,7 +502,7 @@ namespace PluginSet.Core
             ExecuteCommand(fileName, null, useShell, args);
         }
 
-        private static void SetFileExecutable(string workDir, string fileName)
+        public static void SetFileExecutable(string fileName, string workDir = null)
         {
 //            if (Regex.IsMatch(fileName, @"\s*[\w]+\s*"))
 //                return;
@@ -523,7 +523,7 @@ namespace PluginSet.Core
         {
             if (Application.platform == RuntimePlatform.OSXEditor)
             {
-                SetFileExecutable(workDir, fileName);
+                SetFileExecutable(fileName, workDir);
             }
             
             Process process = new Process();

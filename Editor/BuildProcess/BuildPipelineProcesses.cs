@@ -113,20 +113,24 @@ namespace PluginSet.Core.Editor
 			Global.CopyFilesTo( targetPath, toolsPath, "*", SearchOption.TopDirectoryOnly);
 
 			var wrapperPath = Path.Combine(toolsPath, "gradle", "wrapper");
-			targetPath = Path.Combine(targetPath, "gradle", "wrapper");
-			Global.CopyFilesTo( targetPath, wrapperPath, "*", SearchOption.TopDirectoryOnly);
+			var srcPath = Path.Combine(targetPath, "gradle", "wrapper");
+			Global.CopyFilesTo( srcPath, wrapperPath, "*", SearchOption.TopDirectoryOnly);
 
 #if UNITY_2020_3_OR_NEWER
 			var gradleVersion = "gradle-6.1.1-bin";
 #else
 			var gradleVersion = "gradle-5.6.4-bin";
 #endif
-			var propertiesFile = Path.Combine(targetPath, "gradle-wrapper.properties");
+			var propertiesFile = Path.Combine(srcPath, "gradle-wrapper.properties");
 			var properties = File.ReadAllLines(propertiesFile);
 			properties[properties.Length - 1] = $"distributionUrl=dists/{gradleVersion}.zip";
 			File.WriteAllLines(propertiesFile, properties);
 			
-			Global.CopyFileTo(Path.Combine(wrapperPath, "dists", $"{gradleVersion}.zip"), Path.Combine(targetPath, "dists"));
+			Global.CopyFileTo(Path.Combine(wrapperPath, "dists", $"{gradleVersion}.zip"), Path.Combine(srcPath, "dists"));
+            if (Application.platform == RuntimePlatform.OSXEditor)
+            {
+	            Global.SetFileExecutable(Global.GetFullPath(Path.Combine(targetPath, "gradlew")));
+            }
         }
     }
 }
