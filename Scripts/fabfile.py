@@ -1506,7 +1506,7 @@ def build_single_aab(aab_path, apk_name_template, channel, channelId, version_na
         return FAILURE("找不到构建的安卓AAB" + aab_file_name)
     aab_name = replace_string(apk_name_template, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
     aab_name = aab_name.replace(".apk", ".aab")
-    target_aab_file = os.path.join(aab_name, aab_name)
+    target_aab_file = os.path.join(aab_path, aab_name)
     check_path(aab_path)
     rm_file(target_aab_file)
     shutil.move(aab_file_name, target_aab_file)
