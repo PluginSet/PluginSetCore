@@ -12,11 +12,11 @@ namespace PluginSet.Core.Editor
         [PostProcessScene(-99999999)]
         public static void ResetPlayerDefaultBuildContext()
         {
-	        Logger.Debug("ResetPlayerDefaultBuildContext 0000000000000000000000");
-		        
             if (EditorApplication.isCompiling || EditorApplication.isPlaying)
                 return;
 
+	        Logger.Debug("ResetPlayerDefaultBuildContext 0000000000000000000000");
+		        
             BuildProcessorContext context = BuildProcessorContext.Current;
             if (context == null)
             {
