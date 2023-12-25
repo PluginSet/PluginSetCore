@@ -780,7 +780,7 @@ def generateAab(android_project_path, debug):
     ]
     execall('cd "%s" && %s' % (android_project_path, " ".join(cmd)))
     mode = "debug" if debug else "release"
-    aab_name = "launcher-%s.apk" % mode
+    aab_name = "launcher-%s.aab" % mode
     build_aab_file = os.path.join(android_project_path, "launcher", "build", "outputs", "bundle", mode, aab_name)
     return build_aab_file
     
