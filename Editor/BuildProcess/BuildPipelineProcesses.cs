@@ -23,7 +23,10 @@ namespace PluginSet.Core.Editor
 	            Logger.Warn("Not supported platform");
 	            return;
             }
-	            
+
+            if (context.TaskType == BuildTaskType.None)
+	            return;
+            
             Global.CallCustomOrderMethods<OnCompileCompleteAttribute, BuildToolsAttribute>(context);
 			PlayerSettings.SplashScreen.showUnityLogo = context.BuildChannels.ShowUnityLogo;
         }
@@ -38,6 +41,9 @@ namespace PluginSet.Core.Editor
 	            Debug.LogWarning("Not supported platform");
 	            return;
             }
+
+            if (context.TaskType != BuildTaskType.BuildProject)
+	            return;
             
 	        if (context.ExportProject)
 	        {
@@ -67,12 +73,6 @@ namespace PluginSet.Core.Editor
             {
                 handler.AddNextTask(new BuildModifyWebGLProject(exportPath));
             }
-
-			handler.AddNextTask(new BuildSimpleTask(delegate(BuildProcessorContext processorContext)
-			{
-				Global.CallCustomOrderMethods<BuildProjectCompletedAttribute, BuildToolsAttribute>(processorContext, exportPath);
-			}));
-            
             handler.Execute(context);
         }
         
@@ -86,6 +86,14 @@ namespace PluginSet.Core.Editor
 	            Debug.LogWarning("Not supported platform");
 	            return;
             }
+	        
+            var handler = new BuildTaskHandler();
+			handler.AddNextTask(new BuildSimpleTask(delegate(BuildProcessorContext processorContext)
+			{
+				Global.CallCustomOrderMethods<BuildProjectCompletedAttribute, BuildToolsAttribute>(processorContext, exportPath);
+			}));
+            
+            handler.Execute(context);
             
 			context.SetBuildResult("unityVersion", Application.unityVersion);
 			
@@ -99,20 +107,23 @@ namespace PluginSet.Core.Editor
             context.SetBuildResult("bundleId", context.BuildChannels.PackageName);
             context.SetBuildResult("platform", "WebGL");
 #endif
-			
-			if (context.ExportProject)
-			{
-				context.SetBuildResult("projectPath", Path.GetFullPath(exportPath));
-				if (target == BuildTarget.Android)
+
+	        if (context.TaskType == BuildTaskType.BuildProject)
+	        {
+				if (context.ExportProject)
 				{
-					var androidProject = new AndroidProjectManager(exportPath);
-					context.SetBuildResult("targetSdkVersion", androidProject.LauncherGradle.TargetSdkVersion);
+					context.SetBuildResult("projectPath", Path.GetFullPath(exportPath));
+					if (target == BuildTarget.Android)
+					{
+						var androidProject = new AndroidProjectManager(exportPath);
+						context.SetBuildResult("targetSdkVersion", androidProject.LauncherGradle.TargetSdkVersion);
+					}
 				}
-			}
-			else
-			{
-				context.SetBuildResult("apkPath", Path.GetFullPath(exportPath));
-			}
+				else
+				{
+					context.SetBuildResult("apkPath", Path.GetFullPath(exportPath));
+				}
+	        }
         }
 
         public static void CopyGradleFiles(string targetPath)

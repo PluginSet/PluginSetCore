@@ -866,6 +866,21 @@ namespace PluginSet.Core
         {
             return ((OrderCallBack) info.GetCustomAttributes(typeof(T), false).First()).Order;
         }
+
+        public static string GetProjectAssetsPath(BuildTarget target, string exportPath)
+        {
+            switch (target)
+            {
+                case BuildTarget.Android:
+                    return Path.Combine(exportPath, "unityLibrary", "src", "main", "assets");
+                case BuildTarget.iOS:
+                    return Path.Combine(exportPath, "Data", "Raw");
+                case BuildTarget.WebGL:
+                    return Path.Combine(exportPath, "StreamingAssets");
+                default:
+                    return null;
+            }
+        }
     }
 }
 #endif

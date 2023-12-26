@@ -157,7 +157,7 @@ namespace PluginSet.Core
 
         public abstract AsyncOperationHandle<Object[]> LoadAllAssetsAsync(string bundleName, Type type);
 
-        public virtual byte[] LoadLuaBytes(string assetName)
+        public virtual byte[] ReadFile(string assetName)
         {
             return null;
         }

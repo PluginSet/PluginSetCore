@@ -76,8 +76,6 @@ namespace PluginSet.Core.Editor
 				if (!Directory.Exists(locationPath))
 					Directory.CreateDirectory(locationPath);
 			}
-			
-			Global.CallCustomOrderMethods<BuildPrepareCallbackAttribute, BuildToolsAttribute>(context, locationPath);
 
 			EditorUserBuildSettings.development = debugMode;
 #if UNITY_2018_4_OR_NEWER && (!UNITY_2019_1_OR_NEWER || UNITY_2019_2_OR_NEWER)

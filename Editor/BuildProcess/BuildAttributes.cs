@@ -17,23 +17,6 @@ namespace PluginSet.Core.Editor
         {
         }
     }
-        
-    // 构建
-    [AttributeUsage(AttributeTargets.Method)]
-    public class BuildPrepareCallbackAttribute : OrderCallBack
-    {
-        public BuildPrepareCallbackAttribute()
-            : base(0)
-        {
-            
-        }
-
-        public BuildPrepareCallbackAttribute(int order)
-            : base(order)
-        {
-            
-        }
-    }
     
     // 构建完成后回调，接受BuildProccessorContext
     [AttributeUsage(AttributeTargets.Method)]
@@ -257,6 +240,21 @@ namespace PluginSet.Core.Editor
         }
 
         public OnBuildBundlesCompletedAttribute(int order)
+            : base(order)
+        {
+        }
+    }
+
+    // 资源准备完成，在构建app之前调用
+    // context: BuildProcessorContext  assetsPath: string
+    public class AssetsPreparedAttribute : OrderCallBack
+    {
+        public AssetsPreparedAttribute()
+            : base(0)
+        {
+        }
+
+        public AssetsPreparedAttribute(int order)
             : base(order)
         {
         }

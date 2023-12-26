@@ -39,6 +39,23 @@ namespace PluginSet.Core.Editor
             return context.TryGet<List<string>>("buildPaths", defaultResult);
         }
 
+        public static void ExtendStreamingFiles(this BuildProcessorContext context, params string[] files)
+        {
+            var list = context.TryGet<List<string>>("streamingExtendFiles", null);
+            if (list == null)
+            {
+                list = new List<string>();
+                context.Set("streamingExtendFiles", list);
+            }
+
+            list.AddRange(files);
+        }
+        
+        public static List<string> GetStreamingExtendFiles(this BuildProcessorContext context)
+        {
+            return context.TryGet<List<string>>("streamingExtendFiles", null);
+        }
+
         public static void SetBuildResult(this BuildProcessorContext context, string key, object value)
         {
             var dict = context.TryGet<Dictionary<string, object>>("buildResultJson", null);

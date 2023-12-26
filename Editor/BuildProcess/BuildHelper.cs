@@ -75,6 +75,7 @@ namespace PluginSet.Core.Editor
 
         public static void PreBuildWithContext(BuildProcessorContext context)
         {
+            context.TaskType = BuildTaskType.Prebuild;
             try
             {
                 var handler = new BuildTaskHandler();
@@ -92,6 +93,7 @@ namespace PluginSet.Core.Editor
 
         public static void BuildWithContext(BuildProcessorContext context)
         {
+            context.TaskType = BuildTaskType.BuildProject;
             try
             {
                 context.ExportProject = true;
@@ -111,6 +113,7 @@ namespace PluginSet.Core.Editor
 
         public static void BuildBundlesWithContext(BuildProcessorContext context)
         {
+            context.TaskType = BuildTaskType.BuildBundles;
             try
             {
                 var handler = new BuildTaskHandler();
@@ -129,6 +132,7 @@ namespace PluginSet.Core.Editor
 
         public static void BuildPatchesWithContext(BuildProcessorContext context)
         {
+            context.TaskType = BuildTaskType.BuildPatches;
             try
             {
                 var handler = new BuildTaskHandler();

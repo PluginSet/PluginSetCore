@@ -18,6 +18,15 @@ namespace PluginSet.Core.Editor
         public string[] ModFiles;
     }
 
+    public enum BuildTaskType
+    {
+        None,
+        Prebuild,
+        BuildProject,
+        BuildBundles,
+        BuildPatches,
+    }
+
     public class BuildProcessorContext
     {
         private class LinkTypes
@@ -61,8 +70,9 @@ namespace PluginSet.Core.Editor
             return _current = new BuildProcessorContext().LoadFromCommand();
         }
 
-        public BuildTarget BuildTarget;
-        public BuildTargetGroup BuildTargetGroup;
+        public BuildTarget BuildTarget { get; internal set; }
+        public BuildTargetGroup BuildTargetGroup { get; private set; }
+        public BuildTaskType TaskType { get; internal set; }
         public bool ForEditor = false;
 
         internal bool SkipResolveAndroidLibs = false;
