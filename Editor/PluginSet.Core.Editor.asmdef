@@ -1,7 +1,9 @@
 {
     "name": "PluginSet.Core.Editor",
+    "rootNamespace": "",
     "references": [
-        "PluginSet.Core"
+        "PluginSet.Core",
+        "PluginSet.Platform.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -12,5 +14,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

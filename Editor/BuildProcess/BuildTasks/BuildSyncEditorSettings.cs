@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using PluginSet.Platform.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace PluginSet.Core.Editor
                 if (!Directory.Exists(toolPath))
                     Directory.CreateDirectory(toolPath);
                 
-                BuildPipelineProcesses.CopyGradleFiles(toolPath);
+                PlatformTools.CopyGradleFiles(toolPath);
             }
             
             var dependenciesPath = Path.Combine(Application.dataPath, "PluginDependencies", "Editor");

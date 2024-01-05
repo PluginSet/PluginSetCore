@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using PluginSet.Platform.Editor;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -15,62 +16,6 @@ namespace PluginSet.Core.Editor
     {
         public static void BuildIpaInstallerInternal(string ipa, string output, string remote)
         {
-            var libPath = Global.GetPackageFullPath("com.pluginset.tools.platform");
-            var templatePath = Path.Combine(libPath, "IosTools~");
-
-            var ipaName = string.Empty;
-            if (!string.IsNullOrEmpty(ipa))
-                ipaName = Path.GetFileName(ipa);
-
-            if (!Directory.Exists(output))
-                Directory.CreateDirectory(output);
-
-            var index = File.ReadAllText(Path.Combine(templatePath, "index.html"));
-            var manifest = File.ReadAllText(Path.Combine(templatePath, "manifest.plist"));
-
-            index = index.Replace("{{DISPLAY_NAME}}", PlayerSettings.productName);
-            manifest = manifest.Replace("{{DISPLAY_NAME}}", PlayerSettings.productName);
-            
-            index = index.Replace("{{BUNDLE_ID}}", PlayerSettings.applicationIdentifier);
-            manifest = manifest.Replace("{{BUNDLE_ID}}", PlayerSettings.applicationIdentifier);
-            
-            index = index.Replace("{{VERSION_NAME}}", PlayerSettings.bundleVersion);
-            manifest = manifest.Replace("{{VERSION_NAME}}", PlayerSettings.bundleVersion);
-            
-            index = index.Replace("{{VERSION_CODE}}", PlayerSettings.iOS.buildNumber);
-            manifest = manifest.Replace("{{VERSION_CODE}}", PlayerSettings.iOS.buildNumber);
-            
-            index = index.Replace("{{ICON_URL}}", $"{remote}/app.png");
-            manifest = manifest.Replace("{{ICON_URL}}", $"{remote}/app.png");
-            
-            index = index.Replace("{{MANIFEST_URL}}", $"{remote}/manifest.plist");
-            manifest = manifest.Replace("{{MANIFEST_URL}}", $"{remote}/manifest.plist");
-            
-            index = index.Replace("{{IPA_URL}}", $"{remote}/{ipaName}");
-            manifest = manifest.Replace("{{IPA_URL}}", $"{remote}/{ipaName}");
-            
-            File.WriteAllText(Path.Combine(output, "index.html"), index);
-            File.WriteAllText(Path.Combine(output, "manifest.plist"), manifest);
-            var outputIpa = Path.Combine(output, ipaName);
-            if (!string.IsNullOrEmpty(ipa) && !ipa.Equals(outputIpa))
-                File.Copy(ipa, outputIpa, true);
-
-            var appIconPath = Path.Combine(templatePath, "app.png");
-            
-#if UNITY_IOS_API
-            var icons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.iOS, UnityEditor.iOS.iOSPlatformIconKind.Application);
-            if (icons != null && icons.Length > 0)
-            {
-                var icon = icons[0].GetTexture();
-                if (icon != null)
-                {
-                    var path = AssetDatabase.GetAssetPath(icon);
-                    if (!string.IsNullOrEmpty(path))
-                        appIconPath = path;
-                }
-            }
-            File.Copy(appIconPath, Path.Combine(output, "app.png"), true);
-#endif
         }
 
         public static void PreBuildWithContext(BuildProcessorContext context)
@@ -220,7 +165,7 @@ namespace PluginSet.Core.Editor
             var context = BuildProcessorContext.BatchMode();
             var args = context.CommandArgs;
             Debug.Log("BuildIpaInstaller args::: " + string.Join(";", args.Select(kv => $"{kv.Key}={kv.Value}")));
-            BuildIpaInstallerInternal(args["ipa"], args["output"], args["remote"]);
+            PlatformTools.BuildIpaInstaller(args["ipa"], args["output"], args["remote"]);
         }
         
         public static void BuildWithExistProject()
