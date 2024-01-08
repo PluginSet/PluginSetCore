@@ -75,7 +75,7 @@ namespace PluginSet.Core
                 PluginsEventContext.Return(context);
             };
 
-            if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_LOAD_REWARD_AD_TYPE, context))
+            if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_REWARD_AD_TYPE, context))
             {
                 fail?.Invoke(PluginConstants.InvalidCode);
                 PluginsEventContext.Return(context);
@@ -105,7 +105,7 @@ namespace PluginSet.Core
                 PluginsEventContext.Return(context);
             };
 
-            if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHOW_REWARD_AD_TYPE, context))
+            if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_REWARD_AD_TYPE, context))
             {
                 var plugin = GetReadyRewardAdPlugin();
                 if (string.IsNullOrEmpty(plugin))

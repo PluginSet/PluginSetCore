@@ -13,8 +13,8 @@ namespace PluginSet.Core
         public const string NOTIFY_REPORT = "NOTIFY_REPORT";
         
         public const string NOTIFY_CHOOSE_BANNER_TYPE = "NOTIFY_CHOOSE_BANNER_TYPE";
-        public const string NOTIFY_CHOOSE_LOAD_REWARD_AD_TYPE = "NOTIFY_CHOOSE_LOAD_REWARD_AD_TYPE";
-        public const string NOTIFY_CHOOSE_SHOW_REWARD_AD_TYPE = "NOTIFY_CHOOSE_SHOW_REWARD_AD_TYPE";
+        public const string NOTIFY_CHOOSE_REWARD_AD_TYPE = "NOTIFY_CHOOSE_REWARD_AD_TYPE";
+        public const string NOTIFY_CHOOSE_OPEN_AD_TYPE = "NOTIFY_CHOOSE_OPEN_AD_TYPE";
         public const string NOTIFY_CHOOSE_INTERSTITIAL_AD_TYPE = "NOTIFY_CHOOSE_INTERSTITIAL_AD_TYPE";
 
         public const string NOTIFY_CHANNEL_CHANGED = "NOTIFY_CHANNEL_CHANGED";

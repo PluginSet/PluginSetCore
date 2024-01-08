@@ -266,7 +266,6 @@ namespace PluginSet.Core
         void ShareMiniProgram(string url, string path, string appId, Action success = null, Action fail = null
             , string title = null, string desc = null, string image = null);
     }
-
     public interface IBannerAdPlugin : IPluginBase
     {
         bool IsEnableShowBanner { get; }
@@ -287,6 +286,17 @@ namespace PluginSet.Core
         NotLoaded = 3,
         ShowFail  = 4,
         Dismissed = 5,
+    }
+
+    public interface IOpenAdPlugin : IPluginBase
+    {
+        bool IsEnableShowOpenAd { get; }
+        
+        bool IsReadyToShowOpenAd { get; }
+
+        void LoadOpenAd(Action success = null, Action<int> fail = null, Dictionary<string, object> extParams = null);
+        
+        void ShowOpenAd(Action<bool, int> dismiss = null);
     }
 
     public interface IRewardAdPlugin : IPluginBase
