@@ -3,7 +3,7 @@
     "rootNamespace": "",
     "references": [
         "PluginSet.Core",
-        "PluginSet.Platform.Editor"
+        "PluginSet.Tools.Platform.Editor"
     ],
     "includePlatforms": [
         "Editor"
