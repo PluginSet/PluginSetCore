@@ -46,7 +46,9 @@ namespace PluginSetCore.Editor.WebGL
             PlayerSettings.defaultWebScreenHeight = setting.DefaultCanvasHeight;
             PlayerSettings.runInBackground = setting.RunInBackground;
             PlayerSettings.WebGL.compressionFormat = setting.CompressionFormat;
+#if UNITY_2020_1_OR_NEWER
             PlayerSettings.WebGL.decompressionFallback = setting.CompressionFormat != WebGLCompressionFormat.Disabled;
+#endif
             PlayerSettings.WebGL.debugSymbols = context.DebugMode;
 
             if (context.ProductMode)
