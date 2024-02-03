@@ -75,7 +75,7 @@ namespace PluginSet.Core.Editor
         public BuildTaskType TaskType { get; internal set; }
         public bool ForEditor = false;
 
-        internal bool SkipResolveAndroidLibs = false;
+        public bool SkipResolveAndroidLibs { get; internal set; }
 
         public string Channel { get; private set; }
 
