@@ -288,6 +288,16 @@ namespace PluginSet.Core
         Dismissed = 5,
     }
 
+    public struct AdInfo
+    {
+        public static AdInfo Null = new AdInfo() { };
+        
+        public string AdUnitId;
+        public string Plugin;
+        public double Revenue;
+        public string RevenuePrecision;
+    }
+
     public interface IOpenAdPlugin : IPluginBase
     {
         bool IsEnableShowOpenAd { get; }
@@ -297,6 +307,8 @@ namespace PluginSet.Core
         void LoadOpenAd(Action success = null, Action<int> fail = null, Dictionary<string, object> extParams = null);
         
         void ShowOpenAd(Action<bool, int> dismiss = null);
+
+        AdInfo GetLoadedOpenAdInfo();
     }
 
     public interface IRewardAdPlugin : IPluginBase
@@ -308,6 +320,8 @@ namespace PluginSet.Core
         void LoadRewardAd(Action success = null, Action<int> fail = null);
 
         void ShowRewardAd(Action<bool, int> dismiss = null);
+        
+        AdInfo GetLoadedRewardAdInfo();
     }
 
     public interface IInterstitialAdPlugin : IPluginBase
@@ -319,6 +333,8 @@ namespace PluginSet.Core
         void LoadInterstitialAd(Action success = null, Action<int> fail = null);
 
         void ShowInterstitialAd(Action<bool, int> dismiss = null);
+        
+        AdInfo GetLoadedInterstitialAdInfo();
     }
 
     /// <summary>

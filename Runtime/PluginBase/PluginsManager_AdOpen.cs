@@ -116,6 +116,22 @@ namespace PluginSet.Core
             }
         }
 
+        [Obsolete("Use GetLoadedOpenAdInfoWith instead")]
+        public AdInfo GetLoadedOpenAdInfo()
+        {
+            throw new NotImplementedException();
+        }
+
+        public AdInfo GetLoadedOpenAdInfoWith(string pluginName)
+        {
+            if (OpenAdPlugins.TryGetValue(pluginName, out var plugin))
+            {
+                return plugin.GetLoadedOpenAdInfo();
+            }
+
+            return AdInfo.Null;
+        }
+
         public void ShowOpenAdWith(string pluginName, Action<bool, int> dismiss = null)
         {
             if (OpenAdPlugins.TryGetValue(pluginName, out var plugin))

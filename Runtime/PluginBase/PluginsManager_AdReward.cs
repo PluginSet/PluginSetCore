@@ -116,6 +116,20 @@ namespace PluginSet.Core
             }
         }
 
+        [Obsolete("Use GetLoadedRewardAdInfoWith instead")]
+        public AdInfo GetLoadedRewardAdInfo()
+        {
+            throw new NotImplementedException();
+        }
+
+        public AdInfo GetLoadedRewardAdInfoWith(string pluginName)
+        {
+            if (RewardAdPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.GetLoadedRewardAdInfo();
+
+            return AdInfo.Null;
+        }
+
         public void ShowRewardAdWith(string pluginName, Action<bool, int> dismiss = null)
         {
             if (RewardAdPlugins.TryGetValue(pluginName, out var plugin))

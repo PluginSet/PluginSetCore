@@ -112,6 +112,20 @@ namespace PluginSet.Core
             }
         }
 
+        [Obsolete("Use GetLoadedInterstitialAdInfoWith instead")]
+        public AdInfo GetLoadedInterstitialAdInfo()
+        {
+            throw new NotImplementedException();
+        }
+
+        public AdInfo GetLoadedInterstitialAdInfoWith(string pluginName)
+        {
+            if (InterstitialAdPlugins.TryGetValue(pluginName, out var plugin))
+                return plugin.GetLoadedInterstitialAdInfo();
+
+            return AdInfo.Null;
+        }
+
         public void ShowInterstitialAdWith(string pluginName, Action<bool, int> dismiss = null)
         {
             if (InterstitialAdPlugins.TryGetValue(pluginName, out var plugin))
