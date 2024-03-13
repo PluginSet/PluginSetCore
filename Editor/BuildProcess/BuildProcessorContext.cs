@@ -386,9 +386,12 @@ namespace PluginSet.Core.Editor
 
             var target = BuildTarget;
             var options = BuildChannels.BuildAssetBundleOptions;
+#if !ALLWAYS_DETERMINISTIC
             options |= BuildAssetBundleOptions.DeterministicAssetBundle;
+#endif
             options |= BuildAssetBundleOptions.AppendHashToAssetBundleName;
             options ^= BuildAssetBundleOptions.AppendHashToAssetBundleName;
+            
             return Global.BuildAssetBundles(target, exportPath, builds, options);
         }
 

@@ -49,7 +49,11 @@ namespace PluginSetCore.Editor.WebGL
 #if UNITY_2020_1_OR_NEWER
             PlayerSettings.WebGL.decompressionFallback = setting.CompressionFormat != WebGLCompressionFormat.Disabled;
 #endif
+#if UNITY_2022_3_OR_NEWER
+            PlayerSettings.WebGL.debugSymbolMode = context.DebugMode ? WebGLDebugSymbolMode.External : WebGLDebugSymbolMode.Off;
+#else
             PlayerSettings.WebGL.debugSymbols = context.DebugMode;
+#endif
 
             if (context.ProductMode)
                 PlayerSettings.SetStackTraceLogType(LogType.Exception, StackTraceLogType.None);

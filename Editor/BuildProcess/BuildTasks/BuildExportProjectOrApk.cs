@@ -78,7 +78,9 @@ namespace PluginSet.Core.Editor
 			}
 
 			EditorUserBuildSettings.development = debugMode;
-#if UNITY_2018_4_OR_NEWER && (!UNITY_2019_1_OR_NEWER || UNITY_2019_2_OR_NEWER)
+#if UNITY_2022_3_OR_NEWER
+	        EditorUserBuildSettings.androidCreateSymbols = context.ProductMode ? AndroidCreateSymbols.Public : AndroidCreateSymbols.Disabled;
+#elif UNITY_2018_4_OR_NEWER && (!UNITY_2019_1_OR_NEWER || UNITY_2019_2_OR_NEWER)
 			EditorUserBuildSettings.androidCreateSymbolsZip = context.ProductMode;
 #endif
 			BuildPipeline.BuildPlayer(EditorBuildSettings.scenes, locationPath, target, buildOption);
