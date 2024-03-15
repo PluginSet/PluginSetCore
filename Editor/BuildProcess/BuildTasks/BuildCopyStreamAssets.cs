@@ -19,7 +19,10 @@ namespace PluginSet.Core.Editor
             string targetPath;
             if (context.BuildTarget == BuildTarget.Android)
             {
-                targetPath = Path.Combine(projectPath, "unityLibrary", "src", "main", "assets");
+                if (!Directory.Exists(Path.Combine(projectPath, "unityLibrary")) && Directory.Exists(Path.Combine(projectPath, "tuanjieLibrary")))
+                    targetPath = Path.Combine(projectPath, "tuanjieLibrary", "src", "main", "assets");
+                else
+                    targetPath = Path.Combine(projectPath, "unityLibrary", "src", "main", "assets");
             }
             else if (context.BuildTarget == BuildTarget.iOS)
             {

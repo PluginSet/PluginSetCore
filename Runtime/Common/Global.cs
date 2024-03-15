@@ -872,6 +872,8 @@ namespace PluginSet.Core
             switch (target)
             {
                 case BuildTarget.Android:
+                    if (!Directory.Exists(Path.Combine(exportPath, "unityLibrary")) && Directory.Exists(Path.Combine(exportPath, "tuanjieLibrary")))
+                        return Path.Combine(exportPath, "tuanjieLibrary", "src", "main", "assets");
                     return Path.Combine(exportPath, "unityLibrary", "src", "main", "assets");
                 case BuildTarget.iOS:
                     return Path.Combine(exportPath, "Data", "Raw");
