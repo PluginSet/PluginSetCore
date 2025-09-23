@@ -1,0 +1,4 @@
+fabric
+oss2
+qrcode
+gitpython

@@ -22,6 +22,7 @@ namespace PluginSet.Core.Editor
                 return;
             
             File.Copy(Path.Combine(libPath, "Scripts", "fabfile.py"), "fabfile.py", true);
+            File.Copy(Path.Combine(libPath, "Scripts", "requirements.txt"), "requirements.txt", true);
         }
 
 #if UNITY_ANDROID
