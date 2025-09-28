@@ -124,6 +124,10 @@ def check_path(path):
 
 def execall(cmd):
     print('execall::: ', cmd)
+    if not is_win_platform():
+        workspace = os.path.abspath(".")
+        if cmd.startswith(workspace):
+            os.system("chmod +x " + cmd.split(" ")[0])
     return os.system(cmd)
 
 
@@ -1537,17 +1541,32 @@ def build_all_apks(apks_path, apk_name_template, channel, channelIds, version_na
     if len(channelId_list) > 1:
         channel_file = "assets/channelInfo.json"
         unsigned_apk_path = os.path.join(temp_path, "unsigned_apk.tmp")
+        temp_unsigned_apk_path = os.path.join(temp_path, "unsigned_apk_origin.tmp")
         sign_tool = os.path.join(android_project_path, "apksigner.jar")
         align_tool = os.path.join(android_project_path, "zipalign")
+        if is_win_platform():
+            align_tool += ".exe"
         targetSdkVersion = build_result.get("targetSdkVersion", 30)
         keystoreFile = build_result.get("keystoreName")
         keyaliasName = build_result.get("keyaliasName")
         keystorePass = build_result.get("keystorePass")
         keyaliasPass = build_result.get("keyaliasPass")
-        copy_file(target_apk_file, unsigned_apk_path)
+        
+        copy_file(target_apk_file, temp_unsigned_apk_path)
+        
         for channelId in channelId_list[1:]:
             dump_now("start generate channel %s apk" % channelId)
-            execall("zip -d %s %s" % (unsigned_apk_path, channel_file))
+            #execall("zip -d %s %s" % (unsigned_apk_path, channel_file))
+            # 创建新 ZIP 文件（排除要删除的文件）
+            with zipfile.ZipFile(temp_unsigned_apk_path, 'r') as zin, \
+                 zipfile.ZipFile(unsigned_apk_path, 'w') as zout:
+                
+                for item in zin.infolist():
+                    # 跳过要删除的文件
+                    if item.filename != channel_file:
+                        # 复制文件内容到新 ZIP
+                        zout.writestr(item, zin.read(item.filename))
+
             with zipfile.ZipFile(unsigned_apk_path, 'a') as inzip:
                 channel_info = json.dumps({
                     "channel": channel,
