@@ -1557,20 +1557,22 @@ def build_all_apks(apks_path, apk_name_template, channel, channelIds, version_na
         
         copy_file(target_apk_file, temp_unsigned_apk_path)
         
+        #execall("zip -d %s %s" % (unsigned_apk_path, channel_file))
+        # 创建新 ZIP 文件（排除要删除的文件）
+        with zipfile.ZipFile(temp_unsigned_apk_path, 'r') as zin, \
+             zipfile.ZipFile(unsigned_apk_path, 'w') as zout:
+            
+            for item in zin.infolist():
+                # 跳过要删除的文件
+                if item.filename != channel_file:
+                    # 复制文件内容到新 ZIP
+                    zout.writestr(item, zin.read(item.filename))
+
         for channelId in channelId_list[1:]:
             dump_now("start generate channel %s apk" % channelId)
-            #execall("zip -d %s %s" % (unsigned_apk_path, channel_file))
-            # 创建新 ZIP 文件（排除要删除的文件）
-            with zipfile.ZipFile(temp_unsigned_apk_path, 'r') as zin, \
-                 zipfile.ZipFile(unsigned_apk_path, 'w') as zout:
-                
-                for item in zin.infolist():
-                    # 跳过要删除的文件
-                    if item.filename != channel_file:
-                        # 复制文件内容到新 ZIP
-                        zout.writestr(item, zin.read(item.filename))
-
-            with zipfile.ZipFile(unsigned_apk_path, 'a') as inzip:
+            new_unsigned_apk_path = os.path.join(temp_path, "new_unsigned_apk.tmp")
+            copy_file(unsigned_apk_path, new_unsigned_apk_path)
+            with zipfile.ZipFile(new_unsigned_apk_path, 'a') as inzip:
                 channel_info = json.dumps({
                     "channel": channel,
                     "channelId": int(channelId),
@@ -1578,7 +1580,8 @@ def build_all_apks(apks_path, apk_name_template, channel, channelIds, version_na
                 inzip.writestr(channel_file, channel_info, compress_type=zipfile.ZIP_DEFLATED)
                 inzip.close()
             apk_name = replace_string(apk_name_template, platform="android", channel=channel, channelId=channelId, version_name=version_name, build_number=build_number)
-            sign_apk(sign_tool, align_tool, targetSdkVersion, keystoreFile, keyaliasName, keystorePass, keyaliasPass, unsigned_apk_path, os.path.join(apks_path, apk_name) )
+            sign_apk(sign_tool, align_tool, targetSdkVersion, keystoreFile, keyaliasName, keystorePass, keyaliasPass, new_unsigned_apk_path, os.path.join(apks_path, apk_name) )
+            rm_file(new_unsigned_apk_path)
             dump_now("complted generate channel %s apk" % channelId)
             
             # build_multi("android", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product)
