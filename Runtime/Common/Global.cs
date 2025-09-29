@@ -883,6 +883,57 @@ namespace PluginSet.Core
                     return null;
             }
         }
+		
+        public static string FindHighestVersionDirectory(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                return null;
+            }
+
+            var versionDirs = new List<Version>();
+            var dirNames = new Dictionary<Version, string>();
+
+            foreach (string dir in Directory.GetDirectories(directoryPath))
+            {
+                string dirName = Path.GetFileName(dir);
+                if (TryParseVersion(dirName, out Version version))
+                {
+                    versionDirs.Add(version);
+                    dirNames[version] = dirName;
+                }
+            }
+
+            if (versionDirs.Count == 0)
+            {
+                return null;
+            }
+
+            Version highestVersion = versionDirs.Max();
+            return dirNames[highestVersion];
+        }
+
+        private static bool TryParseVersion(string input, out Version version)
+        {
+            version = null;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return false;
+            }
+
+            // 清理可能的非数字字符（如rc/beta等后缀）
+            string cleanInput = new string(input.Where(c => char.IsDigit(c) || c == '.').ToArray());
+        
+            // 确保版本号格式有效
+            string[] parts = cleanInput.Split('.');
+            if (parts.Length < 1 || parts.Any(p => string.IsNullOrEmpty(p)))
+            {
+                return false;
+            }
+
+            // 转换为Version对象
+            return Version.TryParse(cleanInput, out version);
+        }
     }
 }
 #endif
