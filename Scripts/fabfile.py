@@ -1484,7 +1484,7 @@ def sign_apk(sign_tool, align_tool, targetSdkVersion, keystore, keystoreAlias, k
         execall("%s -p -f -v 4 %s %s" % (align_tool, src, temp_file_name))
 
     cmds = (
-        "java -jar", sign_tool, "sign -verbose --ks", keystore, "--ks-key-alias",
+        sign_tool, "sign -verbose --ks", keystore, "--ks-key-alias",
         keystoreAlias, "--ks-pass pass:%s" % keystorePass, "--key-pass pass:%s" % keyaliasPass,
         "--out", dst, unsigned_file
     )
@@ -1542,11 +1542,14 @@ def build_all_apks(apks_path, apk_name_template, channel, channelIds, version_na
         channel_file = "assets/channelInfo.json"
         unsigned_apk_path = os.path.join(temp_path, "unsigned_apk.tmp")
         temp_unsigned_apk_path = os.path.join(temp_path, "unsigned_apk_origin.tmp")
-        sign_tool = os.path.join(android_project_path, "apksigner.jar")
-        align_tool = os.path.join(android_project_path, "zipalign")
-        if is_win_platform():
-            align_tool += ".exe"
+        sign_tool = build_result.get("ApkSignTool", None)
+        align_tool = build_result.get("ApkAlignTool", None)
+        if not sign_tool or not os.path.exists(sign_tool):
+            return FAILURE("找不到APK签名工具:" + str(sign_tool))
         targetSdkVersion = build_result.get("targetSdkVersion", 30)
+        if targetSdkVersion >= 30:
+            if not align_tool or not os.path.exists(align_tool):
+                return FAILURE("找不到APK对齐工具:" + str(align_tool))
         keystoreFile = build_result.get("keystoreName")
         keyaliasName = build_result.get("keyaliasName")
         keystorePass = build_result.get("keystorePass")
