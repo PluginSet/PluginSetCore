@@ -161,10 +161,18 @@ namespace PluginSet.Core.Editor
         private static void SetPlatformIcons(BuildTargetGroup platform, PlatformIconKind kind, Texture2D texture)
         {
             var icons = PlayerSettings.GetPlatformIcons(platform, kind);
+            int maxWidth = 0;
+            PlatformIcon maxIcon = null;
             foreach (var icon in icons)
             {
-                icon.SetTexture(texture);
+                if (icon.width > maxWidth)
+                {
+                    maxWidth = icon.width;
+                    maxIcon = icon;
+                }
+                icon.SetTexture(null);
             }
+            maxIcon?.SetTexture(texture);
             PlayerSettings.SetPlatformIcons(platform, kind, icons);
         }
 
