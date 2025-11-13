@@ -48,26 +48,66 @@ namespace PluginSet.Core
 
         public static IEnumerable<Type> GetAllTypes(string assemblyName = null, bool excludeGen = false)
         {
-            return from assembly in AppDomain.CurrentDomain.GetAssemblies()
+            var assemblis = 
+                from assembly in AppDomain.CurrentDomain.GetAssemblies()
                 where (assemblyName == null || assembly.GetName().Name.Equals(assemblyName))
 #if !NET_STANDARD_2_0
                       && !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
 #endif
-                from type in assembly.GetTypes()
-                where !excludeGen || !type.IsGenericTypeDefinition
-                select type;
+                select assembly;
+
+            foreach (var assembly in assemblis)
+            {
+                Type[] types;
+                
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    continue;
+                }
+                
+                foreach (var type in types)
+                {
+                    if (!excludeGen || !type.IsGenericTypeDefinition)
+                        yield return type;
+                }
+            }
         }
 
         public static IEnumerable<Type> GetAllTypes<T>(string assemblyName = null, bool excludeGen = false)
         {
-            return from assembly in AppDomain.CurrentDomain.GetAssemblies()
+            var assemblis = 
+                from assembly in AppDomain.CurrentDomain.GetAssemblies()
                 where (assemblyName == null || assembly.GetName().Name.Equals(assemblyName))
 #if !NET_STANDARD_2_0
                       && !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
 #endif
-                from type in assembly.GetTypes()
-                where (!excludeGen || !type.IsGenericTypeDefinition) && type.IsDefined(typeof(T), false)
-                select type;
+            select assembly;
+
+            foreach (var assembly in assemblis)
+            {
+                Type[] types;
+                
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    continue;
+                }
+                
+                foreach (var type in types)
+                {
+                    if ((!excludeGen || !type.IsGenericTypeDefinition) && type.IsDefined(typeof(T), false))
+                        yield return type;
+                }
+            }
         }
 
         public static IEnumerable<MethodInfo> GetMethods<T>(string assembly = null, BindingFlags flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic) where T : Attribute

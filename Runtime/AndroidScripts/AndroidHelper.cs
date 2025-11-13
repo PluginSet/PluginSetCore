@@ -1,5 +1,3 @@
-#if UNITY_ANDROID
-
 using System;
 using UnityEngine;
 namespace PluginSet.Core
@@ -9,6 +7,7 @@ namespace PluginSet.Core
         public const string PERMISSION_RECORD_AUDIO = "android.permission.RECORD_AUDIO";
         public const string PERMISSION_READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
         
+#if UNITY_ANDROID       
         private static AndroidJavaClass _utils;
 
         private static AndroidJavaClass Utils
@@ -238,7 +237,6 @@ namespace PluginSet.Core
         {
             return Utils.CallStatic<bool>("OSAvailable", version);
         }
-
+#endif
     }
 }
-#endif
