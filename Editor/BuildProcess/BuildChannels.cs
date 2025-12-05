@@ -119,14 +119,16 @@ namespace PluginSet.Core.Editor
                         buildChannelSerializedTypes.Add(SerializedType.Create(paramAttr.Alias, type, paramAttr.ToolTips));
                     }
                 }
-
+                
                 buildChannelSerializedTypes.Sort((a, b) =>
                 {
-                    var aorder = orders[a.Key];
-                    var border = orders[b.Key];
+                    var aorder = orders.GetValueOrDefault(a.Key, int.MaxValue);
+                    var border = orders.GetValueOrDefault(b.Key, int.MaxValue);
                     if (aorder == border)
                         return string.CompareOrdinal(a.Key, b.Key);
-                    return aorder - border;
+                    if (aorder < border)
+                        return 1;
+                    return -1;
                 });
                 return buildChannelSerializedTypes;
             }
