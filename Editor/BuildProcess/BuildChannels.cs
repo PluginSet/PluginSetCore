@@ -122,8 +122,8 @@ namespace PluginSet.Core.Editor
                 
                 buildChannelSerializedTypes.Sort((a, b) =>
                 {
-                    var aorder = orders.GetValueOrDefault(a.Key, int.MaxValue);
-                    var border = orders.GetValueOrDefault(b.Key, int.MaxValue);
+                    var aorder = orders.TryGetValue(a.Key, out var value) ? value : int.MaxValue;
+                    var border = orders.TryGetValue(b.Key, out var value2) ? value2 : int.MaxValue;
                     if (aorder == border)
                         return string.CompareOrdinal(a.Key, b.Key);
                     if (aorder < border)
