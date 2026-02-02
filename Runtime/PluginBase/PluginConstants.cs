@@ -19,6 +19,9 @@ namespace PluginSet.Core
 
         public const string NOTIFY_CHANNEL_CHANGED = "NOTIFY_CHANNEL_CHANGED";
 
+        public const string NOTIFY_ON_SEARCH_PATH_ADDED = "NOTIFY_ON_SEARCH_PATH_ADDED";
+        public const string NOTIFY_ON_SEARCH_PATH_REMOVE = "NOTIFY_ON_SEARCH_PATH_REMOVE";
+
         public const string NOTIFY_CHOOSE_LOGIN_TYPE = "NOTIFY_CHOOSELOGINTYPE";
         public const string NOTIFY_CHOOSE_LOGOUT_TYPE = "NOTIFY_CHOOSE_LOGOUT_TYPE";
         public const string NOTIFY_CHOOSE_PAYMENT_TYPE = "NOTIFY_CHOOSEPAYTYPE";

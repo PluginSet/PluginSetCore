@@ -90,15 +90,26 @@ namespace PluginSet.Core
 
         public virtual void AddSearchPath(string searchPath, bool front = false)
         {
+            var isNew = !SearchPaths.Contains(searchPath);
             if (front)
                 SearchPaths.Insert(0, searchPath);
             else
                 SearchPaths.Add(searchPath);
+            
+            if (isNew)
+                PluginsManager.Instance.SendNotification(PluginConstants.NOTIFY_ON_SEARCH_PATH_ADDED, searchPath);
         }
 
         public virtual void RemoveSearchPath(string searchPath)
         {
             SearchPaths.Remove(searchPath);
+            if (!SearchPaths.Contains(searchPath))
+                PluginsManager.Instance.SendNotification(PluginConstants.NOTIFY_ON_SEARCH_PATH_REMOVE, searchPath);
+        }
+
+        public virtual string GetPatchVersion(string searchPath)
+        {
+            return RunningVersion;
         }
 
         public abstract bool ExistsBundle(string bundleName);
@@ -141,6 +152,8 @@ namespace PluginSet.Core
         
         public abstract void RetainAsset(Object asset);
         public abstract void ReleaseAsset(Object asset);
+
+        public abstract string GetRealFilePath(string fileName);
 
         public abstract AsyncOperationHandle<T> LoadAssetAsync<T>(string bundleName, string assetName) where T : Object;
 
