@@ -108,6 +108,9 @@ namespace PluginSet.Core.Editor
             if (_context == null)
                 return -1;
 
+            if (_currentTaskIndex < 0)
+                return -1;
+
             if (_currentTaskIndex >= _tasks.Count)
             {
                 return Completed();
@@ -146,6 +149,7 @@ namespace PluginSet.Core.Editor
 
         private int Completed()
         {
+            Debug.Log("Build completed!!");
             if (_context == null)
                 return -1;
             

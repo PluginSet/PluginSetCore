@@ -47,10 +47,12 @@ namespace PluginSet.Core
         public static PluginsManager StartPlugins()
         {
             if (_instance != null) return _instance;
+            ProfileHelper.StepProfileDump("PluginsManager", "<Init>");
             var obj = new GameObject();
             obj.SetActive(false);
             _instance = obj.AddComponent<PluginsManager>();
             _instance.InitPlugins();
+            ProfileHelper.StepProfileDump("PluginsManager", "<Init Completed>");
             obj.SetActive(true);
             return _instance;
         }
@@ -192,6 +194,7 @@ namespace PluginSet.Core
         private IEnumerator StartAll()
         {
             _isStarting = true;
+            ProfileHelper.StepProfileDump("PluginsManager", "<Start Plugins>");
 
             if (_startPlugins == null)
             {
@@ -209,12 +212,16 @@ namespace PluginSet.Core
             for (int i = 0; i < _startPlugins.Length; i++)
             {
                 var plugin = _startPlugins[i];
-                Logger.Debug("Start Plugin >>>>>>>>>>>>> start {0}", plugin.Name);
+                ProfileHelper.StartProfileDump($"StartPlugin:{plugin.Name}");
+                ProfileHelper.StepProfileDump("PluginsManager", $"<{plugin.Name} Plugin Start>");
                 yield return plugin.StartPlugin();
-                Logger.Debug("Start Plugin >>>>>>>>>>>>> over needRestart = {0}", _needRestart);
+                ProfileHelper.StepProfileDump("PluginsManager", $"<{plugin.Name} Plugin Start Completed>");
+                ProfileHelper.EndProfileDump($"StartPlugin:{plugin.Name}");
                 if (_needRestart)
                     break;
             }
+            
+            ProfileHelper.StepProfileDump("PluginsManager", "<Plugins Start Step>");
 
             // 初始化结束，是否需要重启
             _isStarting = false;
@@ -224,7 +231,9 @@ namespace PluginSet.Core
             }
             else
             {
+                ProfileHelper.StepProfileDump("PluginsManager", "<Plugins Start Over>");
                 OnPluginsStartOver?.Invoke();
+                ProfileHelper.StepProfileDump("PluginsManager", "<Plugins Start CallBack Over>");
                 _isStarted = true;
             }
         }

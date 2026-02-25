@@ -1,7 +1,16 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PluginSet.Core.Editor
 {
+    public struct AudioPatchFileInfo
+    {
+        public string File;
+        public string Name;
+        public string Bundle;
+    }
+    
     public static class BuildGlobal
     {
         public static void BuildPatchesStart(this BuildProcessorContext context)
@@ -17,6 +26,16 @@ namespace PluginSet.Core.Editor
         public static bool IsBuildingPatches(this BuildProcessorContext context)
         {
             return context.TryGet<bool>("isBuildPatches", false);
+        }
+
+        public static bool IsSupportAudioPatch(this BuildProcessorContext context)
+        {
+            return context.TryGet<bool>("IsSupportAudioPatch", false);
+        }
+
+        public static void SetSupportAudioPatch(this BuildProcessorContext context, bool value)
+        {
+            context.Set<bool>("IsSupportAudioPatch", value);
         }
 
         public static void SetBuildingUpdatePatches(this BuildProcessorContext context)
@@ -54,6 +73,68 @@ namespace PluginSet.Core.Editor
         public static List<string> GetStreamingExtendFiles(this BuildProcessorContext context)
         {
             return context.TryGet<List<string>>("streamingExtendFiles", null);
+        }
+
+        public static void AddMusicPatchFiles(this BuildProcessorContext context, string patchName, string name, string path, string bundleName = "")
+        {
+            var dict = context.TryGet<Dictionary<string, List<AudioPatchFileInfo>>>("audioPatch_music", null);
+            if (dict == null)
+            {
+                dict = new Dictionary<string, List<AudioPatchFileInfo>>();
+                context.Set("audioPatch_music", dict);
+            }
+
+            if (!dict.TryGetValue(patchName, out var list))
+            {
+                list = new List<AudioPatchFileInfo>();
+                dict.Add(patchName, list);
+            }
+
+            if (list.Any(info => info.Name == name))
+                throw new Exception($"Same music audio file named {name} in {patchName}, at {path}");
+
+            list.Add(new AudioPatchFileInfo()
+            {
+                Name = name,
+                File = path,
+                Bundle = bundleName
+            });
+        }
+
+        public static Dictionary<string, List<AudioPatchFileInfo>> GetMusicPatchFiles(this BuildProcessorContext context)
+        {
+            return context.TryGet("audioPatch_music", new Dictionary<string, List<AudioPatchFileInfo>>());
+        }
+
+        public static void AddSoundPatchFiles(this BuildProcessorContext context, string patchName, string name, string path, string bundleName = "")
+        {
+            var dict = context.TryGet<Dictionary<string, List<AudioPatchFileInfo>>>("audioPatch_sound", null);
+            if (dict == null)
+            {
+                dict = new Dictionary<string, List<AudioPatchFileInfo>>();
+                context.Set("audioPatch_sound", dict);
+            }
+
+            if (!dict.TryGetValue(patchName, out var list))
+            {
+                list = new List<AudioPatchFileInfo>();
+                dict.Add(patchName, list);
+            }
+
+            if (list.Any(info => info.Name == name))
+                throw new Exception($"Same sound audio file named {name} in {patchName}, at {path}");
+
+            list.Add(new AudioPatchFileInfo()
+            {
+                Name = name,
+                File = path,
+                Bundle = bundleName,
+            });
+        }
+
+        public static Dictionary<string, List<AudioPatchFileInfo>> GetSoundPatchFiles(this BuildProcessorContext context)
+        {
+            return context.TryGet("audioPatch_sound", new Dictionary<string, List<AudioPatchFileInfo>>());
         }
 
         public static void SetBuildResult(this BuildProcessorContext context, string key, object value)

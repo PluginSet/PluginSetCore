@@ -30,18 +30,28 @@ namespace PluginSet.Core
         protected abstract void DoLogInfo(string msg);
 
         protected int _level = (int)LoggerLevel.None;
+        protected bool _localLevel = false;
 
         private const int DebugLevel = (int) LoggerLevel.Debug;
         private const int WarnLevel = (int) LoggerLevel.Warn;
         private const int InfoLevel = (int) LoggerLevel.Info;
-
+        
         public void SetLevel(LoggerLevel level)
         {
             SetLevel((int)level);
         }
-
+        
         public void SetLevel(int level)
         {
+            if (_localLevel)
+                return;
+            
+            _level = level;
+        }
+
+        public void SetLocalLevel(int level)
+        {
+            _localLevel = true;
             _level = level;
         }
 
