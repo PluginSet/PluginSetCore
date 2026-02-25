@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -160,21 +161,44 @@ namespace PluginSet.Core.Editor
             }
         }
 
+        private static string GetPlatformIconSubKind(in PlatformIcon icon)
+        {
+            var prop = icon.GetType().GetProperty("iconSubKind", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (prop != null)
+            {
+                return (string)prop.GetValue(icon);
+            }
+            return string.Empty;
+        }
+
         private static void SetPlatformIcons(BuildTargetGroup platform, PlatformIconKind kind, Texture2D texture)
         {
             var icons = PlayerSettings.GetPlatformIcons(platform, kind);
-            int maxWidth = 0;
-            PlatformIcon maxIcon = null;
+            var subIcons = new Dictionary<string, PlatformIcon>();
+            var maxSubWidth = new Dictionary<string, int>();
             foreach (var icon in icons)
             {
-                if (icon.width > maxWidth)
+                var subKind = GetPlatformIconSubKind(icon);
+                if (maxSubWidth.TryGetValue(subKind, out var width))
                 {
-                    maxWidth = icon.width;
-                    maxIcon = icon;
+                    if (icon.width > width)
+                    {
+                        subIcons[subKind] = icon;
+                        maxSubWidth[subKind] = icon.width;
+                    }
+                }
+                else
+                {
+                    subIcons.Add(subKind, icon);
+                    maxSubWidth.Add(subKind, icon.width);
                 }
                 icon.SetTexture(null);
             }
-            maxIcon?.SetTexture(texture);
+
+            foreach (var kv in subIcons)
+            {
+                kv.Value.SetTexture(texture);
+            }
             PlayerSettings.SetPlatformIcons(platform, kind, icons);
         }
 
