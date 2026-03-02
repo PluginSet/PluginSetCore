@@ -145,6 +145,7 @@ namespace PluginSet.Core.Editor
     
 		public static void CopyGradleFiles(string targetPath)
 		{
+#if UNITY_ANDROID_API
 			var corePath = Global.GetPackageFullPath("com.pluginset.core");
 			var toolsPath = Path.Combine(corePath, "AndroidTools~");
 			Global.CopyFilesTo( targetPath, toolsPath, "*", SearchOption.TopDirectoryOnly);
@@ -170,6 +171,7 @@ namespace PluginSet.Core.Editor
 			{
 				Global.SetFileExecutable(Path.GetFullPath(Path.Combine(targetPath, "gradlew")).Replace("\\", "/"));
 			}
+#endif
 		}
 			
 		private static string GetEditorGradleVersion()
@@ -185,6 +187,9 @@ namespace PluginSet.Core.Editor
 			}
 
 			path = Path.Combine(path, "lib");
+			if (!Directory.Exists(path))
+				return null;
+			
 			foreach (var file in Directory.GetFiles(path, "gradle-*.jar"))
 			{
 				var fileName = Path.GetFileNameWithoutExtension(file);
