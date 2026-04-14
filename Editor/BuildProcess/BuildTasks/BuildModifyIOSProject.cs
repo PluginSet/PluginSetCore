@@ -155,12 +155,11 @@ namespace PluginSet.Core.Editor
             if (TryGetXCodeVersion() >= 16)
             {
                 // 移除主 Target 和 UnityFramework 的 OTHER_CFLAGS 中的 -mno-thumb（Xcode 16 及以上不再支持）
-                var xcodeProject = project.Project;
                 var targets = new[] { project.MainFramework, project.UnityFramework };
 
                 foreach (var target in targets)
                 {
-                    var flags = xcodeProject.GetBuildPropertyForAnyConfig(target, "OTHER_CFLAGS");
+                    var flags = project.GetBuildPropertyForAnyConfig(target, "OTHER_CFLAGS");
                     if (string.IsNullOrEmpty(flags))
                         continue;
 
@@ -169,7 +168,7 @@ namespace PluginSet.Core.Editor
                         continue;
 
                     var newFlags = string.Join(" ", list);
-                    xcodeProject.SetBuildProperty(target, "OTHER_CFLAGS", newFlags);
+                    project.SetBuildProperty(target, "OTHER_CFLAGS", newFlags);
                 }
             }
 

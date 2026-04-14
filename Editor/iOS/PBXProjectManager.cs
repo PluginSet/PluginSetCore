@@ -166,6 +166,15 @@ namespace PluginSet.Core.Editor
 #endif
         }
 
+        public string GetBuildPropertyForAnyConfig(string target, string configName)
+        {
+#if UNITY_IOS_API
+            return project.GetBuildPropertyForAnyConfig(target, configName)
+#else
+            return string.Empty;
+#endif
+        }
+
         public void AddFrameworkToProject(string targetGuid, string framework, bool weak)
         {
 #if UNITY_IOS_API
