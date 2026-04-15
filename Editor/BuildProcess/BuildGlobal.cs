@@ -75,44 +75,13 @@ namespace PluginSet.Core.Editor
             return context.TryGet<List<string>>("streamingExtendFiles", null);
         }
 
-        public static void AddMusicPatchFiles(this BuildProcessorContext context, string patchName, string name, string path, string bundleName = "")
+        public static void AddAudioPatchFiles(this BuildProcessorContext context, string patchName, string name, string path, string bundleName = "")
         {
-            var dict = context.TryGet<Dictionary<string, List<AudioPatchFileInfo>>>("audioPatch_music", null);
+            var dict = context.TryGet<Dictionary<string, List<AudioPatchFileInfo>>>("audioPatch_files", null);
             if (dict == null)
             {
                 dict = new Dictionary<string, List<AudioPatchFileInfo>>();
-                context.Set("audioPatch_music", dict);
-            }
-
-            if (!dict.TryGetValue(patchName, out var list))
-            {
-                list = new List<AudioPatchFileInfo>();
-                dict.Add(patchName, list);
-            }
-
-            if (list.Any(info => info.Name == name))
-                throw new Exception($"Same music audio file named {name} in {patchName}, at {path}");
-
-            list.Add(new AudioPatchFileInfo()
-            {
-                Name = name,
-                File = path,
-                Bundle = bundleName
-            });
-        }
-
-        public static Dictionary<string, List<AudioPatchFileInfo>> GetMusicPatchFiles(this BuildProcessorContext context)
-        {
-            return context.TryGet("audioPatch_music", new Dictionary<string, List<AudioPatchFileInfo>>());
-        }
-
-        public static void AddSoundPatchFiles(this BuildProcessorContext context, string patchName, string name, string path, string bundleName = "")
-        {
-            var dict = context.TryGet<Dictionary<string, List<AudioPatchFileInfo>>>("audioPatch_sound", null);
-            if (dict == null)
-            {
-                dict = new Dictionary<string, List<AudioPatchFileInfo>>();
-                context.Set("audioPatch_sound", dict);
+                context.Set("audioPatch_files", dict);
             }
 
             if (!dict.TryGetValue(patchName, out var list))
@@ -132,9 +101,9 @@ namespace PluginSet.Core.Editor
             });
         }
 
-        public static Dictionary<string, List<AudioPatchFileInfo>> GetSoundPatchFiles(this BuildProcessorContext context)
+        public static Dictionary<string, List<AudioPatchFileInfo>> GetAudioPatchFiles(this BuildProcessorContext context)
         {
-            return context.TryGet("audioPatch_sound", new Dictionary<string, List<AudioPatchFileInfo>>());
+            return context.TryGet("audioPatch_files", new Dictionary<string, List<AudioPatchFileInfo>>());
         }
 
         public static void SetBuildResult(this BuildProcessorContext context, string key, object value)
