@@ -24,6 +24,7 @@ namespace PluginSet.Core.Editor
         public PlistDocument PlistDocument;
         public PlistDocument WorkSpaceSettings;
         public PlistDocument Entitlements;
+        public PlistDocument PrivacyPlist;
 
         public string ProjectPath => m_PbxProjectPath;
 
@@ -44,16 +45,36 @@ namespace PluginSet.Core.Editor
         public string MainFramework => throw new Exception("Error platform");
         public string UnityFramework => throw new Exception("Error platform");
 #endif
-        
+
+#if UNITY_IOS_API
+        private UnityEditor.iOS.Xcode.PlistDocument m_PrivacyPlist;
+        private UnityEditor.iOS.Xcode.PlistDocument GetOrCreatePrivacyPlist()
+        {
+            if (m_PrivacyPlist != null)
+                return m_PrivacyPlist;
+
+
+            m_PrivacyPlist = new UnityEditor.iOS.Xcode.PlistDocument();
+            var privacyPlistPath = Path.Combine(m_PbxProjectPath, "PrivacyInfo.xcprivacy");
+            if (File.Exists(privacyPlistPath))
+            {
+                m_PrivacyPlist.ReadFromFile(privacyPlistPath);
+            } else {
+                m_PrivacyPlist.Create();
+            }
+            return m_PrivacyPlist;
+        }
+#endif
+
         public PBXProjectManager(string pbxProjectPath,
-            string entitlementFilePath,
-            string targetName)
+                string entitlementFilePath,
+                string targetName)
 #if UNITY_IOS_API
             : base(pbxProjectPath, entitlementFilePath, targetName)
 #endif
-        {
-            m_PbxProjectPath = pbxProjectPath;
-            m_EntitlementsPath = entitlementFilePath;
+                {
+                        m_PbxProjectPath = pbxProjectPath;
+                        m_EntitlementsPath = entitlementFilePath;
 #if UNITY_IOS_API
             Project = this.project;
             var getOrCreateInfoDoc = typeof(UnityEditor.iOS.Xcode.ProjectCapabilityManager)
@@ -62,6 +83,7 @@ namespace PluginSet.Core.Editor
                 .GetMethod("GetOrCreateEntitlementDoc", BindingFlags.Instance | BindingFlags.NonPublic);
             PlistDocument = new PlistDocument(getOrCreateInfoDoc?.Invoke(this, null) as UnityEditor.iOS.Xcode.PlistDocument);
             Entitlements = new PlistDocument(getOrCreateEntitlementDoc?.Invoke(this, null) as UnityEditor.iOS.Xcode.PlistDocument);
+            PrivacyPlist = new PlistDocument(GetOrCreatePrivacyPlist());
             
             WorkSpaceSettings = new PlistDocument();
             var workSpaceSettingPath = Path.Combine(pbxProjectPath, "..", "project.xcworkspace", "xcshareddata", "WorkspaceSettings.xcsettings");
@@ -70,7 +92,7 @@ namespace PluginSet.Core.Editor
             else
                 WorkSpaceSettings.Create();
 #endif
-        }
+                }
 
         public void Save()
         {
@@ -169,7 +191,7 @@ namespace PluginSet.Core.Editor
         public string GetBuildPropertyForAnyConfig(string target, string configName)
         {
 #if UNITY_IOS_API
-            return project.GetBuildPropertyForAnyConfig(target, configName)
+            return project.GetBuildPropertyForAnyConfig(target, configName);
 #else
             return string.Empty;
 #endif

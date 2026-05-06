@@ -41,6 +41,10 @@ namespace PluginSet.Core.Editor
             context.IsWaiting = true;
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
+            var pluginPath = Path.Combine(Application.dataPath, "Plugins", "Android");
+            if (!Directory.Exists(pluginPath))
+                Directory.CreateDirectory(pluginPath);
+
             if (Application.isBatchMode)
             {
                 GooglePlayServices.PlayServicesResolver.ResolveSync(true);

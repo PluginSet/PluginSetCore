@@ -348,12 +348,17 @@ namespace PluginSet.Core.Editor
             plist.AddPlistValue("NSRemindersUsageDescription", buildParams.RemindersUsageDescription);
 
             plist.AddPlistValue("KeyChainServices", buildParams.KeyChainServices);
-            
+
             // DevicesUtil.mm 需要依赖 AppTrackingTransparency, 但Unity中并没有相应选项
             if (buildParams.EnableAppTrackingTransparency)
             {
-                plist.AddPlistValue("NSUserTrackingUsageDescription",buildParams.UserTrackingUsageDescription);
+                plist.AddPlistValue("NSUserTrackingUsageDescription", buildParams.UserTrackingUsageDescription);
                 project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
+                project.PrivacyPlist.SetPlistValue("NSPrivacyTracking", true);
+            }
+            else
+            {
+                project.PrivacyPlist.SetPlistValue("NSPrivacyTracking", false);
             }
             
             var xcodeTarget = project.UnityFramework;
