@@ -10,9 +10,10 @@ namespace PluginSet.Core.Editor
 		public void OnPostGenerateGradleAndroidProject(string androidProjectPath)
 		{
 			var context = BuildProcessorContext.Current;
-			if (context == null || context.TaskType != BuildTaskType.BuildProject)
+			if (context == null)
 				return;
-			
+
+			context.TaskType = BuildTaskType.BuildProject;
 			var handler = new BuildTaskHandler();
 			var projectPath = Path.Combine(androidProjectPath, "..");
 			handler.AddNextTask(new BuildModifyAndroidProject(projectPath));

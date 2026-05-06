@@ -174,7 +174,7 @@ namespace PluginSet.Core.Editor
 #endif
 		}
 			
-		private static string GetEditorGradleVersion()
+		public static string GetEditorGradleVersion()
 		{
 			string path = EditorPrefs.GetString("GradlePath");
 			if (EditorPrefs.HasKey("GradleUseEmbedded") && EditorPrefs.GetBool("GradleUseEmbedded") || string.IsNullOrEmpty(path))
