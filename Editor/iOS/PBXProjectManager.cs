@@ -31,6 +31,8 @@ namespace PluginSet.Core.Editor
         private string m_PbxProjectPath;
 
         private string m_EntitlementsPath;
+
+        private string m_PrivacyPlistPath;
         
 #if UNITY_IOS_API
 #if UNITY_2019_3_OR_NEWER
@@ -55,10 +57,9 @@ namespace PluginSet.Core.Editor
 
 
             m_PrivacyPlist = new UnityEditor.iOS.Xcode.PlistDocument();
-            var privacyPlistPath = Path.Combine(m_PbxProjectPath, "PrivacyInfo.xcprivacy");
-            if (File.Exists(privacyPlistPath))
+            if (File.Exists(m_PrivacyPlistPath))
             {
-                m_PrivacyPlist.ReadFromFile(privacyPlistPath);
+                m_PrivacyPlist.ReadFromFile(m_PrivacyPlistPath);
             } else {
                 m_PrivacyPlist.Create();
             }
@@ -75,6 +76,7 @@ namespace PluginSet.Core.Editor
                 {
                         m_PbxProjectPath = pbxProjectPath;
                         m_EntitlementsPath = entitlementFilePath;
+                        m_PrivacyPlistPath = Path.Combine(pbxProjectPath, "..", "..", "UnityFramework", "PrivacyInfo.xcprivacy");
 #if UNITY_IOS_API
             Project = this.project;
             var getOrCreateInfoDoc = typeof(UnityEditor.iOS.Xcode.ProjectCapabilityManager)
@@ -103,6 +105,11 @@ namespace PluginSet.Core.Editor
             
             var workSpaceSettingPath = Path.Combine(parentPath, "WorkspaceSettings.xcsettings");
             WorkSpaceSettings.WriteToFile(workSpaceSettingPath);
+
+            if (m_PrivacyPlist != null)
+            {
+                m_PrivacyPlist.WriteToFile(m_PrivacyPlistPath);
+            }
             
             WriteToFile();
 #endif
