@@ -111,7 +111,9 @@ namespace PluginSet.Core.Editor
         
         public void AddArrayElement(string arrayKey, params string[] values)
         {
+#if UNITY_IOS_API
             AddArray(Root, arrayKey, values);
+#endif
         }
         
         public void AddDictElement(string dictKey, string key, bool value)
