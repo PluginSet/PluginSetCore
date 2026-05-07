@@ -197,6 +197,14 @@ namespace PluginSet.Core.Editor
 #endif
         }
 
+        public void AddFileToBuild(string targetGuid, string relativePath)
+        {
+#if UNITY_IOS_API
+            var fileGuid = project.AddFile(relativePath, relativePath);
+            project.AddFileToBuild(targetGuid, fileGuid);
+#endif
+        }
+
         public void AddFrameworkToProject(string targetGuid, string framework, bool weak)
         {
 #if UNITY_IOS_API

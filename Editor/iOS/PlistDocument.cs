@@ -7,9 +7,9 @@ namespace PluginSet.Core.Editor
     public class PlistDocument
     {
 #if UNITY_IOS_API
-        private UnityEditor.iOS.Xcode.PlistDocument Document;
+        public readonly UnityEditor.iOS.Xcode.PlistDocument Document;
         
-        private UnityEditor.iOS.Xcode.PlistElementDict root => Document.root;
+        public UnityEditor.iOS.Xcode.PlistElementDict Root => Document.root;
 #endif
         
         public PlistDocument()
@@ -51,7 +51,7 @@ namespace PluginSet.Core.Editor
         public bool HasPlistValue(string key)
         {
 #if UNITY_IOS_API
-            return root.values.ContainsKey(key);
+            return Root.values.ContainsKey(key);
 #else
             return false;
 #endif
@@ -60,7 +60,7 @@ namespace PluginSet.Core.Editor
         public void RemoveElement(string key)
         {
 #if UNITY_IOS_API
-            root.values.Remove(key);
+            Root.values.Remove(key);
 #endif
         }
         
@@ -68,7 +68,7 @@ namespace PluginSet.Core.Editor
         {
 #if UNITY_IOS_API
             if (HasPlistValue(key)) return;
-            root.SetString(key, value);
+            Root.SetString(key, value);
 #endif
         }
         
@@ -76,7 +76,7 @@ namespace PluginSet.Core.Editor
         {
 #if UNITY_IOS_API
             if (HasPlistValue(key)) return;
-            root.SetBoolean(key, value);
+            Root.SetBoolean(key, value);
 #endif
         }
         
@@ -84,35 +84,35 @@ namespace PluginSet.Core.Editor
         {
 #if UNITY_IOS_API
             if (HasPlistValue(key)) return;
-            root.SetInteger(key, value);
+            Root.SetInteger(key, value);
 #endif
         }
 
         public void SetPlistValue(string key, string value)
         {
 #if UNITY_IOS_API
-            root.SetString(key, value);
+            Root.SetString(key, value);
 #endif
         }
         
         public void SetPlistValue(string key, bool value)
         {
 #if UNITY_IOS_API
-            root.SetBoolean(key, value);
+            Root.SetBoolean(key, value);
 #endif
         }
         
         public void SetPlistValue(string key, int value)
         {
 #if UNITY_IOS_API
-            root.SetInteger(key, value);
+            Root.SetInteger(key, value);
 #endif
         }
         
         public void AddArrayElement(string arrayKey, params string[] values)
         {
 #if UNITY_IOS_API
-            var array = FindOrCreateArray(root, arrayKey);
+            var array = FindOrCreateArray(Root, arrayKey);
             foreach (var value in values)
             {
                 AddStringIfNo(array, value);
@@ -147,7 +147,7 @@ namespace PluginSet.Core.Editor
         public void AddXcodeURLType(string id, string role, params string[] schemes)
         {
 #if UNITY_IOS_API
-            var cfBundleUrlTypes = FindOrCreateArray(root, "CFBundleURLTypes");
+            var cfBundleUrlTypes = FindOrCreateArray(Root, "CFBundleURLTypes");
 
             var node = cfBundleUrlTypes.values.Find(element => element.AsDict().values["CFBundleURLName"].AsString().Equals(id))?.AsDict();
             if (node == null)
@@ -169,25 +169,29 @@ namespace PluginSet.Core.Editor
         public void AddApplicationQueriesSchemes(string scheme)
         {
 #if UNITY_IOS_API
-            AddStringIfNo(FindOrCreateArray(root, "LSApplicationQueriesSchemes"), scheme);
+            AddStringIfNo(FindOrCreateArray(Root, "LSApplicationQueriesSchemes"), scheme);
 #endif
         }
         
-#if UNITY_IOS_API
-        private UnityEditor.iOS.Xcode.PlistElementDict FindOrCreateDict(string key)
+        public UnityEditor.iOS.Xcode.PlistElementDict FindOrCreateDict(string key)
         {
-            if (root.values.ContainsKey(key))
+#if UNITY_IOS_API
+            if (Root.values.ContainsKey(key))
             {
-                return root[key].AsDict();
+                return Root[key].AsDict();
             }
             else
             {
-                return root.CreateDict(key);
+                return Root.CreateDict(key);
             }
+#else
+            return null;
+#endif
         }
 
-        private static UnityEditor.iOS.Xcode.PlistElementArray FindOrCreateArray(UnityEditor.iOS.Xcode.PlistElementDict node, string key)
+        public static UnityEditor.iOS.Xcode.PlistElementArray FindOrCreateArray(UnityEditor.iOS.Xcode.PlistElementDict node, string key)
         {
+#if UNITY_IOS_API
             if (node.values.ContainsKey(key))
             {
                 return node[key].AsArray();
@@ -196,15 +200,19 @@ namespace PluginSet.Core.Editor
             {
                 return node.CreateArray(key);
             }
+#else
+            return null;
+#endif
         }
 
-        private static void AddStringIfNo(UnityEditor.iOS.Xcode.PlistElementArray array, string value)
+        public static void AddStringIfNo(UnityEditor.iOS.Xcode.PlistElementArray array, string value)
         {
+#if UNITY_IOS_API
             if (array.values.Find(element => element.AsString().Equals(value)) == null)
             {
                 array.AddString(value);
             }
-        }
 #endif
+        }
     }
 }
