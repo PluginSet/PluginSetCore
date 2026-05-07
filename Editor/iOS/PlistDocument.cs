@@ -7,9 +7,11 @@ namespace PluginSet.Core.Editor
     public class PlistDocument
     {
 #if UNITY_IOS_API
-        public readonly UnityEditor.iOS.Xcode.PlistDocument Document;
+        private readonly UnityEditor.iOS.Xcode.PlistDocument Document;
         
         public UnityEditor.iOS.Xcode.PlistElementDict Root => Document.root;
+#else
+        public UnityEditor.iOS.Xcode.PlistElementDict Root => null;
 #endif
         
         public PlistDocument()
@@ -111,9 +113,7 @@ namespace PluginSet.Core.Editor
         
         public void AddArrayElement(string arrayKey, params string[] values)
         {
-#if UNITY_IOS_API
             AddArray(Root, arrayKey, values);
-#endif
         }
         
         public void AddDictElement(string dictKey, string key, bool value)
