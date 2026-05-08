@@ -9,9 +9,7 @@ namespace PluginSet.Core.Editor
 #if UNITY_IOS_API
         private readonly UnityEditor.iOS.Xcode.PlistDocument Document;
         
-        public UnityEditor.iOS.Xcode.PlistElementDict Root => Document.root;
-#else
-        public UnityEditor.iOS.Xcode.PlistElementDict Root => null;
+        private UnityEditor.iOS.Xcode.PlistElementDict Root => Document.root;
 #endif
         
         public PlistDocument()
@@ -113,7 +111,9 @@ namespace PluginSet.Core.Editor
         
         public void AddArrayElement(string arrayKey, params string[] values)
         {
+#if UNITY_IOS_API
             AddArray(Root, arrayKey, values);
+#endif
         }
         
         public void AddDictElement(string dictKey, string key, bool value)
@@ -169,9 +169,9 @@ namespace PluginSet.Core.Editor
 #endif
         }
         
+#if UNITY_IOS_API
         public UnityEditor.iOS.Xcode.PlistElementDict FindOrCreateDict(string key)
         {
-#if UNITY_IOS_API
             if (Root.values.ContainsKey(key))
             {
                 return Root[key].AsDict();
@@ -180,9 +180,6 @@ namespace PluginSet.Core.Editor
             {
                 return Root.CreateDict(key);
             }
-#else
-            return null;
-#endif
         }
 
         public static UnityEditor.iOS.Xcode.PlistElementDict FindOrCreateDictInArray(
@@ -206,7 +203,6 @@ namespace PluginSet.Core.Editor
 
         public static UnityEditor.iOS.Xcode.PlistElementArray FindOrCreateArray(UnityEditor.iOS.Xcode.PlistElementDict node, string key)
         {
-#if UNITY_IOS_API
             if (node.values.ContainsKey(key))
             {
                 return node[key].AsArray();
@@ -215,30 +211,24 @@ namespace PluginSet.Core.Editor
             {
                 return node.CreateArray(key);
             }
-#else
-            return null;
-#endif
         }
 
         public static void AddStringIfNo(UnityEditor.iOS.Xcode.PlistElementArray array, string value)
         {
-#if UNITY_IOS_API
             if (array.values.Find(element => element.AsString().Equals(value)) == null)
             {
                 array.AddString(value);
             }
-#endif
         }
 
         public static void AddArray(UnityEditor.iOS.Xcode.PlistElementDict node, string key, params string[] values)
         {
-#if UNITY_IOS_API
             var array = FindOrCreateArray(node, key);
             foreach (var value in values)
             {
                 AddStringIfNo(array, value);
             }
-#endif
         }
+#endif
     }
 }
