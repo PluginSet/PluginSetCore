@@ -71,7 +71,11 @@ namespace PluginSet.Core.Editor
 
             PlayerSettings.Android.targetSdkVersion = setting.TargetSdkVersion;
             
+#if UNITY_6000
+            PlayerSettings.Android.splitApplicationBinary = setting.SplitApplicationBinary;
+#else
             PlayerSettings.Android.useAPKExpansionFiles = setting.SplitApplicationBinary;
+#endif
         }
     }
 }
