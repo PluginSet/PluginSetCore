@@ -45,7 +45,7 @@ namespace PluginSet.Core
             return PaymentPlugins.Where(kv => kv.Value.IsEnablePayment).Select(kv => kv.Key).ToArray();
         }
 
-        public void Pay(string productId, Action<Result> callback = null, string jsonData = null)
+        public void Pay(string productId, Action<PurchaseResult> callback = null, string jsonData = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
@@ -56,7 +56,7 @@ namespace PluginSet.Core
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_PAYMENT_TYPE, context))
             {
-                callback?.Invoke(new Result
+                callback?.Invoke(new PurchaseResult()
                 {
                     Success = false,
                     Error = "Pay api need point to a plugin with name",
@@ -68,7 +68,7 @@ namespace PluginSet.Core
             }
         }
 
-        public void PayWith(string pluginName, string productId, Action<Result> callback = null,
+        public void PayWith(string pluginName, string productId, Action<PurchaseResult> callback = null,
             string jsonData = null)
         {
             if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
@@ -80,83 +80,97 @@ namespace PluginSet.Core
                 }
             }
 
-            InvalidCallback(callback, pluginName, $"{{\"productId\":\"{productId}\"}}");
+            callback?.Invoke(new PurchaseResult()
+            {
+                Success = false,
+                Code = PluginConstants.InvalidCode,
+                Error = "Invalid plugin name" + pluginName,
+                PluginName = pluginName,
+                Data = $"{{\"productId\":\"{productId}\"}}",
+            });
         }
 
-        public void InitWithProducts(Dictionary<string, int> products)
+        public void InitWithProducts(Dictionary<string, ProductType> products, Action<IAPInitResult> callback = null)
         {
             foreach (var kv in PaymentPlugins)
             {
                 if (kv.Value is IIAPurchasePlugin purchasePlugin)
-                    purchasePlugin.InitWithProducts(products);
+                    purchasePlugin.InitWithProducts(products,callback);
             }
         }
 
-        public void InitWithProductsWith(string pluginName, Dictionary<string, int> products)
+        public void InitWithProductsWith(string pluginName, Dictionary<string, ProductType> products, Action<IAPInitResult> callback = null)
         {
             if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
             {
                 if (plugin is IIAPurchasePlugin purchasePlugin)
-                    purchasePlugin.InitWithProducts(products);
+                    purchasePlugin.InitWithProducts(products, callback);
                 else
                     Logger.Warn($"Payment plugin {pluginName} need not call InitWithProducts");
             }
         }
 
         [Obsolete("Use PaymentCompleteWith instead")]
-        public void PaymentComplete(string transactionId)
+        public void PaymentComplete(string transactionId, Action<Result> callback = null)
         {
             Logger.Error("Cannot call PaymentComplete without plugin name");
         }
-        public void PaymentCompleteWith(string pluginName, string transactionId)
+        public void PaymentCompleteWith(string pluginName, string transactionId, Action<Result> callback = null)
         {
             if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
             {
                 if (plugin is IIAPurchasePlugin purchasePlugin)
-                    purchasePlugin.PaymentComplete(transactionId);
+                    purchasePlugin.PaymentComplete(transactionId, callback);
                 else
                     Logger.Warn($"Payment plugin {pluginName} need not call PaymentComplete");
             }
         }
 
-        [Obsolete("Use AddOnPaymentCompletedWith instead")]
+        [Obsolete("API is deleted")]
         public void AddOnPaymentCompleted(Action<string> completed)
         {
-            Logger.Error("Cannot call AddOnPaymentCompleted without plugin name");
+            Logger.Error("API AddOnPaymentCompleted has been deleted!");
         }
 
-        [Obsolete("Use AddOnPaymentCompletedWith instead")]
+        [Obsolete("API is deleted")]
         public void RemoveOnPaymentCompleted(Action<string> completed)
         {
-            Logger.Error("Cannot call RemoveOnPaymentCompleted without plugin name");
+            Logger.Error("API RemoveOnPaymentCompleted has been deleted!");
         }
 
+        [Obsolete("API is deleted")]
         public void AddOnPaymentCompletedWith(string pluginName, Action<string> completed)
         {
-            if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
-            {
-                if (plugin is IIAPurchasePlugin purchasePlugin)
-                    purchasePlugin.AddOnPaymentCompleted(completed);
-                else
-                    Logger.Warn($"Payment plugin {pluginName} need not call AddOnPaymentCompleted");
-            }
+            Logger.Error("API AddOnPaymentCompletedWith has been deleted!");
         }
 
+        [Obsolete("API is deleted")]
         public void RemoveOnPaymentCompletedWith(string pluginName, Action<string> completed)
         {
-            if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
-            {
-                if (plugin is IIAPurchasePlugin purchasePlugin)
-                    purchasePlugin.RemoveOnPaymentCompleted(completed);
-                else
-                    Logger.Warn($"Payment plugin {pluginName} need not call RemoveOnPaymentCompleted");
-            }
+            Logger.Error("API RemoveOnPaymentCompletedWith has been deleted!");
         }
 
-        [Obsolete("Use RestorePaymentsWith instead")]
         public void RestorePayments(Action<Result> callback = null, string json = null)
         {
-            Logger.Error("Cannot call RestorePayments without plugin name");
+            bool called = false;
+            foreach (var kv in PaymentPlugins)
+            {
+                if (kv.Value is IIAPurchasePlugin purchasePlugin)
+                {
+                    purchasePlugin.RestorePayments(callback, json);
+                    called = true;
+                }
+            }
+
+            if (!called)
+            {
+                callback?.Invoke(new Result()
+                {
+                    Success = false,
+                    Code = PluginConstants.InvalidCode,
+                    Error = "Invalid platform",
+                });
+            }
         }
 
         public void RestorePaymentsWith(string pluginName, Action<Result> callback = null, string json = null)

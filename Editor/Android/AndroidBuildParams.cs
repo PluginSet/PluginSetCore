@@ -35,6 +35,15 @@ namespace PluginSet.Core.Editor
         [Tooltip("是否使用分包")]
         public bool SplitApplicationBinary;
 
+        [Tooltip("添加振动权限")]
+        public bool AddVibratePermission;
+        
+        [Tooltip("添加读取手机状态权限")]
+        public bool AddReadPhonePermission;
+        
+        [Tooltip("添加麦克风权限")]
+        public bool AddMicrophonePermission;
+
 //        [Tooltip("Manifest中的application的name属性")]
 //        public string ApplicationName;
 //
@@ -76,6 +85,23 @@ namespace PluginSet.Core.Editor
 #else
             PlayerSettings.Android.useAPKExpansionFiles = setting.SplitApplicationBinary;
 #endif
+        }
+
+        [AndroidProjectModify]
+        public static void OnAndroidProjectModify(BuildProcessorContext context, AndroidProjectManager projectManager)
+        {
+            if (context.BuildTarget != BuildTarget.Android)
+                return;
+
+            var asset = context.BuildChannels;
+            var setting = asset.Get<AndroidBuildParams>();
+            
+            if (setting.AddMicrophonePermission)
+                projectManager.LibraryManifest.AddUsePermission(AndroidHelper.PERMISSION_RECORD_AUDIO);
+            if (setting.AddReadPhonePermission)
+                projectManager.LibraryManifest.AddUsePermission(AndroidHelper.PERMISSION_READ_PHONE_STATE);
+            if (setting.AddVibratePermission)
+                projectManager.LibraryManifest.AddUsePermission(AndroidHelper.PERMISSION_VIBRATE);
         }
     }
 }

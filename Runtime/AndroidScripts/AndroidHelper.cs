@@ -4,6 +4,7 @@ namespace PluginSet.Core
 {
     public static class AndroidHelper
     {
+        public const string PERMISSION_VIBRATE = "android.permission.VIBRATE";
         public const string PERMISSION_RECORD_AUDIO = "android.permission.RECORD_AUDIO";
         public const string PERMISSION_READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
         

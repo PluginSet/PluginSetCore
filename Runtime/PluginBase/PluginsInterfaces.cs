@@ -19,14 +19,18 @@ namespace PluginSet.Core
     ///     string currency - ISO 4217<br/>
     ///     int price - 单位（分）<br/>
     /// </summary>
-    public struct Result
+    public class CommonResult<T>
     {
         public bool Success;
         public int Code;
         public string Error;
         public string PluginName;
         public string Data;
-        public object DataObject;
+        public T DataObject;
+    }
+    
+    public class Result: CommonResult<object>
+    {
     }
 
     public struct ReportError
@@ -67,9 +71,6 @@ namespace PluginSet.Core
         public abstract string PriceString { get; }
         public abstract string Title { get; }
         public abstract string Description { get; }
-        
-        public abstract string Payload { get; }
-        public abstract string Receipt { get; }
     }
 
     public interface IPluginBase
@@ -182,6 +183,24 @@ namespace PluginSet.Core
         Subscription
     }
 
+    public class IAPInitResult: CommonResult<Dictionary<string, IPaymentProduct>>
+    {
+        
+    }
+
+    [Serializable]
+    public class PurchaseCallback
+    {
+        [SerializeField]
+        public string transactionId;
+        [SerializeField]
+        public string productId;
+        [SerializeField]
+        public string callback;
+    }
+
+    public class PurchaseResult : CommonResult<PurchaseCallback> {}
+
     public interface IPaymentPlugin : IPluginBase
     {
         bool IsEnablePayment { get; }
@@ -192,18 +211,14 @@ namespace PluginSet.Core
         /// <param name="productId">商品id</param>
         /// <param name="callback">购买回调</param>
         /// <param name="jsonData"></param>
-        void Pay(string productId, Action<Result> callback = null, string jsonData = null);
+        void Pay(string productId, Action<PurchaseResult> callback = null, string jsonData = null);
     }
 
     public interface IIAPurchasePlugin : IPaymentPlugin
     {
-        void InitWithProducts(Dictionary<string, int> products);
+        void InitWithProducts(Dictionary<string, ProductType> products, Action<IAPInitResult> callback = null);
 
-        void PaymentComplete(string transactionId);
-
-        void AddOnPaymentCompleted(Action<string> completed);
-        
-        void RemoveOnPaymentCompleted(Action<string> completed);
+        void PaymentComplete(string transactionId, Action<Result> callback = null);
 
         void RestorePayments(Action<Result> callback = null, string json = null);
     }

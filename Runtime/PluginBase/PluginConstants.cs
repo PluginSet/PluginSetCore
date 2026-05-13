@@ -1,3 +1,5 @@
+using System;
+
 namespace PluginSet.Core
 {
     public static class PluginConstants
@@ -88,16 +90,6 @@ namespace PluginSet.Core
         public const string PATCH_NOTIFY_NET_ERROR = "PATCH_NOTIFY_NET_ERROR";
 
         public const string PLUGIN_INIT_ERROR = "PLUGIN_INIT_ERROR";
-
-        /// <summary>
-        /// 事件接收一个List<IPaymentProduct>参数
-        /// </summary>
-        public const string IAP_ON_INIT_SUCCESS = "IAP_ON_INIT_SUCCESS";
-        
-        /// <summary>
-        /// 事件接收一个错误字符串
-        /// </summary>
-        public const string IAP_ON_INIT_FAILED = "IAP_ON_INIT_FAILED";
         
         /// <summary>
         /// 事件接收一个Result参数，参数数据与支付成功回调数据相同

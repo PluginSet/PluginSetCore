@@ -331,7 +331,7 @@ namespace PluginSet.Core
 
         private void InvalidCallback(Action<Result> callback, string pluginName, string data = null)
         {
-            callback?.Invoke(new Result
+            callback?.Invoke(new Result()
             {
                 Success = false,
                 Code = PluginConstants.InvalidCode,
