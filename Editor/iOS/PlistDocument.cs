@@ -9,7 +9,7 @@ namespace PluginSet.Core.Editor
 #if UNITY_IOS_API
         private readonly UnityEditor.iOS.Xcode.PlistDocument Document;
         
-        private UnityEditor.iOS.Xcode.PlistElementDict Root => Document.root;
+        public UnityEditor.iOS.Xcode.PlistElementDict Root => Document.root;
 #endif
         
         public PlistDocument()
