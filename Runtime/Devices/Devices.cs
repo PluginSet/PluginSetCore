@@ -38,7 +38,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID && !UNITY_EDITOR
             return AndroidHelper.GetApplicationMetaString(name, defaultValue);
 #elif UNITY_IOS && !UNITY_EDITOR
-            return iOSHelper._ReadInfoPlist(name, defaultValue);
+            return iOSHelper._PluginSetReadInfoPlist(name, defaultValue);
 #else
             return defaultValue;
 #endif
@@ -54,7 +54,7 @@ namespace PluginSet.Core
             long duration = (level) * 200L + 100L;
             AndroidHelper.Vibrate(duration);
 #elif UNITY_IOS && !UNITY_EDITOR
-            iOSHelper._Vibrate(level);
+            iOSHelper._PluginSetVibrate(level);
 #elif UNITY_WEBGL
             // do nothing
 #else
@@ -97,7 +97,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID && !UNITY_EDITOR
             permission = (DevicePermission)AndroidHelper.CheckPermission(AndroidHelper.PERMISSION_READ_PHONE_STATE);
 #elif UNITY_IOS && !UNITY_EDITOR
-            permission = (DevicePermission)iOSHelper._CheckAdvertisingTrackingPermission();
+            permission = (DevicePermission)iOSHelper._PluginSetCheckAdvertisingTrackingPermission();
 #endif
             if (permission == DevicePermission.Denied && !RecordRequestPermissions(nameof(RequestAdvertisingTracking), doRecord))
             {
@@ -126,7 +126,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_READ_PHONE_STATE);
 #elif UNITY_IOS && !UNITY_EDITOR
-                return iOSHelper._RequestAdvertisingTracking();
+                return iOSHelper._PluginSetRequestAdvertisingTracking();
 #endif
             }
 
@@ -139,7 +139,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID && !UNITY_EDITOR
             return (DevicePermission)AndroidHelper.CheckPermission(AndroidHelper.PERMISSION_RECORD_AUDIO);
 #elif UNITY_IOS && !UNITY_EDITOR
-            return (DevicePermission)iOSHelper._CheckMicrophonePermission();
+            return (DevicePermission)iOSHelper._PluginSetCheckMicrophonePermission();
 #endif
             if (permission == DevicePermission.Denied &&
                 !RecordRequestPermissions(nameof(RequestMicrophoneAuth), doRecord))
@@ -169,7 +169,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID && !UNITY_EDITOR
                 return AndroidHelper.RequestPermissions(AndroidHelper.PERMISSION_RECORD_AUDIO);
 #elif UNITY_IOS && !UNITY_EDITOR
-                return iOSHelper._RequestMicrophoneAuth();
+                return iOSHelper._PluginSetRequestMicrophoneAuth();
 #elif UNITY_WEBGL && !UNITY_EDITOR
                 // TODO
                 requestAudio();
@@ -196,10 +196,10 @@ namespace PluginSet.Core
 #else
             var deviceId = SystemInfo.deviceUniqueIdentifier;
 #if UNITY_IOS && !UNITY_EDITOR
-            string services = iOSHelper._ReadInfoPlist("KeyChainServices", "com.pluginset.core");
+            string services = iOSHelper._PluginSetReadInfoPlist("KeyChainServices", "com.pluginset.core");
             if (string.IsNullOrEmpty(services))
                 services = "com.pluginset.core";
-            deviceId = iOSHelper._GetOrSaveKeyChain(services, "SystemInfo.deviceUniqueIdentifier", deviceId);
+            deviceId = iOSHelper._PluginSetGetOrSaveKeyChain(services, "SystemInfo.deviceUniqueIdentifier", deviceId);
 #endif
             return deviceId;
 #endif
@@ -233,7 +233,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID && !UNITY_EDITOR
             AndroidHelper.SetClipboardText(text);
 #elif UNITY_IOS && !UNITY_EDITOR
-            iOSHelper._CopyTextToClipboard(text);
+            iOSHelper._PluginSetCopyTextToClipboard(text);
 #else
             GUIUtility.systemCopyBuffer = text;
 #endif
@@ -244,7 +244,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID && !UNITY_EDITOR
             return AndroidHelper.GetClipboardText();
 #elif UNITY_IOS && !UNITY_EDITOR
-            return iOSHelper._ReadTextToClipboard();
+            return iOSHelper._PluginSetReadTextToClipboard();
 #else
             return GUIUtility.systemCopyBuffer;
 #endif
@@ -267,7 +267,7 @@ namespace PluginSet.Core
 #elif UNITY_ANDROID && UNITY_EDITOR
             return UnityEditor.PlayerSettings.Android.bundleVersionCode;
 #elif UNITY_IOS && !UNITY_EDITOR
-            return int.Parse(iOSHelper._GetVersionCode());
+            return int.Parse(iOSHelper._PluginSetGetVersionCode());
 #elif UNITY_IOS && UNITY_EDITOR
             return int.Parse(UnityEditor.PlayerSettings.iOS.buildNumber);
 #else
@@ -279,7 +279,7 @@ namespace PluginSet.Core
         {
 #if !UNITY_EDITOR
 #if UNITY_IOS
-            iOSHelper._PlatformLog(msg);
+            iOSHelper._PluginSetPlatformLog(msg);
 #elif UNITY_ANDROID
             AndroidHelper.Log("PluginSet", msg);
 #endif
@@ -289,7 +289,7 @@ namespace PluginSet.Core
         public static bool EnableOpenSettings()
         {
 #if !UNITY_EDITOR && UNITY_IOS
-            return iOSHelper._EnableOpenSettings();
+            return iOSHelper._PluginSetEnableOpenSettings();
 #elif UNITY_ANDROID
             return true;
 #else
@@ -300,7 +300,7 @@ namespace PluginSet.Core
         public static void OpenSettings()
         {
 #if !UNITY_EDITOR && UNITY_IOS
-            iOSHelper._OpenSettings();
+            iOSHelper._PluginSetOpenSettings();
 #elif !UNITY_EDITOR && UNITY_ANDROID
             AndroidHelper.OpenSettings();
 #endif
@@ -309,7 +309,7 @@ namespace PluginSet.Core
         public static bool OSAvailable(int version)
         {
 #if !UNITY_EDITOR && UNITY_IOS
-            return iOSHelper._OSAvailable(version);
+            return iOSHelper._PluginSetOSAvailable(version);
 #elif !UNITY_EDITOR && UNITY_ANDROID
             return AndroidHelper.OSAvailable(version);
 #else

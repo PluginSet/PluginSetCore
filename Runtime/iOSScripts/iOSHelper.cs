@@ -7,55 +7,55 @@ namespace PluginSet.Core
     public static class iOSHelper
     {
         [DllImport("__Internal")]
-        public static extern void _PlatformLog(string msg);
+        public static extern void _PluginSetPlatformLog(string msg);
 
         [DllImport("__Internal")]
-        public static extern void _CopyTextToClipboard(string text);
+        public static extern void _PluginSetCopyTextToClipboard(string text);
 
         [DllImport("__Internal")]
-        public static extern string _ReadTextToClipboard();
+        public static extern string _PluginSetReadTextToClipboard();
 
         [DllImport("__Internal")]
-        public static extern void _Vibrate(int level);
+        public static extern void _PluginSetVibrate(int level);
 
         [DllImport("__Internal")]
-        public static extern string _ReadInfoPlist(string name, string defaultValue);
+        public static extern string _PluginSetReadInfoPlist(string name, string defaultValue);
 
         [DllImport("__Internal")]
-        public static extern string _GetVersionCode();
+        public static extern string _PluginSetGetVersionCode();
 
         [DllImport("__Internal")]
-        public static extern string _GetOrSaveKeyChain(string services, string key, string value);
+        public static extern string _PluginSetGetOrSaveKeyChain(string services, string key, string value);
 
         [DllImport("__Internal")]
-        public static extern void _SaveKeyChain(string services, string key, string value);
+        public static extern void _PluginSetSaveKeyChain(string services, string key, string value);
 
         [DllImport("__Internal")]
-        public static extern void _DeleteAllKeyChainValue(string services);
+        public static extern void _PluginSetDeleteAllKeyChainValue(string services);
 
         [DllImport("__Internal")]
-        public static extern void _DeleteKeyChain(string services, string key);
+        public static extern void _PluginSetDeleteKeyChain(string services, string key);
 
         [DllImport("__Internal")]
-        public static extern int _CheckAdvertisingTrackingPermission();
+        public static extern int _PluginSetCheckAdvertisingTrackingPermission();
 
         [DllImport("__Internal")]
-        public static extern bool _RequestAdvertisingTracking();
+        public static extern bool _PluginSetRequestAdvertisingTracking();
 
         [DllImport("__Internal")]
-        public static extern int _CheckMicrophonePermission();
+        public static extern int _PluginSetCheckMicrophonePermission();
 
         [DllImport("__Internal")]
-        public static extern bool _RequestMicrophoneAuth();
+        public static extern bool _PluginSetRequestMicrophoneAuth();
 
         [DllImport("__Internal")]
-        public static extern bool _EnableOpenSettings();
+        public static extern bool _PluginSetEnableOpenSettings();
 
         [DllImport("__Internal")]
-        public static extern void _OpenSettings();
+        public static extern void _PluginSetOpenSettings();
 
         [DllImport("__Internal")]
-        public static extern bool _OSAvailable(int version);
+        public static extern bool _PluginSetOSAvailable(int version);
     }
 }
 #endif

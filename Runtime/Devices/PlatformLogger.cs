@@ -10,7 +10,7 @@ namespace PluginSet.Core
     {
 #if UNITY_IOS
         [DllImport("__Internal")]
-        private static extern void _PlatformLog(string log);
+        private static extern void _PluginSetPlatformLog(string log);
 #endif
         
         private void DoLog(bool showStack, string msg, params object[] args)
@@ -30,7 +30,7 @@ namespace PluginSet.Core
 #if UNITY_ANDROID
             AndroidHelper.Log("Unity", msg);
 #elif UNITY_IOS
-            _PlatformLog(msg);
+            _PluginSetPlatformLog(msg);
 #endif
 #endif
         }

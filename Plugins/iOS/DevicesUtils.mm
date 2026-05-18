@@ -28,21 +28,21 @@ const int PermissionShouldAsk = 2;
 extern "C"
 {
 
-    void _PlatformLog(const char * msg)
+    void _PluginSetPlatformLog(const char * msg)
     {
         NSLog(@"%@", Plugin_Utils_CreateNSString(msg));
     }
 
 
     //拷贝内容至剪切板
-    void _CopyTextToClipboard(const char *textList)
+    void _PluginSetCopyTextToClipboard(const char *textList)
     {
         NSString *text = Plugin_Utils_CreateNSString(textList);
         [UIPasteboard generalPasteboard].string = text;
     }
     
     //读取内容至剪切板
-    const char* _ReadTextToClipboard()
+    const char* _PluginSetReadTextToClipboard()
     {
         if([UIPasteboard generalPasteboard].hasStrings)
         {
@@ -56,7 +56,7 @@ extern "C"
       马达震动
       style 震动幅度1~3,递增
      */
-    void _Vibrate(int style)
+    void _PluginSetVibrate(int style)
     {
         NSString *version = [UIDevice currentDevice].systemVersion;
         double versionNumber = version.doubleValue;
@@ -73,7 +73,7 @@ extern "C"
         [feedBackGenertor impactOccurred];
     }
 
-    const char* _ReadInfoPlist(const char* key, const char* defaultValue)
+    const char* _PluginSetReadInfoPlist(const char* key, const char* defaultValue)
     {
         NSString *nsKey = Plugin_Utils_CreateNSString(key);
         NSDictionary *nsDic = [NSBundle mainBundle].infoDictionary;
@@ -85,13 +85,13 @@ extern "C"
         return defaultValue;
     }
 
-    const char* _GetVersionCode()
+    const char* _PluginSetGetVersionCode()
     {
         NSString* build = [[[NSBundle mainBundle]infoDictionary] objectForKey:@"CFBundleVersion"];
         return UtilsMakeStringCopy([build UTF8String]);
     }
 
-    const char* _GetOrSaveKeyChain(const char* services, const char* key, const char* value)
+    const char* _PluginSetGetOrSaveKeyChain(const char* services, const char* key, const char* value)
     {
         NSString * stringServices = [PluginUtils createNSString:services];
         NSString * stringKey = [PluginUtils createNSString:key];
@@ -116,7 +116,7 @@ extern "C"
         return UtilsMakeStringCopy([stringValue UTF8String]);
     }
 
-    void _SaveKeyChain(const char* services, const char* key, const char* value)
+    void _PluginSetSaveKeyChain(const char* services, const char* key, const char* value)
     {
         NSString * stringServices = [PluginUtils createNSString:services];
         NSString * stringKey = [PluginUtils createNSString:key];
@@ -134,13 +134,13 @@ extern "C"
         [PluginUtils saveKeychain:stringServices data:mutableDict];
     }
 
-    void _DeleteAllKeyChainValue(const char * services)
+    void _PluginSetDeleteAllKeyChainValue(const char * services)
     {
         NSString * stringServices = [PluginUtils createNSString:services];
         [PluginUtils deleteKeychain:stringServices];
     }
 
-    void _DeleteKeyChain(const char* services, const char* key)
+    void _PluginSetDeleteKeyChain(const char* services, const char* key)
     {
         NSString * stringServices = [PluginUtils createNSString:services];
         NSDictionary * dict = [PluginUtils loadKeychain:stringServices];
@@ -159,7 +159,7 @@ extern "C"
         [PluginUtils saveKeychain:stringServices data:mutableDict];
     }
 
-    int _CheckAdvertisingTrackingPermission()
+    int _PluginSetCheckAdvertisingTrackingPermission()
     {
         if (@available(iOS 14, *)) {
             ATTrackingManagerAuthorizationStatus state = [ATTrackingManager trackingAuthorizationStatus];
@@ -174,7 +174,7 @@ extern "C"
         }
     }
 
-    bool _RequestAdvertisingTracking()
+    bool _PluginSetRequestAdvertisingTracking()
     {
         if (@available(iOS 14, *)) {
             dispatch_semaphore_t signal = dispatch_semaphore_create(0);
@@ -185,14 +185,14 @@ extern "C"
                 dispatch_semaphore_signal(signal);
             }];
             dispatch_semaphore_wait(signal, DISPATCH_TIME_FOREVER);
-            NSLog(@"sync _RequestAdvertisingTracking result %lu", (unsigned long)result);
+            NSLog(@"sync _PluginSetRequestAdvertisingTracking result %lu", (unsigned long)result);
             return result == ATTrackingManagerAuthorizationStatusAuthorized;
         } else {
             return [[ASIdentifierManager sharedManager] isAdvertisingTrackingEnabled];
         }
     }
 
-    int _CheckMicrophonePermission()
+    int _PluginSetCheckMicrophonePermission()
     {
         AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
         if (authStatus == AVAuthorizationStatusAuthorized) {
@@ -204,7 +204,7 @@ extern "C"
         return PermissionDenied;
     }
 
-    bool _RequestMicrophoneAuth()
+    bool _PluginSetRequestMicrophoneAuth()
     {
         dispatch_semaphore_t signal = dispatch_semaphore_create(0);
         __block BOOL result;
@@ -216,14 +216,14 @@ extern "C"
         return result;
     }
 
-    bool _EnableOpenSettings()
+    bool _PluginSetEnableOpenSettings()
     {
         return (&UIApplicationOpenSettingsURLString) != NULL ;
     }
 
-    void _OpenSettings()
+    void _PluginSetOpenSettings()
     {
-        if( _EnableOpenSettings() )
+        if( _PluginSetEnableOpenSettings() )
         {
     #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000
             if( @available( iOS 10, *) )
@@ -234,7 +234,7 @@ extern "C"
         }
     }
 
-    bool _OSAvailable(int version)
+    bool _PluginSetOSAvailable(int version)
     {
         NSString * ver = [NSString stringWithFormat:@"%d.0", version];
         return [[[UIDevice currentDevice]systemVersion]compare:ver options:NSNumericSearch] != NSOrderedAscending;
