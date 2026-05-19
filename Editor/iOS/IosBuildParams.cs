@@ -355,6 +355,8 @@ namespace PluginSet.Core.Editor
                 plist.AddPlistValue("NSUserTrackingUsageDescription", buildParams.UserTrackingUsageDescription);
                 project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
                 project.PrivacyPlist.SetPlistValue("NSPrivacyTracking", true);
+                // 在Info.plist中添加App Transport Security Settings -> NSAllowsArbitraryLoads 为 YES
+                plist.AddDictElement("NSAppTransportSecurity", "NSAllowsArbitraryLoads", true);
             }
             else
             {
