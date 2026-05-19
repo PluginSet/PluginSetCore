@@ -1,7 +1,7 @@
 {
   "name": "com.pluginset.core",
   "displayName": "PluginSet Core",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "unity": "2018.4",
   "description": "The framework to manager plugin set. It provides a solution for building app and patches.",
   "keywords": [

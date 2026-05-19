@@ -229,6 +229,20 @@ namespace PluginSet.Core.Editor
                 AddStringIfNo(array, value);
             }
         }
+
+        public static void OverrideBoolean(UnityEditor.iOS.Xcode.PlistElementDict node, string key, bool value)
+        {
+            if (value)
+            {
+                node.SetBoolean(key, true);
+            }
+            else
+            {
+                var item = node[key];
+                if (item == null)
+                    node.SetBoolean(key, false);
+            }
+        }
 #endif
     }
 }
