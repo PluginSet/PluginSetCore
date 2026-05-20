@@ -354,14 +354,14 @@ namespace PluginSet.Core.Editor
             {
                 plist.AddPlistValue("NSUserTrackingUsageDescription", buildParams.UserTrackingUsageDescription);
                 project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
-                project.PrivacyPlist.SetPlistValue("NSPrivacyTracking", true);
+                // project.PrivacyPlist.SetPlistValue("NSPrivacyTracking", true);
+                // 不设置NSPrivacyTracking = true, 容易与NSPrivacyTrackingDomains、NSPrivacyCollectedDataTypeTracking 等不一致，违反隐私清单准确性要求。
                 // 在Info.plist中添加App Transport Security Settings -> NSAllowsArbitraryLoads 为 YES
                 plist.AddDictElement("NSAppTransportSecurity", "NSAllowsArbitraryLoads", true);
             }
-            else
-            {
-                project.PrivacyPlist.SetPlistValue("NSPrivacyTracking", false);
-            }
+            // 不在此处写入 NSPrivacyTracking = false：本回调在 int.MaxValue 顺序下最后执行，
+            // 强制 false 会覆盖 AdMob/Firebase 等已在 PrivacyInfo.xcprivacy 中声明的追踪相关字段，
+            // 造成与 NSPrivacyTrackingDomains、NSPrivacyCollectedDataTypeTracking 等不一致，违反隐私清单准确性要求。
             
             var xcodeTarget = project.UnityFramework;
             project.AddBuildProperty(xcodeTarget, "CLANG_ENABLE_MODULES", "YES");
