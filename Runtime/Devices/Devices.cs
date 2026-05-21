@@ -51,8 +51,15 @@ namespace PluginSet.Core
         public static void Vibrate(int level)
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
-            long duration = Math.Max(0, level - 1) * 200L + 100L;
-            AndroidHelper.Vibrate(duration);
+            if (level < 1)
+            {
+                AndroidHelper.Vibrate(50L);
+            }
+            else
+            {
+                long duration = (level - 1) * 200L + 100L;
+                AndroidHelper.Vibrate(duration);
+            }
 #elif UNITY_IOS && !UNITY_EDITOR
             iOSHelper._PluginSetVibrate(level);
 #elif UNITY_WEBGL
