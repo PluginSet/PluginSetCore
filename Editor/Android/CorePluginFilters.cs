@@ -34,11 +34,8 @@ namespace PluginSet.Core.Editor
 
         static CorePluginFilters()
         {
-            PluginFilter.RegisterFilter("com.pluginset.core/Plugins/Android", new System.Collections.Generic.Dictionary<string, System.Func<string, BuildProcessorContext, bool>>
-            {
-                { "PluginSetBaseActivity.java", FilterLegacyActivity },
-                { "PluginSetBaseGameActivity.java", FilterUnity6000Activity }
-            });
+            PluginFilter.RegisterFilter("com.pluginset.core/Plugins/Android/Legacy", FilterLegacyActivity);
+            PluginFilter.RegisterFilter("com.pluginset.core/Plugins/Android/Unity6000", FilterUnity6000Activity);
         }
     }
 }
