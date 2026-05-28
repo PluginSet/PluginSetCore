@@ -69,7 +69,7 @@ namespace PluginSet.Core.Editor
         
         private string _currentMainActivityName = null;
         private bool _currentMainActivityReplaceable = true;
-        
+
         public AndroidProjectManager(string androidProjectPath)
         {
             ProjectPath = androidProjectPath;
@@ -92,7 +92,11 @@ namespace PluginSet.Core.Editor
             node.AppendContentNode("consumerProguardFiles \'proguard-user.txt\'");
             
             SetApplication("com.pluginset.core.PluginSetBaseApplication", null, true);
+#if UNITY_6 || UNITY_6000_0_OR_NEWER
+            SetMainActivity("com.pluginset.core.PluginSetBaseGameActivity", true);
+#else
             SetMainActivity("com.pluginset.core.PluginSetBaseActivity", true);
+#endif
             
 //            if (!PlayerSettings.SplashScreen.showUnityLogo)
 //                LibraryManifest.SetMetaData("unity.splash-enable", "False");
