@@ -44,6 +44,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultShareMiniProgramPlugin()
+        {
+            return GetValidShareMiniProgramTypes().FirstOrDefault();
+        }
+
         public void ShareMiniProgram(string url, string path, string appId, Action success = null, Action fail = null,
             string title = null, string desc = null, string image = null)
         {
@@ -53,10 +58,20 @@ namespace PluginSet.Core
                 ShareMiniProgramWith((string) context.Data, url, path, appId, success, fail, title, desc, image);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                fail?.Invoke();
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_MINIPROGRAM_TYPE, context))
             {
-                fail?.Invoke();
+                var plugin = GetDefaultShareMiniProgramPlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShareMiniProgramWith(plugin, url, path, appId, success, fail, title, desc, image);
+                else
+                    fail?.Invoke();
                 PluginsEventContext.Return(context);
             }
         }

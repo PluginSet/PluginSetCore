@@ -66,6 +66,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultInterstitialPlugin()
+        {
+            return GetValidInterstitialTypes().FirstOrDefault();
+        }
+
         public void LoadInterstitialAd(Action success = null, Action<int> fail = null)
         {
             var context = PluginsEventContext.Get(this);
@@ -74,10 +79,19 @@ namespace PluginSet.Core
                 LoadInterstitialAdWith((string) context.Data, success, fail);
                 PluginsEventContext.Return(context);
             };
+            context.Cancel = delegate
+            {
+                fail?.Invoke(PluginConstants.InvalidCode);
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_INTERSTITIAL_AD_TYPE, context))
             {
-                fail?.Invoke(PluginConstants.InvalidCode);
+                var plugin = GetDefaultInterstitialPlugin();
+                if (string.IsNullOrEmpty(plugin))
+                    fail?.Invoke(PluginConstants.InvalidCode);
+                else
+                    LoadInterstitialAdWith(plugin, success, fail);
                 PluginsEventContext.Return(context);
             }
         }
@@ -104,10 +118,19 @@ namespace PluginSet.Core
                 ShowInterstitialAdWith((string) context.Data, dismiss);
                 PluginsEventContext.Return(context);
             };
+            context.Cancel = delegate
+            {
+                dismiss?.Invoke(false, PluginConstants.InvalidCode);
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_INTERSTITIAL_AD_TYPE, context))
             {
-                dismiss?.Invoke(false, PluginConstants.InvalidCode);
+                var plugin = GetReadyInterstitialPlugin();
+                if (string.IsNullOrEmpty(plugin))
+                    dismiss?.Invoke(false, PluginConstants.InvalidCode);
+                else
+                    ShowInterstitialAdWith(plugin, dismiss);
                 PluginsEventContext.Return(context);
             }
         }

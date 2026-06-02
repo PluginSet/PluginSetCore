@@ -44,6 +44,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultShareWebPagePlugin()
+        {
+            return GetValidShareWebPageTypes().FirstOrDefault();
+        }
+
         public void ShareWebPage(string webUrl, Action success = null, Action fail = null
             , string title = null, string desc = null,string image = null)
         {
@@ -53,10 +58,20 @@ namespace PluginSet.Core
                 ShareWebPageWith((string) context.Data, webUrl, success, fail, title, desc, image);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                fail?.Invoke();
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_WEBPAGE_TYPE, context))
             {
-                fail?.Invoke();
+                var plugin = GetDefaultShareWebPagePlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShareWebPageWith(plugin, webUrl, success, fail, title, desc, image);
+                else
+                    fail?.Invoke();
                 PluginsEventContext.Return(context);
             }
         }

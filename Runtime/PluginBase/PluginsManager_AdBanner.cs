@@ -43,6 +43,11 @@ namespace PluginSet.Core
 
             return false;
         }
+
+        private string GetDefaultBannerPlugin()
+        {
+            return GetValidBannerTypes().FirstOrDefault();
+        }
         
         public void ShowBannerAd(string adId, BannerPosition position = BannerPosition.BottomCenter, Dictionary<string, object> extensions = null)
         {
@@ -52,9 +57,17 @@ namespace PluginSet.Core
                 ShowBannerAdWith((string) context.Data, adId, position, extensions);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_BANNER_TYPE, context))
             {
+                var plugin = GetDefaultBannerPlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShowBannerAdWith(plugin, adId, position, extensions);
                 PluginsEventContext.Return(context);
             }
         }
@@ -80,9 +93,17 @@ namespace PluginSet.Core
                 HideBannerAdWith((string) context.Data, adId);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_BANNER_TYPE, context))
             {
+                var plugin = GetDefaultBannerPlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    HideBannerAdWith(plugin, adId);
                 PluginsEventContext.Return(context);
             }
         }

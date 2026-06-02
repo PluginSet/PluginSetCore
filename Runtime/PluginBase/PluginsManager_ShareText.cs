@@ -46,6 +46,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultShareTextPlugin()
+        {
+            return GetValidShareTextTypes().FirstOrDefault();
+        }
+
         public void ShareText(string text, Action success = null, Action fail = null
             , string title = null, string image = null)
         {
@@ -55,10 +60,20 @@ namespace PluginSet.Core
                 ShareTextWith((string) context.Data, text, success, fail, title, image);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                fail?.Invoke();
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_TEXT_TYPE, context))
             {
-                fail?.Invoke();
+                var plugin = GetDefaultShareTextPlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShareTextWith(plugin, text, success, fail, title, image);
+                else
+                    fail?.Invoke();
                 PluginsEventContext.Return(context);
             }
         }

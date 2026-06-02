@@ -66,6 +66,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultOpenAdPlugin()
+        {
+            return GetValidOpenAdTypes().FirstOrDefault();
+        }
+
         public void LoadOpenAd(Action success = null, Action<int> fail = null, Dictionary<string, object> extParams = null)
         {
             var context = PluginsEventContext.Get(this);
@@ -74,10 +79,19 @@ namespace PluginSet.Core
                 LoadOpenAdWith((string) context.Data, success, fail, extParams);
                 PluginsEventContext.Return(context);
             };
+            context.Cancel = delegate
+            {
+                fail?.Invoke(PluginConstants.InvalidCode);
+                PluginsEventContext.Return(context);
+            };
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_OPEN_AD_TYPE, context))
             {
-                fail?.Invoke(PluginConstants.InvalidCode);
+                var plugin = GetDefaultOpenAdPlugin();
+                if (string.IsNullOrEmpty(plugin))
+                    fail?.Invoke(PluginConstants.InvalidCode);
+                else
+                    LoadOpenAdWith(plugin, success, fail, extParams);
                 PluginsEventContext.Return(context);
             }
         }
@@ -102,6 +116,11 @@ namespace PluginSet.Core
             context.Confirm = delegate
             {
                 ShowOpenAdWith((string) context.Data, dismiss);
+                PluginsEventContext.Return(context);
+            };
+            context.Cancel = delegate
+            {
+                dismiss?.Invoke(false, PluginConstants.InvalidCode);
                 PluginsEventContext.Return(context);
             };
 

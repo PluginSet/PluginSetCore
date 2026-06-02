@@ -66,6 +66,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultRewardAdPlugin()
+        {
+            return GetValidRewardAdTypes().FirstOrDefault();
+        }
+
         public void LoadRewardAd(Action success = null, Action<int> fail = null)
         {
             var context = PluginsEventContext.Get(this);
@@ -74,10 +79,19 @@ namespace PluginSet.Core
                 LoadRewardAdWith((string) context.Data, success, fail);
                 PluginsEventContext.Return(context);
             };
+            context.Cancel = delegate
+            {
+                fail?.Invoke(PluginConstants.InvalidCode);
+                PluginsEventContext.Return(context);
+            };
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_REWARD_AD_TYPE, context))
             {
-                fail?.Invoke(PluginConstants.InvalidCode);
+                var plugin = GetDefaultRewardAdPlugin();
+                if (string.IsNullOrEmpty(plugin))
+                    fail?.Invoke(PluginConstants.InvalidCode);
+                else
+                    LoadRewardAdWith(plugin, success, fail);
                 PluginsEventContext.Return(context);
             }
         }
@@ -102,6 +116,11 @@ namespace PluginSet.Core
             context.Confirm = delegate
             {
                 ShowRewardAdWith((string) context.Data, dismiss);
+                PluginsEventContext.Return(context);
+            };
+            context.Cancel = delegate
+            {
+                dismiss?.Invoke(false, PluginConstants.InvalidCode);
                 PluginsEventContext.Return(context);
             };
 

@@ -60,23 +60,48 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultLoginPlugin()
+        {
+            return GetValidLoginTypes().FirstOrDefault();
+        }
+
         public void Login(Action<Result> callback = null, string json = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
             {
-                LoginWith((string) context.Data, callback, json);
+                LoginWith((string)context.Data, callback, json);
+                PluginsEventContext.Return(context);
+            };
+
+            context.Cancel = delegate
+            {
+                callback?.Invoke(new Result
+                {
+                    Success = false,
+                    Error = "User cancel",
+                    PluginName = string.Empty,
+                    Data = $"{{\"json\":\"{json}\"}}",
+                });
                 PluginsEventContext.Return(context);
             };
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_LOGIN_TYPE, context))
             {
-                callback?.Invoke(new Result
+                var plugin = GetDefaultLoginPlugin();
+                if (!string.IsNullOrEmpty(plugin))
                 {
-                    Success = false,
-                    Error = "Login api need point to a plugin with name",
-                    PluginName = string.Empty,
-                });
+                    LoginWith(plugin, callback, json);
+                }
+                else
+                {
+                    callback?.Invoke(new Result
+                    {
+                        Success = false,
+                        Error = "Login api need point to a plugin with name",
+                        PluginName = string.Empty,
+                    });
+                }
 
                 PluginsEventContext.Return(context);
             }

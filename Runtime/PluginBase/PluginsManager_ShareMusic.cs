@@ -44,6 +44,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultShareMusicPlugin()
+        {
+            return GetValidShareMusicTypes().FirstOrDefault();
+        }
+
         public void ShareMusic(string musicFile, Action success = null, Action fail = null
             , string title = null, string desc = null, string image = null)
         {
@@ -53,10 +58,20 @@ namespace PluginSet.Core
                 ShareMusicWith((string) context.Data, musicFile, success, fail, title, desc, image);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                fail?.Invoke();
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_MUSIC_TYPE, context))
             {
-                fail?.Invoke();
+                var plugin = GetDefaultShareMusicPlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShareMusicWith(plugin, musicFile, success, fail, title, desc, image);
+                else
+                    fail?.Invoke();
                 PluginsEventContext.Return(context);
             }
         }

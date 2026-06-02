@@ -45,25 +45,49 @@ namespace PluginSet.Core
             return PaymentPlugins.Where(kv => kv.Value.IsEnablePayment).Select(kv => kv.Key).ToArray();
         }
 
+        private string GetDefaultPaymentPlugin()
+        {
+            return GetValidPayTypes().FirstOrDefault();
+        }
+
         public void Pay(string productId, Action<PurchaseResult> callback = null, string jsonData = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
             {
-                PayWith((string) context.Data, productId, callback, jsonData);
+                PayWith((string)context.Data, productId, callback, jsonData);
+                PluginsEventContext.Return(context);
+            };
+
+            context.Cancel = delegate
+            {
+                callback?.Invoke(new PurchaseResult()
+                {
+                    Success = false,
+                    Error = "User cancel",
+                    PluginName = string.Empty,
+                    Data = $"{{\"productId\":\"{productId}\"}}",
+                });
                 PluginsEventContext.Return(context);
             };
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_PAYMENT_TYPE, context))
             {
-                callback?.Invoke(new PurchaseResult()
+                var plugin = GetDefaultPaymentPlugin();
+                if (!string.IsNullOrEmpty(plugin))
                 {
-                    Success = false,
-                    Error = "Pay api need point to a plugin with name",
-                    PluginName = string.Empty,
-                    Data = $"{{\"productId\":\"{productId}\"}}",
-                });
-
+                    PayWith(plugin, productId, callback, jsonData);
+                }
+                else
+                {
+                    callback?.Invoke(new PurchaseResult()
+                    {
+                        Success = false,
+                        Error = "Pay api need point to a plugin with name",
+                        PluginName = string.Empty,
+                        Data = $"{{\"productId\":\"{productId}\"}}",
+                    });
+                }
                 PluginsEventContext.Return(context);
             }
         }

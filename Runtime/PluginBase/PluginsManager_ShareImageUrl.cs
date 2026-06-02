@@ -44,6 +44,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultShareImageUrlPlugin()
+        {
+            return GetValidShareImageUrlTypes().FirstOrDefault();
+        }
+
         public void ShareImageUrl(string imageUrl, Action success = null, Action fail = null
             , string title = null, string desc = null, string image = null)
         {
@@ -53,10 +58,20 @@ namespace PluginSet.Core
                 ShareImageUrlWith((string) context.Data, imageUrl, success, fail, title, desc, image);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                fail?.Invoke();
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_IMAGE_TYPE, context))
             {
-                fail?.Invoke();
+                var plugin = GetDefaultShareImageUrlPlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShareImageUrlWith(plugin, imageUrl, success, fail, title, desc, image);
+                else
+                    fail?.Invoke();
                 PluginsEventContext.Return(context);
             }
         }

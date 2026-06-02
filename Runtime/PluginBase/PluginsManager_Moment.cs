@@ -64,6 +64,10 @@ namespace PluginSet.Core
                 MomentOpenWith((string)context.Data);
                 PluginsEventContext.Return(context);
             };
+            context.Cancel = delegate
+            {
+                PluginsEventContext.Return(context);
+            };
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_MOMENT_OPEN_TYPE, context))
             {
@@ -91,6 +95,10 @@ namespace PluginSet.Core
             context.Confirm = delegate
             {
                 MomentFetchWith((string)context.Data);
+                PluginsEventContext.Return(context);
+            };
+            context.Cancel = delegate
+            {
                 PluginsEventContext.Return(context);
             };
 
@@ -122,6 +130,10 @@ namespace PluginSet.Core
                 MomentOpenPageWith((string)context.Data, page);
                 PluginsEventContext.Return(context);
             };
+            context.Cancel = delegate
+            {
+                PluginsEventContext.Return(context);
+            };
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_MOMENT_OPEN_PAGE_TYPE, context))
             {
@@ -151,6 +163,10 @@ namespace PluginSet.Core
                 MomentTryCloseMomentConfirmWindowWith((string)context.Data, tips, content);
                 PluginsEventContext.Return(context);
             };
+            context.Cancel = delegate
+            {
+                PluginsEventContext.Return(context);
+            };
 
             if (!NotifyAnyOne(PluginConstants.NOTIFY_MOMENT_TRY_CLOSE_MOMENT, context))
             {
@@ -178,6 +194,10 @@ namespace PluginSet.Core
             context.Confirm = delegate
             {
                 MomentCloseWith((string)context.Data);
+                PluginsEventContext.Return(context);
+            };
+            context.Cancel = delegate
+            {
                 PluginsEventContext.Return(context);
             };
 

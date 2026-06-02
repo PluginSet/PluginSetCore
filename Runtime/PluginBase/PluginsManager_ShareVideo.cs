@@ -44,6 +44,11 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultShareVideoPlugin()
+        {
+            return GetValidShareVideoTypes().FirstOrDefault();
+        }
+
         public void ShareVideo(string videoFile, Action success = null, Action fail = null, string extra = null, string title = null,
             string desc = null, string image = null)
         {
@@ -53,10 +58,20 @@ namespace PluginSet.Core
                 ShareVideoWith((string) context.Data, videoFile, success, fail, extra, title, desc, image);
                 PluginsEventContext.Return(context);
             };
+
+            context.Cancel = delegate
+            {
+                fail?.Invoke();
+                PluginsEventContext.Return(context);
+            };
             
             if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_VIDEO_TYPE, context))
             {
-                fail?.Invoke();
+                var plugin = GetDefaultShareVideoPlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShareVideoWith(plugin, videoFile, success, fail, extra, title, desc, image);
+                else
+                    fail?.Invoke();
                 PluginsEventContext.Return(context);
             }
         }

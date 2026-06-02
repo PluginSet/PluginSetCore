@@ -186,9 +186,10 @@ namespace PluginSet.Core
             AddEventListener(PluginConstants.NOTIFY_RESTART, Restart);
         }
 
-        private void Start()
+        private IEnumerator Start()
         {
-            StartCoroutine(StartAll());
+            yield return new WaitForEndOfFrame();
+            yield return StartAll();
         }
 
         private IEnumerator StartAll()

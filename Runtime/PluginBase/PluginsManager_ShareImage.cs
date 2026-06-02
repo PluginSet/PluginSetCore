@@ -44,19 +44,36 @@ namespace PluginSet.Core
             return false;
         }
 
+        private string GetDefaultShareImagePlugin()
+        {
+            return GetValidShareImageTypes().FirstOrDefault();
+        }
+
         public void ShareImage(string imagePath, Action success = null, Action fail = null
             , string title = null, string desc = null, string image = null)
         {
             var context = PluginsEventContext.Get(this);
             context.Confirm = delegate
             {
-                ShareImageWith((string) context.Data, imagePath, success, fail, title, desc, image);
+                ShareImageWith((string)context.Data, imagePath, success, fail, title, desc, image);
                 PluginsEventContext.Return(context);
             };
-            
-            if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_IMAGE_TYPE, context))
+
+            context.Cancel = delegate
             {
                 fail?.Invoke();
+                PluginsEventContext.Return(context);
+            };
+
+            if (!NotifyAnyOne(PluginConstants.NOTIFY_CHOOSE_SHARE_IMAGE_TYPE, context))
+            {
+                var plugin = GetDefaultShareImagePlugin();
+                if (!string.IsNullOrEmpty(plugin))
+                    ShareImageWith(plugin, imagePath, success, fail, title, desc, image);
+                else
+                {
+                    fail?.Invoke();
+                }
                 PluginsEventContext.Return(context);
             }
         }
