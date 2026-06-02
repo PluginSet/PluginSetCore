@@ -56,6 +56,45 @@ namespace PluginSet.Core
 
         [DllImport("__Internal")]
         public static extern bool _PluginSetOSAvailable(int version);
+
+#if ENABLE_PUSH_MODULE
+        [DllImport("__Internal")]
+        public static extern void _PluginSetNotificationStorePendingOpenJson(string json);
+
+        [DllImport("__Internal")]
+        public static extern bool _PluginSetNotificationRequestPermission();
+
+        [DllImport("__Internal")]
+        public static extern void _PluginSetNotificationSetBadgeNumber(int count);
+
+        [DllImport("__Internal")]
+        public static extern int _PluginSetNotificationGetBadgeNumber();
+
+        [DllImport("__Internal")]
+        public static extern void _PluginSetNotificationRemoveAllDelivered();
+
+        [DllImport("__Internal")]
+        public static extern System.IntPtr _PluginSetNotificationConsumeInitialJson();
+
+        [DllImport("__Internal")]
+        public static extern void _PluginSetNotificationFreeCString(System.IntPtr value);
+
+        [DllImport("__Internal")]
+        public static extern void _PluginSetNotificationPostLocal(
+            string identifier,
+            string channelId,
+            string title,
+            string body,
+            int delaySeconds,
+            string dataJson,
+            string actionId);
+
+        [DllImport("__Internal")]
+        public static extern void _PluginSetNotificationCancelLocal(string identifier);
+
+        [DllImport("__Internal")]
+        public static extern void _PluginSetNotificationCancelAllPendingLocal();
+#endif
     }
 }
 #endif

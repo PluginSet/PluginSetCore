@@ -110,5 +110,13 @@ namespace PluginSet.Core
         public const string FRIEND_UPDATE_PROFILE = "FRIEND_UPDATE_PROFILE";
         public const string FRIEND_ADD_REQUEST = "FRIEND_ADD_REQUEST";
         public const string FRIEND_REQUEST_DELETE = "FRIEND_REQUEST_DELETE";
+        
+        // push message
+        public const string NOTIFY_ONRECEIVED_PUSH_MESSAGE = "NOTIFY_ONRECEIVED_PUSH_MESSAGE";
+        public const string NOTIFY_NOTIFICATION_OPENED = "NOTIFY_NOTIFICATION_OPENED";
+        /// <summary>推送 Token 已更新（<see cref="PushTokenRefreshEventData"/>）。</summary>
+        public const string NOTIFY_PUSH_TOKEN_REFRESH = "NOTIFY_PUSH_TOKEN_REFRESH";
+        /// <summary>可向业务服务端绑定/解绑用户与 Token（<see cref="PushRegisterEventData"/>）。</summary>
+        public const string NOTIFY_PUSH_REGISTER_READY = "NOTIFY_PUSH_REGISTER_READY";
     }
 }

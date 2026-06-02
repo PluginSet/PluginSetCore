@@ -81,6 +81,9 @@ namespace PluginSet.Core.Editor
         [Tooltip("是否显示Unity闪屏")]
         public bool ShowUnityLogo = false;
 
+        [Tooltip("是否包含通知模块（本地通知 + 系统通知栏 API；远程推送另需 Apple/Firebase 子项开启）。开启后注入 ENABLE_PUSH_MODULE，并添加 Android 通知权限。")]
+        public bool IncludePushModule;
+
         internal static readonly string MainPath = Path.Combine("Assets", "Editor", "Channels");
         private static SettingAssetLoader assetLoader = new SettingAssetLoader(MainPath);
 
@@ -280,6 +283,9 @@ namespace PluginSet.Core.Editor
                     context.Symbols.Add(symbol);
                 }
             }
+
+            if (asset.IncludePushModule)
+                context.Symbols.Add("ENABLE_PUSH_MODULE");
         }
     }
 }

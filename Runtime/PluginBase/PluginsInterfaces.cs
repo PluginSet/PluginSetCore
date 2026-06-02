@@ -428,6 +428,160 @@ namespace PluginSet.Core
     }
 
     /// <summary>
+    /// 推送消息体（与具体商店 SDK 无关的通用结构）。
+    /// </summary>
+    public class PushMessage
+    {
+        public string Title { get; set; }
+        public string Body { get; set; }
+        public Dictionary<string, object> Data { get; set; }
+    }
+
+    /// <summary>
+    /// 本地通知请求（由应用在本地调度，不经过 FCM/APNs）。
+    /// </summary>
+    public class LocalNotificationRequest
+    {
+        /// <summary>业务侧唯一 ID，用于取消；为空时由系统生成。</summary>
+        public string NotificationId;
+
+        /// <summary>Android 通知渠道 ID；为空时使用默认渠道。</summary>
+        public string ChannelId;
+
+        public string Title;
+        public string Body;
+
+        /// <summary>延迟秒数；0 表示立即展示。</summary>
+        public int DelaySeconds;
+
+        /// <summary>
+        /// 通知动作 ID（如按钮/分类标识）；点击通知后在 <see cref="NotificationResponse.ActionId"/> 中返回。
+        /// </summary>
+        public string ActionId;
+
+        /// <summary>
+        /// 自定义键值，点击通知后在 <see cref="NotificationResponse.Message.Data"/> 中返回（不含 title/body/actionId）。
+        /// </summary>
+        public Dictionary<string, object> Data;
+    }
+
+    /// <summary>
+    /// 用户点击通知后的响应信息。
+    /// </summary>
+    public class NotificationResponse
+    {
+        public PushMessage Message { get; set; }
+        public string ActionId { get; set; }
+        public bool IsInitialLaunch { get; set; }
+    }
+
+    /// <summary>
+    /// <see cref="PluginConstants.NOTIFY_PUSH_TOKEN_REFRESH"/> 事件载荷（各推送插件统一结构）。
+    /// </summary>
+    public class PushTokenRefreshEventData
+    {
+        public string PluginName { get; set; }
+        public string Token { get; set; }
+        public string UserId { get; set; }
+        public string Platform { get; set; }
+
+        public static PushTokenRefreshEventData Create(string pluginName, string token, string userId = null)
+        {
+            return new PushTokenRefreshEventData
+            {
+                PluginName = pluginName ?? string.Empty,
+                Token = token ?? string.Empty,
+                UserId = userId ?? string.Empty,
+                Platform = Application.platform.ToString(),
+            };
+        }
+    }
+
+    /// <summary>
+    /// <see cref="PluginConstants.NOTIFY_PUSH_REGISTER_READY"/> 事件载荷（各推送插件统一结构）。
+    /// </summary>
+    public class PushRegisterEventData
+    {
+        public string PluginName { get; set; }
+        public string UserId { get; set; }
+        public string Token { get; set; }
+        public string Platform { get; set; }
+
+        /// <summary>
+        /// true：绑定用户与 Token；false：登出解绑（UserId/Token 为空）。
+        /// </summary>
+        public bool IsRegister { get; set; }
+
+        public static PushRegisterEventData CreateRegister(string pluginName, string userId, string token)
+        {
+            return new PushRegisterEventData
+            {
+                PluginName = pluginName ?? string.Empty,
+                UserId = userId ?? string.Empty,
+                Token = token ?? string.Empty,
+                Platform = Application.platform.ToString(),
+                IsRegister = true,
+            };
+        }
+
+        public static PushRegisterEventData CreateUnregister(string pluginName)
+        {
+            return new PushRegisterEventData
+            {
+                PluginName = pluginName ?? string.Empty,
+                UserId = string.Empty,
+                Token = string.Empty,
+                Platform = Application.platform.ToString(),
+                IsRegister = false,
+            };
+        }
+    }
+
+#if ENABLE_PUSH_MODULE
+    /// <summary>
+    /// 系统通知栏能力，由 <see cref="Devices"/> 实现。
+    /// </summary>
+    public interface IDeviceNotification
+    {
+        NotificationResponse GetInitialNotification();
+
+        bool RequestNotificationPermissions();
+
+        void SetBadgeNumber(int count);
+
+        int GetBadgeNumber();
+
+        void RemoveDeliveredNotifications(params string[] identifiers);
+
+        void RemoveAllDeliveredNotifications();
+
+        void CreateNotificationChannel(string config);
+
+        void PostLocalNotification(LocalNotificationRequest request);
+
+        void CancelLocalNotification(string notificationId);
+
+        void CancelAllPendingLocalNotifications();
+    }
+
+    /// <summary>
+    /// 远程推送 SDK 能力（FCM / APNs Token、主题订阅等），由各商店插件实现并由 PluginsManager 转发。
+    /// </summary>
+    public interface IRemotePushNotificationPlugin : IPluginBase
+    {
+        bool IsEnablePush { get; }
+
+        bool HasPushToken { get; }
+
+        string PushToken { get; }
+
+        void SubscribeToTopic(string topic);
+
+        void UnsubscribeFromTopic(string topic);
+    }
+#endif
+
+    /// <summary>
     /// 其实可以用事件代替，但想想还是加一个更方便使用
     /// </summary>
     public interface ICustomPlugin : IPluginBase

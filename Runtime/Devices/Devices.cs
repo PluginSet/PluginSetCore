@@ -11,7 +11,7 @@ namespace PluginSet.Core
         ShouldAsk = 2,
     }
     
-    public static class Devices
+    public static partial class Devices
     {
 #if UNITY_WEBGL
         internal static string ApplicationId { private get; set; }
