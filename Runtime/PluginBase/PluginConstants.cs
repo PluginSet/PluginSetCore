@@ -118,5 +118,6 @@ namespace PluginSet.Core
         public const string NOTIFY_PUSH_TOKEN_REFRESH = "NOTIFY_PUSH_TOKEN_REFRESH";
         /// <summary>可向业务服务端绑定/解绑用户与 Token（<see cref="PushRegisterEventData"/>）。</summary>
         public const string NOTIFY_PUSH_REGISTER_READY = "NOTIFY_PUSH_REGISTER_READY";
+        public const string NOTIFY_REMOTE_CONFIG_CHANGED = "NOTIFY_REMOTE_CONFIG_CHANGED";
     }
 }

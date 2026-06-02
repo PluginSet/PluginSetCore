@@ -579,6 +579,16 @@ namespace PluginSet.Core
 
         void UnsubscribeFromTopic(string topic);
     }
+
+    /// <summary>
+    /// 远程配置能力。SetDefault 与 GetConfig 必须使用同一配置结构类型。
+    /// </summary>
+    public interface IRemoteConfigPlugin : IPluginBase
+    {
+        void SetDefault<T>(T config) where T : class, new();
+
+        T GetConfig<T>() where T : class, new();
+    }
 #endif
 
     /// <summary>
