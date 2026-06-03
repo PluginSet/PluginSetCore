@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace PluginSet.Core
 {
-    public sealed partial class PluginsManager : IRemotePushNotificationPlugin, IDeviceNotification
+    public sealed partial class PluginsManager : IRemotePushNotificationPlugin
     {
         private Dictionary<string, IRemotePushNotificationPlugin> _remotePushPlugins;
 
@@ -27,7 +27,7 @@ namespace PluginSet.Core
 
         public bool IsEnablePush => GetValidPushTypes().Length > 0;
 
-        public bool HasPushToken => GetValidPushTypes().Any(name => RemotePushPlugins[name].HasPushToken);
+        public bool HasPushToken => GetValidPushTypes().Any(n => RemotePushPlugins[n].HasPushToken);
 
         public string PushToken
         {
@@ -71,46 +71,6 @@ namespace PluginSet.Core
 
             return string.Empty;
         }
-
-        public NotificationResponse GetInitialNotification() => Devices.GetInitialNotification();
-
-        public NotificationResponse GetInitialNotificationWith(string pluginName) => Devices.GetInitialNotification();
-
-        public bool RequestNotificationPermissions() => Devices.RequestNotificationPermissions();
-
-        public void RequestPushPermissions() => Devices.RequestNotificationPermissions();
-
-        public void RequestPushPermissionsWith(string pluginName) => Devices.RequestNotificationPermissions();
-
-        public void SetBadgeNumber(int count) => Devices.SetBadgeNumber(count);
-
-        public void SetBadgeNumberWith(string pluginName, int count) => Devices.SetBadgeNumber(count);
-
-        public int GetBadgeNumber() => Devices.GetBadgeNumber();
-
-        public int GetBadgeNumberWith(string pluginName) => Devices.GetBadgeNumber();
-
-        public void RemoveDeliveredNotifications(params string[] identifiers) =>
-            Devices.RemoveDeliveredNotifications(identifiers);
-
-        public void RemoveDeliveredNotificationsWith(string pluginName, params string[] identifiers) =>
-            Devices.RemoveDeliveredNotifications(identifiers);
-
-        public void RemoveAllDeliveredNotifications() => Devices.RemoveAllDeliveredNotifications();
-
-        public void RemoveAllDeliveredNotificationsWith(string pluginName) => Devices.RemoveAllDeliveredNotifications();
-
-        public void CreateNotificationChannel(string config) => Devices.CreateNotificationChannelFromJson(config);
-
-        public void CreateChannel(string config) => Devices.CreateNotificationChannelFromJson(config);
-
-        public void CreateChannelWith(string pluginName, string config) => Devices.CreateNotificationChannelFromJson(config);
-
-        public void PostLocalNotification(LocalNotificationRequest request) => Devices.PostLocalNotification(request);
-
-        public void CancelLocalNotification(string notificationId) => Devices.CancelLocalNotification(notificationId);
-
-        public void CancelAllPendingLocalNotifications() => Devices.CancelAllPendingLocalNotifications();
 
         public void SubscribeToTopic(string topic)
         {

@@ -537,33 +537,6 @@ namespace PluginSet.Core
         }
     }
 
-#if ENABLE_PUSH_MODULE
-    /// <summary>
-    /// 系统通知栏能力，由 <see cref="Devices"/> 实现。
-    /// </summary>
-    public interface IDeviceNotification
-    {
-        NotificationResponse GetInitialNotification();
-
-        bool RequestNotificationPermissions();
-
-        void SetBadgeNumber(int count);
-
-        int GetBadgeNumber();
-
-        void RemoveDeliveredNotifications(params string[] identifiers);
-
-        void RemoveAllDeliveredNotifications();
-
-        void CreateNotificationChannel(string config);
-
-        void PostLocalNotification(LocalNotificationRequest request);
-
-        void CancelLocalNotification(string notificationId);
-
-        void CancelAllPendingLocalNotifications();
-    }
-
     /// <summary>
     /// 远程推送 SDK 能力（FCM / APNs Token、主题订阅等），由各商店插件实现并由 PluginsManager 转发。
     /// </summary>
@@ -580,6 +553,26 @@ namespace PluginSet.Core
         void UnsubscribeFromTopic(string topic);
     }
 
+    /// <summary>云端玩家数据存储能力（后端无关：Firestore / PlayFab / REST 等均可实现）。</summary>
+    public interface ICloudDataStorageModule
+    {
+        /// <summary>该实现是否可用（已配置、已初始化、玩家已就绪）。</summary>
+        bool IsCloudStorageReady { get; }
+
+        /// <summary>覆盖写入整个文档。uniqId 为业务侧玩家唯一键（非 SetUserInfo 的 userId）；path 为逻辑路径，如 "player/profile"。</summary>
+        void SetData(string uniqId, string path, string json, string revision, Action<Result> callback = null);
+
+        /// <summary>读取整个文档；不存在时返回 IsNotFound。</summary>
+        void GetData(string uniqId, string path, Action<Result> callback);
+
+        /// <summary>删除文档。</summary>
+        void DeleteData(string uniqId, string path, Action<Result> callback = null);
+    }
+
+    public interface ICloudDataStoragePlugin : IPluginBase, ICloudDataStorageModule
+    {
+    }
+
     /// <summary>
     /// 远程配置能力。SetDefault 与 GetConfig 必须使用同一配置结构类型。
     /// </summary>
@@ -589,7 +582,6 @@ namespace PluginSet.Core
 
         T GetConfig<T>() where T : class, new();
     }
-#endif
 
     /// <summary>
     /// 其实可以用事件代替，但想想还是加一个更方便使用
