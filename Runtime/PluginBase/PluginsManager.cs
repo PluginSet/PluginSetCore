@@ -97,6 +97,7 @@ namespace PluginSet.Core
             lastScreenHeight = Screen.height;
 
             MainThread.Init();
+            CallLater.Init();
             
 #if UNITY_IOS
             ObjectCCallbackListener.InitListener();
@@ -123,6 +124,7 @@ namespace PluginSet.Core
                 Logger.Debug("PluginsManager Add plugin {0} >>>>>>>>>>> ", cmp.Name);
                 cmp.SetPluginsMangerInstance(this);
                 pluginList.Add(cmp);
+                cmp.Init();
             }
 
             _plugins = pluginList.ToArray();

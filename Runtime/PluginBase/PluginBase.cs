@@ -47,10 +47,20 @@ namespace PluginSet.Core
 
         protected virtual void Awake()
         {
-            Init(PluginSetConfig.Asset);
+            Init();
         }
 
         public abstract string Name { get; }
+
+        private bool _calledInit = false;
+            
+
+        internal void Init()
+        {
+            if (_calledInit) return;
+            _calledInit = true;
+            Init(PluginSetConfig.Asset);
+        }
 
         protected virtual void Init(PluginSetConfig config)
         {
