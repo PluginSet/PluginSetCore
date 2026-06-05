@@ -556,9 +556,6 @@ namespace PluginSet.Core
     /// <summary>云端玩家数据存储能力（后端无关：Firestore / PlayFab / REST 等均可实现）。</summary>
     public interface ICloudDataStorageModule
     {
-        /// <summary>该实现是否可用（已配置、已初始化、玩家已就绪）。</summary>
-        bool IsCloudStorageReady { get; }
-
         /// <summary>覆盖写入整个文档。uniqId 为业务侧玩家唯一键（非 SetUserInfo 的 userId）；path 为逻辑路径，如 "player/profile"。</summary>
         void SetData(string uniqId, string path, string json, string revision, Action<Result> callback = null);
 

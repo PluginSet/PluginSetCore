@@ -25,22 +25,9 @@ namespace PluginSet.Core
             }
         }
 
-        public bool IsCloudStorageReady =>
-            GetFirstReadyCloudStoragePlugin()?.IsCloudStorageReady ?? false;
-        
-        public bool IsCloudStorageReadyWith(string pluginName)
-        {
-            if (CloudStoragePlugins.TryGetValue(pluginName, out var plugin))
-            {
-                return plugin.IsCloudStorageReady;
-            }
-
-            return false;
-        }
-        
         private ICloudDataStoragePlugin GetFirstReadyCloudStoragePlugin()
         {
-            return CloudStoragePlugins.Values.FirstOrDefault(p => p.IsCloudStorageReady);
+            return CloudStoragePlugins.Values.FirstOrDefault();
         }
 
         public void SetData(string uniqId, string path, string json, string revision, Action<Result> callback = null)
@@ -87,7 +74,7 @@ namespace PluginSet.Core
             string revision,
             Action<Result> callback = null)
         {
-            if (CloudStoragePlugins.TryGetValue(pluginName, out var plugin) && plugin.IsCloudStorageReady)
+            if (CloudStoragePlugins.TryGetValue(pluginName, out var plugin))
             {
                 plugin.SetData(uniqId, path, json, revision, callback);
                 return;
@@ -98,7 +85,7 @@ namespace PluginSet.Core
 
         public void GetDataWith(string pluginName, string uniqId, string path, Action<Result> callback)
         {
-            if (CloudStoragePlugins.TryGetValue(pluginName, out var plugin) && plugin.IsCloudStorageReady)
+            if (CloudStoragePlugins.TryGetValue(pluginName, out var plugin))
             {
                 plugin.GetData(uniqId, path, callback);
                 return;
@@ -109,7 +96,7 @@ namespace PluginSet.Core
 
         public void DeleteDataWith(string pluginName, string uniqId, string path, Action<Result> callback = null)
         {
-            if (CloudStoragePlugins.TryGetValue(pluginName, out var plugin) && plugin.IsCloudStorageReady)
+            if (CloudStoragePlugins.TryGetValue(pluginName, out var plugin))
             {
                 plugin.DeleteData(uniqId, path, callback);
                 return;
