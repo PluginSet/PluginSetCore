@@ -116,10 +116,11 @@ namespace PluginSet.Core
 
         public void InitWithProducts(Dictionary<string, ProductType> products, Action<IAPInitResult> callback = null)
         {
+            var wrappedCallback = WrapIapInitCallback(callback);
             foreach (var kv in PaymentPlugins)
             {
                 if (kv.Value is IIAPurchasePlugin purchasePlugin)
-                    purchasePlugin.InitWithProducts(products,callback);
+                    purchasePlugin.InitWithProducts(products, wrappedCallback);
             }
         }
 
@@ -128,10 +129,44 @@ namespace PluginSet.Core
             if (PaymentPlugins.TryGetValue(pluginName, out var plugin))
             {
                 if (plugin is IIAPurchasePlugin purchasePlugin)
-                    purchasePlugin.InitWithProducts(products, callback);
+                    purchasePlugin.InitWithProducts(products, WrapIapInitCallback(callback));
                 else
                     Logger.Warn($"Payment plugin {pluginName} need not call InitWithProducts");
             }
+        }
+
+        private Action<IAPInitResult> WrapIapInitCallback(Action<IAPInitResult> callback)
+        {
+            return result =>
+            {
+                NotifyLegacyIapInitEvents(result);
+                callback?.Invoke(result);
+            };
+        }
+
+        private void NotifyLegacyIapInitEvents(IAPInitResult result)
+        {
+            if (result == null)
+                return;
+
+            var legacyResult = ToLegacyIapInitResult(result);
+            if (result.Success)
+                SendNotification(PluginConstants.IAP_ON_INIT_SUCCESS, legacyResult);
+            else
+                SendNotification(PluginConstants.IAP_ON_INIT_FAILED, legacyResult);
+        }
+
+        private static Result ToLegacyIapInitResult(IAPInitResult result)
+        {
+            return new Result
+            {
+                PluginName = result.PluginName,
+                Success = result.Success,
+                Code = result.Code,
+                Error = result.Error,
+                Data = result.Data,
+                DataObject = result.DataObject,
+            };
         }
 
         [Obsolete("Use PaymentCompleteWith instead")]

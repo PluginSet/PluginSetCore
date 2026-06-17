@@ -91,6 +91,16 @@ namespace PluginSet.Core
         public const string PATCH_NOTIFY_NET_ERROR = "PATCH_NOTIFY_NET_ERROR";
 
         public const string PLUGIN_INIT_ERROR = "PLUGIN_INIT_ERROR";
+
+        /// <summary>
+        /// 事件接收一个 <see cref="Result"/> 参数（<c>DataObject</c> 为商品字典）。
+        /// </summary>
+        public const string IAP_ON_INIT_SUCCESS = "IAP_ON_INIT_SUCCESS";
+
+        /// <summary>
+        /// 事件接收一个 <see cref="Result"/> 参数（失败时 <c>Error</c> 为错误信息）。
+        /// </summary>
+        public const string IAP_ON_INIT_FAILED = "IAP_ON_INIT_FAILED";
         
         /// <summary>
         /// 事件接收一个Result参数，参数数据与支付成功回调数据相同
