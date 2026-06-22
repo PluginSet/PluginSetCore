@@ -7,6 +7,16 @@
 static NSString* gDevicesPendingOpenPayload = nil;
 static int gDevicesBadgeNumber = 0;
 
+char* UtilsMakeStringCopyDN (const char* string)
+{
+    if (string == NULL)
+        return NULL;
+
+    char* res = (char*)malloc(strlen(string) + 1);
+    strcpy(res, string);
+    return res;
+}
+
 static void DevicesNotificationStoreOpenedUserInfo(NSDictionary* userInfo, BOOL isInitialLaunch) {
     if (userInfo == nil) {
         return;
@@ -134,9 +144,9 @@ extern "C"
 
     const char* _PluginSetNotificationConsumeInitialJson() {
         if (gDevicesPendingOpenPayload == nil) {
-            return UtilsMakeStringCopy("");
+            return UtilsMakeStringCopyDN("");
         }
-        const char* result = UtilsMakeStringCopy([gDevicesPendingOpenPayload UTF8String]);
+        const char* result = UtilsMakeStringCopyDN([gDevicesPendingOpenPayload UTF8String]);
         gDevicesPendingOpenPayload = nil;
         return result;
     }

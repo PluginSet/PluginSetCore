@@ -32,22 +32,10 @@ namespace PluginSet.Core.Editor
             return !enable;
         }
 
-        private static bool FilterPushModule(string fileName, BuildProcessorContext context)
-        {
-            if (context.BuildChannels.IncludePushModule)
-                return false;
-
-            Debug.Log("Filter Core push plugin: excluded " + fileName);
-            return true;
-        }
-
         static CorePluginFilters()
         {
             PluginFilter.RegisterFilter("com.pluginset.core/Plugins/Android/Legacy", FilterLegacyActivity);
             PluginFilter.RegisterFilter("com.pluginset.core/Plugins/Android/Unity6000", FilterUnity6000Activity);
-            PluginFilter.RegisterFilter("com.pluginset.core/Plugins/Android/DevicesNotification", FilterPushModule);
-            PluginFilter.RegisterFilter("com.pluginset.core/Plugins/Android/DevicesLocalNotificationReceiver", FilterPushModule);
-            PluginFilter.RegisterFilter("com.pluginset.core/Plugins/iOS/DevicesNotification", FilterPushModule);
         }
     }
 }
