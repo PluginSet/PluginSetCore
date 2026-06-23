@@ -196,6 +196,8 @@ namespace PluginSet.Core
         [SerializeField]
         public string productId;
         [SerializeField]
+        public string extra;
+        [SerializeField]
         public string callback;
     }
 
