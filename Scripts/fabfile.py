@@ -556,7 +556,37 @@ class BuildToolIOS(object):
             ipa_name = scheme + ".ipa"
         return os.path.join(export_path, ipa_name)
 
-    def create_export_plist(self, method):
+    def ios_archive_upload(self, archive_path, archive_info, method
+        , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
+        """
+        导出 archive 并直接上传到 App Store Connect
+        """
+        archive_path = archive_path or ""
+        export_path = self.build_config.get_export_path()
+        export_plist_path = self.create_export_plist(method, upload=True)
+
+        cmds = [
+            "xcodebuild",
+            "-exportArchive",
+            "-archivePath", archive_path,
+            "-exportPath", export_path,
+            "-exportOptionsPlist", export_plist_path,
+            "-allowProvisioningUpdates",
+        ]
+        if api_key_id and api_issuer_id and api_key_path:
+            cmds.extend(["-authenticationKeyPath", api_key_path])
+            cmds.extend(["-authenticationKeyID", api_key_id])
+            cmds.extend(["-authenticationKeyIssuerID", api_issuer_id])
+        elif apple_id and apple_password:
+            cmds.extend(["-username", apple_id])
+            cmds.extend(["-password", apple_password])
+
+        cmd = " ".join(cmds)
+        print(cmd)
+        self.run_print_result(cmd)
+        return export_path
+
+    def create_export_plist(self, method, upload=False):
         plist_path = self.build_config.get_export_plist_path()
         plist_file = os.path.join(plist_path, 'export.plist')
         plist_dict = {
@@ -569,6 +599,9 @@ class BuildToolIOS(object):
             "method": method,
             "compileBitcode": self.build_config.bite_code
         }
+        if upload:
+            plist_dict["destination"] = "upload"
+            plist_dict["uploadSymbols"] = True
         print(plist_dict)
         if os.path.exists(plist_file):
             os.remove(plist_file)
@@ -812,11 +845,17 @@ def podInstall(project_path:str)->str:
     return os.path.join(project_path, "Unity-iPhone.xcworkspace")
 
 
+def normalize_ios_build_type(build_type):
+    if build_type == "applestore":
+        return "appstore"
+    return build_type
+
+
 def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:bool, buildType="adHoc"):
     project = podInstall(ios_project_path)
     configuration = "debug" if debug else "release"
     build_config = BuildConfig()
-    build_config.set_config(project, buildType, configuration, version_name, build_number, build_number)
+    build_config.set_config(project, normalize_ios_build_type(buildType), configuration, version_name, build_number, build_number)
     build_tool = BuildToolIOS(build_config, True, False)
     archive_path = build_tool.ios_archive()
 
@@ -1614,6 +1653,35 @@ def build_ios_installer(installer_path, channel, channelId, version_name, build_
     copy_file(ipa_file_name, os.path.join(installer_path, "app.ipa"))
     return build_result
 
+
+def build_ios_appstore(channel, channelId, version_name, build_number, temp_path
+    , debug, cache_log, product, gitcommit
+    , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
+    dump_now("start build ios appstore")
+    export_project("ios", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
+    dump_now("export ios project completed")
+    build_result = get_build_result(temp_path)
+    ios_project_path = build_result.get("projectPath", None)
+    if ios_project_path is None:
+        return FAILURE("Cannot get ios project path")
+
+    project = podInstall(ios_project_path)
+    configuration = "debug" if debug else "release"
+    build_config = BuildConfig()
+    build_config.set_config(project, "appstore", configuration, version_name, build_number, build_number)
+    build_tool = BuildToolIOS(build_config, True, False)
+    archive_path = build_tool.ios_archive()
+    dump_now("archived ios project: " + archive_path)
+
+    archive_info = ArchiveInfo()
+    archive_info.from_archive_path(archive_path)
+    build_tool.ios_archive_upload(archive_path, archive_info, build_config.get_method()
+        , apple_id=apple_id, apple_password=apple_password
+        , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
+    dump_now("uploaded to app store connect")
+    build_result["archivePath"] = archive_path
+    return build_result
+
 def upload_ipa_installer(installer_path, id, secret, bucketname, key, cname=None, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
     dump_now("start build ipa installer")
     url_prefix = cname
@@ -1725,16 +1793,28 @@ def upload_bugly_symbols(build_result:dict):
     'apk_name_template' : "APK目标文件名称模版",
     'gitcommit': "gitcommit号，用来标识资源版本TAG",
     'buildBundle': "是否构建bundle文件，无该选项时默认构建APK",
+    'iosBuildType': "iOS构建类型，adHoc为本地安装包，applestore为App Store上传",
+    'apple_id': "App Store Connect 登录 Apple ID（与 api_key 二选一）",
+    'apple_password': "App Store Connect 专用密码（配合 apple_id 使用）",
+    'api_key_id': "App Store Connect API Key ID",
+    'api_issuer_id': "App Store Connect API Issuer ID",
+    'api_key_path': "App Store Connect API Key (.p8) 文件路径",
 })
 def buildAppsFlow(context, platform, channel, channelIds, version_name, build_number, out_path
-    , apk_name_template=None, debug=False, log=True, product=False, gitcommit=None, iosBuildType="adHoc", buildBundle=False):
+    , apk_name_template=None, debug=False, log=True, product=False, gitcommit=None, iosBuildType="adHoc", buildBundle=False
+    , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
     temp_path = os.path.join(PROTJECT_PATH, "Build", platform, "build_%s" % build_number)
     rm_dir(temp_path)
     try:
         build_result = None
         if platform == 'ios':
-            installer_path = os.path.join(temp_path, "installer")
-            build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit, iosBuildType)
+            if iosBuildType == "applestore":
+                build_result = build_ios_appstore(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit
+                    , apple_id=apple_id, apple_password=apple_password
+                    , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
+            else:
+                installer_path = os.path.join(temp_path, "installer")
+                build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit, iosBuildType)
         elif platform == "android":
             if buildBundle:
                 aab_path = os.path.join(temp_path, "aab")
