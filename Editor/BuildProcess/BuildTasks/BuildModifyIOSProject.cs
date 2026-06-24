@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEditor;
-using System.Text.RegularExpressions;
 
 namespace PluginSet.Core.Editor
 {
@@ -152,26 +151,6 @@ namespace PluginSet.Core.Editor
             }
             
 
-            if (TryGetXCodeVersion() >= 16)
-            {
-                // 移除主 Target 和 UnityFramework 的 OTHER_CFLAGS 中的 -mno-thumb（Xcode 16 及以上不再支持）
-                var targets = new[] { project.MainFramework, project.UnityFramework };
-
-                foreach (var target in targets)
-                {
-                    var flags = project.GetBuildPropertyForAnyConfig(target, "OTHER_CFLAGS");
-                    if (string.IsNullOrEmpty(flags))
-                        continue;
-
-                    var list = new List<string>(flags.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-                    if (!list.Remove("-mno-thumb"))
-                        continue;
-
-                    var newFlags = string.Join(" ", list);
-                    project.SetBuildProperty(target, "OTHER_CFLAGS", newFlags);
-                }
-            }
-
             if (releaseBuild.HasValue)
             {
                 SetCodeSignWithConfig(project, "Release", releaseBuild.Value.teamId, releaseProfile);
@@ -185,8 +164,59 @@ namespace PluginSet.Core.Editor
             }
             
             Global.CallCustomOrderMethods<iOSXCodeProjectModifyAttribute, BuildToolsAttribute>(context, project);
+            RemoveMnoThumbFlag(project);
             project.Save();
+            // 兜底：清除各 Build Configuration 中可能残留的 -mno-thumb
+            StripMnoThumbFromPbxproj(xcodeProjectPath);
             File.WriteAllText(Path.Combine(IOSProjectPath, "build_config.json"), JsonUtility.ToJson(buildConfig));
+        }
+
+        private static readonly string[] s_UnityBuildConfigNames = { "Debug", "Release", "ReleaseForProfiling", "ReleaseForRunning" };
+        private static readonly string[] s_CompilerFlagPropertyNames = { "OTHER_CFLAGS", "OTHER_CPLUSPLUSFLAGS" };
+
+        private static void RemoveMnoThumbFlag(PBXProjectManager project)
+        {
+#if UNITY_IOS_API
+            var targets = new[] { project.MainFramework, project.UnityFramework };
+            foreach (var target in targets)
+            {
+                foreach (var configName in s_UnityBuildConfigNames)
+                {
+                    foreach (var propertyName in s_CompilerFlagPropertyNames)
+                    {
+                        var configGuid = project.Project.BuildConfigByName(target, configName);
+                        if (string.IsNullOrEmpty(configGuid))
+                            continue;
+
+                        var flags = project.Project.GetBuildPropertyForConfig(configGuid, propertyName);
+                        if (string.IsNullOrEmpty(flags) || !flags.Contains("-mno-thumb"))
+                            continue;
+
+                        project.Project.SetBuildPropertyForConfig(configGuid, propertyName, RemoveCompilerFlag(flags, "-mno-thumb"));
+                    }
+                }
+            }
+#endif
+        }
+
+        private static void StripMnoThumbFromPbxproj(string xcodeProjectPath)
+        {
+            if (!File.Exists(xcodeProjectPath))
+                return;
+
+            var content = File.ReadAllText(xcodeProjectPath);
+            if (!content.Contains("-mno-thumb"))
+                return;
+
+            File.WriteAllText(xcodeProjectPath, content.Replace("-mno-thumb", ""));
+            Debug.Log("Removed unsupported compiler flag -mno-thumb from project.pbxproj (required for Xcode 16+).");
+        }
+
+        private static string RemoveCompilerFlag(string flags, string flag)
+        {
+            var list = new List<string>(flags.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            list.RemoveAll(f => f == flag);
+            return string.Join(" ", list);
         }
         
         private void SetCodeSignWithConfig(PBXProjectManager project, string configName, string teamId, BuildProvisioningProfile? profile)
@@ -253,27 +283,5 @@ namespace PluginSet.Core.Editor
             throw new BuildException($"Cannot find build profile named ${name} in iosBuildParams");
         }
 
-        private int TryGetXCodeVersion()
-        {
-            // 尝试使用xcodebuild -version 命令获取xcode版本
-            var process = new System.Diagnostics.Process();
-            process.StartInfo.FileName = "xcodebuild";
-            process.StartInfo.Arguments = "-version";
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.UseShellExecute = false;
-            process.Start();
-            var output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            if (process.ExitCode == 0)
-            {
-                var match = Regex.Match(output, @"Xcode (\d+\.\d+)");
-                if (match.Success)
-                {
-                    var numbers = match.Groups[1].Value.Split('.');
-                    return int.Parse(numbers[0]);
-                }
-            }
-            return 0;
-        }
     }
 }
