@@ -21,6 +21,7 @@ import git
 import plistlib
 import datetime
 import zipfile
+import subprocess
 
 from invoke import task
 from invoke.exceptions import Exit
@@ -507,13 +508,19 @@ class BuildToolIOS(object):
             ]
 
         if code_sign_identity and provisioning_profile:
-            # cmds.append("CODE_SIGN_IDENTITY='{code_sign_identity}'".format(**locals()))
+            sign_identity = normalize_signing_certificate(code_sign_identity)
             cmds.append("PROVISIONING_PROFILE_APP={provisioning_profile}".format(**locals()))
-            # cmds.append("CODE_SIGN_STYLE=Manual")
+            cmds.append("CODE_SIGN_IDENTITY={sign_identity}".format(**locals()))
+            cmds.append("CODE_SIGN_STYLE=Manual")
+            if self.build_config.team_id:
+                cmds.append("DEVELOPMENT_TEAM={team_id}".format(team_id=self.build_config.team_id))
+        elif self.build_config.team_id:
+            cmds.append("DEVELOPMENT_TEAM={team_id}".format(team_id=self.build_config.team_id))
 
         cmd = " ".join(cmds)
         print(cmd)
-        self.run_print_result(cmd)
+        if self.run_print_result(cmd) != 0:
+            raise Exit("xcodebuild archive failed")
         return archive_path
 
     def ios_archive_export(self, archive_path, archive_info, export_path, method):
@@ -541,7 +548,8 @@ class BuildToolIOS(object):
         ]
         cmd = " ".join(cmds)
         print(cmd)
-        self.run_print_result(cmd)
+        if self.run_print_result(cmd) != 0:
+            raise Exit("xcodebuild -exportArchive failed")
         result_plist = os.path.join(export_path, 'DistributionSummary.plist')
         if not os.path.exists(result_plist):
             return os.path.join(export_path, scheme + ".ipa")
@@ -583,22 +591,28 @@ class BuildToolIOS(object):
 
         cmd = " ".join(cmds)
         print(cmd)
-        self.run_print_result(cmd)
+        if self.run_print_result(cmd) != 0:
+            raise Exit("xcodebuild -exportArchive upload failed")
         return export_path
 
     def create_export_plist(self, method, upload=False):
         plist_path = self.build_config.get_export_plist_path()
         plist_file = os.path.join(plist_path, 'export.plist')
+        sign_style = (self.build_config.sign_style or "automatic").lower()
         plist_dict = {
             "teamID": self.build_config.team_id,
-            "signingStyle": self.build_config.sign_style,
-            "signingCertificate": self.build_config.cert,
-            "provisioningProfiles": {
-                self.build_config.bundle_id: self.build_config.profile
-            },
+            "signingStyle": sign_style,
             "method": method,
             "compileBitcode": self.build_config.bite_code
         }
+        # 自动签名时不要写入空的 signingCertificate / provisioningProfiles，否则 exportArchive 会失败
+        if is_manual_sign_style(sign_style):
+            if not self.build_config.cert or not self.build_config.profile:
+                raise Exit("manual signing requires cert and profile in build_config.json")
+            plist_dict["signingCertificate"] = normalize_signing_certificate(self.build_config.cert)
+            plist_dict["provisioningProfiles"] = {
+                self.build_config.bundle_id: self.build_config.profile
+            }
         if upload:
             plist_dict["destination"] = "upload"
             plist_dict["uploadSymbols"] = True
@@ -668,28 +682,24 @@ class BuildToolIOS(object):
         运行脚本
         :return:
         """
-        if not self.dry:
-            return os.popen(cmd)
+        if self.dry:
+            return None
+        return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
 
     def run_get_result(self, cmd):
         pipe = self.run_cmd(cmd)
-        return pipe.read()
+        return pipe.read() if pipe else ""
 
     def run_print_result(self, cmd):
         print("run:" + cmd)
-        pipe = self.run_cmd(cmd)
-
-        if not self.dry:
-            while pipe and True:
-                try:
-                    line = pipe.readline()
-                    if line:
-                        print(line)
-                    else:
-                        break
-                except Exception as e:
-                    print(str(e))
-                    pass
+        if self.dry:
+            return 0
+        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
+        if result.stdout:
+            print(result.stdout)
+        if result.returncode != 0:
+            print("command failed with exit code:", result.returncode)
+        return result.returncode
                     
 # common ended==============================
 
@@ -849,6 +859,26 @@ def normalize_ios_build_type(build_type):
     if build_type == "applestore":
         return "appstore"
     return build_type
+
+
+def normalize_signing_certificate(cert):
+    """exportOptionsPlist / xcodebuild 需要证书类型简名，而非钥匙串完整 CN。"""
+    if not cert:
+        return cert
+    prefix_map = (
+        ("Apple Distribution:", "Apple Distribution"),
+        ("Apple Development:", "Apple Development"),
+        ("iPhone Distribution:", "iOS Distribution"),
+        ("iPhone Developer:", "iOS Development"),
+    )
+    for prefix, short_name in prefix_map:
+        if cert.startswith(prefix):
+            return short_name
+    return cert
+
+
+def is_manual_sign_style(sign_style):
+    return (sign_style or "").lower() == "manual"
 
 
 def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:bool, buildType="adHoc"):

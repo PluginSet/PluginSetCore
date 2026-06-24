@@ -221,36 +221,39 @@ namespace PluginSet.Core.Editor
         
         private void SetCodeSignWithConfig(PBXProjectManager project, string configName, string teamId, BuildProvisioningProfile? profile)
         {
-            var target = project.MainFramework;
-            if (profile.HasValue)
+            var targets = new[] { project.MainFramework, project.UnityFramework };
+            foreach (var target in targets)
             {
-                var codeSignIdentity = profile.Value.CodeSignIdentity;
-                var dict = new Dictionary<string, string>()
+                if (profile.HasValue)
                 {
-                    {"DEVELOPMENT_TEAM", teamId},
-                    {"CODE_SIGN_STYLE", "Manual" },
-                    {"CODE_SIGN_IDENTITY[sdk=iphoneos*]", codeSignIdentity},
-                    {"PROVISIONING_PROFILE_APP", profile.Value.ProfileId},
-                };
-                if (codeSignIdentity.StartsWith("Apple Distribution:"))
-                    dict.Add("CODE_SIGN_IDENTITY", "Apple Distribution");
-                else if (codeSignIdentity.StartsWith("Apple Development:"))
-                    dict.Add("CODE_SIGN_IDENTITY", "Apple Development");
-                else if (codeSignIdentity.StartsWith("iPhone Distribution:"))
-                    dict.Add("CODE_SIGN_IDENTITY", "iOS Distribution");
-                else if (codeSignIdentity.StartsWith("iPhone Development:"))
-                    dict.Add("CODE_SIGN_IDENTITY", "iOS Development");
-                project.SetBuildPropertyForConfig(target, configName, dict);
-            }
-            else
-            {
-                project.SetBuildPropertyForConfig(target, configName, new Dictionary<string, string>()
+                    var codeSignIdentity = profile.Value.CodeSignIdentity;
+                    var dict = new Dictionary<string, string>()
+                    {
+                        {"DEVELOPMENT_TEAM", teamId},
+                        {"CODE_SIGN_STYLE", "Manual" },
+                        {"CODE_SIGN_IDENTITY[sdk=iphoneos*]", codeSignIdentity},
+                    };
+                    // 描述文件仅作用于主 App Target；UnityFramework 使用同一证书签名即可
+                    if (target == project.MainFramework)
+                        dict.Add("PROVISIONING_PROFILE_APP", profile.Value.ProfileId);
+                    if (codeSignIdentity.StartsWith("Apple Distribution:"))
+                        dict.Add("CODE_SIGN_IDENTITY", "Apple Distribution");
+                    else if (codeSignIdentity.StartsWith("Apple Development:"))
+                        dict.Add("CODE_SIGN_IDENTITY", "Apple Development");
+                    else if (codeSignIdentity.StartsWith("iPhone Distribution:"))
+                        dict.Add("CODE_SIGN_IDENTITY", "iOS Distribution");
+                    else if (codeSignIdentity.StartsWith("iPhone Development:"))
+                        dict.Add("CODE_SIGN_IDENTITY", "iOS Development");
+                    project.SetBuildPropertyForConfig(target, configName, dict);
+                }
+                else
                 {
-                    {"DEVELOPMENT_TEAM", teamId },
-                    {"CODE_SIGN_STYLE", "Automatic"},
-                    {"CODE_SIGN_IDENTITY", ""},
-                    {"CODE_SIGN_IDENTITY[sdk=iphoneos*]", ""},
-                });
+                    project.SetBuildPropertyForConfig(target, configName, new Dictionary<string, string>()
+                    {
+                        {"DEVELOPMENT_TEAM", teamId },
+                        {"CODE_SIGN_STYLE", "Automatic"},
+                    });
+                }
             }
         }
 
