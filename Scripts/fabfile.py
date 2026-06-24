@@ -523,7 +523,8 @@ class BuildToolIOS(object):
             raise Exit("xcodebuild archive failed")
         return archive_path
 
-    def ios_archive_export(self, archive_path, archive_info, export_path, method):
+    def ios_archive_export(self, archive_path, archive_info, export_path, method
+        , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
         """
         导出 archive
         :return path_ipa
@@ -546,6 +547,13 @@ class BuildToolIOS(object):
             "-exportOptionsPlist", export_plist_path,
             "-allowProvisioningUpdates",
         ]
+        if api_key_id and api_issuer_id and api_key_path:
+            cmds.extend(["-authenticationKeyPath", api_key_path])
+            cmds.extend(["-authenticationKeyID", api_key_id])
+            cmds.extend(["-authenticationKeyIssuerID", api_issuer_id])
+        elif apple_id and apple_password:
+            cmds.extend(["-username", apple_id])
+            cmds.extend(["-password", apple_password])
         cmd = " ".join(cmds)
         print(cmd)
         if self.run_print_result(cmd) != 0:
@@ -856,9 +864,13 @@ def podInstall(project_path:str)->str:
 
 
 def normalize_ios_build_type(build_type):
-    if build_type == "applestore":
+    if build_type in ("applestore", "applestoreIpa", "appstore"):
         return "appstore"
     return build_type
+
+
+def is_applestore_ipa_build_type(build_type):
+    return build_type in ("applestoreIpa", "appstore")
 
 
 def normalize_signing_certificate(cert):
@@ -881,7 +893,8 @@ def is_manual_sign_style(sign_style):
     return (sign_style or "").lower() == "manual"
 
 
-def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:bool, buildType="adHoc"):
+def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:bool, buildType="adHoc"
+    , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
     project = podInstall(ios_project_path)
     configuration = "debug" if debug else "release"
     build_config = BuildConfig()
@@ -893,7 +906,9 @@ def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:
     archive_info.from_archive_path(archive_path)
 
     export_path = build_config.get_export_path()
-    ipa_path = build_tool.ios_archive_export(archive_path, archive_info, export_path, build_config.get_method())
+    ipa_path = build_tool.ios_archive_export(archive_path, archive_info, export_path, build_config.get_method()
+        , apple_id=apple_id, apple_password=apple_password
+        , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
     return ipa_path
 
 
@@ -1668,7 +1683,8 @@ def build_all_apks(apks_path, apk_name_template, channel, channelIds, version_na
 
 
 def build_ios_installer(installer_path, channel, channelId, version_name, build_number, temp_path
-    , debug, cache_log, product, gitcommit, iosBuildType="adHoc"):
+    , debug, cache_log, product, gitcommit, iosBuildType="adHoc"
+    , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
     dump_now("start build ios installer")
     export_project("ios", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
     dump_now("export ios project completed")
@@ -1676,7 +1692,9 @@ def build_ios_installer(installer_path, channel, channelId, version_name, build_
     ios_project_path = build_result.get("projectPath", None)
     if ios_project_path is None:
         return FAILURE("Cannot get ios project path")
-    ipa_file_name = generateIpa(ios_project_path, version_name, build_number, debug, iosBuildType)
+    ipa_file_name = generateIpa(ios_project_path, version_name, build_number, debug, iosBuildType
+        , apple_id=apple_id, apple_password=apple_password
+        , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
     dump_now("generated ipa")
     if not os.path.exists(ipa_file_name):
         return FAILURE("找不到构建的IPA:" + ipa_file_name)
@@ -1685,9 +1703,12 @@ def build_ios_installer(installer_path, channel, channelId, version_name, build_
 
 
 def build_ios_appstore(channel, channelId, version_name, build_number, temp_path
-    , debug, cache_log, product, gitcommit
+    , debug, cache_log, product, gitcommit, upload=True
     , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
-    dump_now("start build ios appstore")
+    if upload:
+        dump_now("start build ios applestore upload")
+    else:
+        dump_now("start build ios applestore ipa export")
     export_project("ios", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
     dump_now("export ios project completed")
     build_result = get_build_result(temp_path)
@@ -1705,11 +1726,27 @@ def build_ios_appstore(channel, channelId, version_name, build_number, temp_path
 
     archive_info = ArchiveInfo()
     archive_info.from_archive_path(archive_path)
-    build_tool.ios_archive_upload(archive_path, archive_info, build_config.get_method()
-        , apple_id=apple_id, apple_password=apple_password
-        , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
-    dump_now("uploaded to app store connect")
     build_result["archivePath"] = archive_path
+
+    if upload:
+        if not ((api_key_id and api_issuer_id and api_key_path) or (apple_id and apple_password)):
+            raise Exit("applestore upload requires api_key or apple_id/apple_password")
+        build_tool.ios_archive_upload(archive_path, archive_info, build_config.get_method()
+            , apple_id=apple_id, apple_password=apple_password
+            , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
+        dump_now("uploaded to app store connect")
+    else:
+        export_path = build_config.get_export_path()
+        ipa_path = build_tool.ios_archive_export(archive_path, archive_info, export_path, build_config.get_method())
+        if not os.path.exists(ipa_path):
+            raise Exit("找不到构建的App Store IPA:" + ipa_path)
+        ipa_out_dir = os.path.join(temp_path, "applestore-ipa")
+        check_path(ipa_out_dir)
+        target_ipa = os.path.join(ipa_out_dir, "app.ipa")
+        rm_file(target_ipa)
+        copy_file(ipa_path, target_ipa)
+        build_result["ipaPath"] = target_ipa
+        dump_now("exported applestore ipa: " + target_ipa)
     return build_result
 
 def upload_ipa_installer(installer_path, id, secret, bucketname, key, cname=None, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
@@ -1823,7 +1860,7 @@ def upload_bugly_symbols(build_result:dict):
     'apk_name_template' : "APK目标文件名称模版",
     'gitcommit': "gitcommit号，用来标识资源版本TAG",
     'buildBundle': "是否构建bundle文件，无该选项时默认构建APK",
-    'iosBuildType': "iOS构建类型，adHoc为本地安装包，applestore为App Store上传",
+    'iosBuildType': "iOS构建类型：adHoc=本地安装包，applestoreIpa=App Store归档并导出IPA(不上传)，applestore=导出并上传App Store Connect",
     'apple_id': "App Store Connect 登录 Apple ID（与 api_key 二选一）",
     'apple_password': "App Store Connect 专用密码（配合 apple_id 使用）",
     'api_key_id': "App Store Connect API Key ID",
@@ -1840,11 +1877,19 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
         if platform == 'ios':
             if iosBuildType == "applestore":
                 build_result = build_ios_appstore(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit
+                    , upload=True
                     , apple_id=apple_id, apple_password=apple_password
                     , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
+            elif is_applestore_ipa_build_type(iosBuildType):
+                if iosBuildType == "appstore":
+                    print("warning: iosBuildType=appstore is deprecated, use applestoreIpa instead")
+                build_result = build_ios_appstore(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit
+                    , upload=False)
             else:
                 installer_path = os.path.join(temp_path, "installer")
-                build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit, iosBuildType)
+                build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit, iosBuildType
+                    , apple_id=apple_id, apple_password=apple_password
+                    , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
         elif platform == "android":
             if buildBundle:
                 aab_path = os.path.join(temp_path, "aab")
