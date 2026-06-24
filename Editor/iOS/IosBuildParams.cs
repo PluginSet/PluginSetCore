@@ -358,6 +358,32 @@ namespace PluginSet.Core.Editor
                 // 不设置NSPrivacyTracking = true, 容易与NSPrivacyTrackingDomains、NSPrivacyCollectedDataTypeTracking 等不一致，违反隐私清单准确性要求。
                 // 在Info.plist中添加App Transport Security Settings -> NSAllowsArbitraryLoads 为 YES
                 plist.AddDictElement("NSAppTransportSecurity", "NSAllowsArbitraryLoads", true);
+
+#if UNITY_IOS
+                // ATT 授权后可访问 IDFA，需在 PrivacyInfo.xcprivacy 声明相关收集类型（与 Firebase/AdMob 使用 OverrideBoolean 合并）
+                var privacy = project.PrivacyPlist;
+                var collectDataArray = PlistDocument.FindOrCreateArray(privacy.Root, "NSPrivacyCollectedDataTypes");
+
+                // 设备ID (IDFA，用户授权 ATT 后用于广告归因与追踪)
+                var devicePrivacy = PlistDocument.FindOrCreateDictInArray(collectDataArray, "NSPrivacyCollectedDataType",
+                    "NSPrivacyCollectedDataTypeDeviceID");
+                PlistDocument.OverrideBoolean(devicePrivacy, "NSPrivacyCollectedDataTypeLinked", false);
+                PlistDocument.OverrideBoolean(devicePrivacy, "NSPrivacyCollectedDataTypeTracking", true);
+                PlistDocument.AddArray(devicePrivacy, "NSPrivacyCollectedDataTypePurposes",
+                    "NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising",
+                    "NSPrivacyCollectedDataTypePurposeDeveloperAdvertising",
+                    "NSPrivacyCollectedDataTypePurposeAnalytics");
+
+                // 广告数据 (IDFA 授权后的广告相关数据)
+                var advertisingDataPrivacy = PlistDocument.FindOrCreateDictInArray(collectDataArray, "NSPrivacyCollectedDataType",
+                    "NSPrivacyCollectedDataTypeAdvertisingData");
+                PlistDocument.OverrideBoolean(advertisingDataPrivacy, "NSPrivacyCollectedDataTypeLinked", false);
+                PlistDocument.OverrideBoolean(advertisingDataPrivacy, "NSPrivacyCollectedDataTypeTracking", true);
+                PlistDocument.AddArray(advertisingDataPrivacy, "NSPrivacyCollectedDataTypePurposes",
+                    "NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising",
+                    "NSPrivacyCollectedDataTypePurposeDeveloperAdvertising");
+#endif
+
             }
             // 不在此处写入 NSPrivacyTracking = false：本回调在 int.MaxValue 顺序下最后执行，
             // 强制 false 会覆盖 AdMob/Firebase 等已在 PrivacyInfo.xcprivacy 中声明的追踪相关字段，
