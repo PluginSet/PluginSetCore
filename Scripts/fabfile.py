@@ -6,7 +6,6 @@ fabfile
 要使用 fab 命令，请在本地安装 Fabrile 2.1.x 及以上版本
 """
 
-from distutils import archive_util
 import os
 import sys
 import json
