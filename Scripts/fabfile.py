@@ -864,13 +864,9 @@ def podInstall(project_path:str)->str:
 
 
 def normalize_ios_build_type(build_type):
-    if build_type in ("applestore", "applestoreIpa", "appstore"):
+    if build_type == "applestore":
         return "appstore"
     return build_type
-
-
-def is_applestore_ipa_build_type(build_type):
-    return build_type in ("applestoreIpa", "appstore")
 
 
 def normalize_signing_certificate(cert):
@@ -1702,13 +1698,31 @@ def build_ios_installer(installer_path, channel, channelId, version_name, build_
     return build_result
 
 
+def build_ios_archive_only(channel, channelId, version_name, build_number, temp_path
+    , debug, cache_log, product, gitcommit):
+    dump_now("start build ios archive only")
+    export_project("ios", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
+    dump_now("export ios project completed")
+    build_result = get_build_result(temp_path)
+    ios_project_path = build_result.get("projectPath", None)
+    if ios_project_path is None:
+        return FAILURE("Cannot get ios project path")
+
+    project = podInstall(ios_project_path)
+    configuration = "debug" if debug else "release"
+    build_config = BuildConfig()
+    build_config.set_config(project, "appstore", configuration, version_name, build_number, build_number)
+    build_tool = BuildToolIOS(build_config, True, False)
+    archive_path = build_tool.ios_archive()
+    dump_now("archived ios project: " + archive_path)
+    build_result["archivePath"] = archive_path
+    return build_result
+
+
 def build_ios_appstore(channel, channelId, version_name, build_number, temp_path
-    , debug, cache_log, product, gitcommit, upload=True
+    , debug, cache_log, product, gitcommit
     , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
-    if upload:
-        dump_now("start build ios applestore upload")
-    else:
-        dump_now("start build ios applestore ipa export")
+    dump_now("start build ios applestore upload")
     export_project("ios", channel, channelId, version_name, build_number, temp_path, debug, cache_log, product, gitcommit)
     dump_now("export ios project completed")
     build_result = get_build_result(temp_path)
@@ -1728,25 +1742,12 @@ def build_ios_appstore(channel, channelId, version_name, build_number, temp_path
     archive_info.from_archive_path(archive_path)
     build_result["archivePath"] = archive_path
 
-    if upload:
-        if not ((api_key_id and api_issuer_id and api_key_path) or (apple_id and apple_password)):
-            raise Exit("applestore upload requires api_key or apple_id/apple_password")
-        build_tool.ios_archive_upload(archive_path, archive_info, build_config.get_method()
-            , apple_id=apple_id, apple_password=apple_password
-            , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
-        dump_now("uploaded to app store connect")
-    else:
-        export_path = build_config.get_export_path()
-        ipa_path = build_tool.ios_archive_export(archive_path, archive_info, export_path, build_config.get_method())
-        if not os.path.exists(ipa_path):
-            raise Exit("找不到构建的App Store IPA:" + ipa_path)
-        ipa_out_dir = os.path.join(temp_path, "applestore-ipa")
-        check_path(ipa_out_dir)
-        target_ipa = os.path.join(ipa_out_dir, "app.ipa")
-        rm_file(target_ipa)
-        copy_file(ipa_path, target_ipa)
-        build_result["ipaPath"] = target_ipa
-        dump_now("exported applestore ipa: " + target_ipa)
+    if not ((api_key_id and api_issuer_id and api_key_path) or (apple_id and apple_password)):
+        raise Exit("applestore upload requires api_key or apple_id/apple_password")
+    build_tool.ios_archive_upload(archive_path, archive_info, build_config.get_method()
+        , apple_id=apple_id, apple_password=apple_password
+        , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
+    dump_now("uploaded to app store connect")
     return build_result
 
 def upload_ipa_installer(installer_path, id, secret, bucketname, key, cname=None, endpoint="https://oss-cn-hangzhou.aliyuncs.com"):
@@ -1860,7 +1861,7 @@ def upload_bugly_symbols(build_result:dict):
     'apk_name_template' : "APK目标文件名称模版",
     'gitcommit': "gitcommit号，用来标识资源版本TAG",
     'buildBundle': "是否构建bundle文件，无该选项时默认构建APK",
-    'iosBuildType': "iOS构建类型：adHoc=本地安装包，applestoreIpa=App Store归档并导出IPA(不上传)，applestore=导出并上传App Store Connect",
+    'iosBuildType': "iOS构建类型：adHoc=本地安装包，archiveOnly=仅Archive不上传不导出IPA，applestore=Archive并上传App Store Connect",
     'apple_id': "App Store Connect 登录 Apple ID（与 api_key 二选一）",
     'apple_password': "App Store Connect 专用密码（配合 apple_id 使用）",
     'api_key_id': "App Store Connect API Key ID",
@@ -1877,14 +1878,10 @@ def buildAppsFlow(context, platform, channel, channelIds, version_name, build_nu
         if platform == 'ios':
             if iosBuildType == "applestore":
                 build_result = build_ios_appstore(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit
-                    , upload=True
                     , apple_id=apple_id, apple_password=apple_password
                     , api_key_id=api_key_id, api_issuer_id=api_issuer_id, api_key_path=api_key_path)
-            elif is_applestore_ipa_build_type(iosBuildType):
-                if iosBuildType == "appstore":
-                    print("warning: iosBuildType=appstore is deprecated, use applestoreIpa instead")
-                build_result = build_ios_appstore(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit
-                    , upload=False)
+            elif iosBuildType == "archiveOnly":
+                build_result = build_ios_archive_only(channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit)
             else:
                 installer_path = os.path.join(temp_path, "installer")
                 build_result = build_ios_installer(installer_path, channel, channelIds, version_name, build_number, temp_path, debug, log, product, gitcommit, iosBuildType
