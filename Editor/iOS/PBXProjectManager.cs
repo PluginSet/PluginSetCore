@@ -109,9 +109,27 @@ namespace PluginSet.Core.Editor
             if (m_PrivacyPlist != null)
             {
                 m_PrivacyPlist.WriteToFile(m_PrivacyPlistPath);
+                EnsurePrivacyPlistInProject();
             }
             
             WriteToFile();
+#endif
+        }
+
+        private void EnsurePrivacyPlistInProject()
+        {
+#if UNITY_IOS_API
+            if (!File.Exists(m_PrivacyPlistPath))
+                return;
+
+            var projectDir = Path.GetDirectoryName(Path.GetFullPath(m_PbxProjectPath));
+            var relativePath = Global.GetSubPath(projectDir, Path.GetFullPath(m_PrivacyPlistPath));
+
+            var fileGuid = project.FindFileGuidByProjectPath(relativePath);
+            if (string.IsNullOrEmpty(fileGuid))
+                fileGuid = project.AddFile(relativePath, relativePath);
+
+            project.AddFileToBuild(UnityFramework, fileGuid);
 #endif
         }
 
