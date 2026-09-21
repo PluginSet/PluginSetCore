@@ -54,30 +54,53 @@ namespace PluginSet.Core.Editor
 
         [Tooltip("开启数据收集")]
         public bool EnableAppTrackingTransparency = true;
-        
-        public string LocationUsageDescription = "Your consent is required to access the microphone";
 
-        public string LocationAlwaysUsageDescription = "Your location is required for xyz benefits for you";
+        [Tooltip("保留 ATS 例外（NSAllowsArbitraryLoads=YES）：仅当业务/第三方 SDK 必须访问明文 HTTP 接口时才勾选，并在 App Review Notes 里说明原因")]
+        public bool EnableAppTransportSecurityException = true;
 
-        public string LocationWhenInUseUsageDescription = "Your location is required for xyz benefits for you";
-        
-        public string PhotoLibraryUsageDescription = "This app requires access to the photo library.";
-            
-        public string CameraUsageDescription = "Your consent is required to access the camera";
-        
-        public string MicrophoneUsageDescription = "Your consent is required to access the microphone";
-        
-        public string CalendarsUsageDescription = "Your consent is required to access the calendar";
-        
-        public string MotionUsageDescription = "Your consent is required to access sports and fitness";
-        
-        public string BluetoothPeripheralUsageDescription = "Your consent is required to access Bluetooth";
-        
-        public string AppleMusicUsageDescription = "Your consent is required to access the media database";
-        
-        public string RemindersUsageDescription = "Your consent is required to access reminders";
+        // ===== iOS 权限用途说明（Info.plist purpose string）=====
+        // 重要：这些字符串会原样显示在系统权限弹窗上，App Store 审核逐条校验。
+        //   · 确实用到的权限：填写“什么功能 + 具体用途”，例如
+        //     "我们需要访问你的相册，以便你在意见反馈中上传截图。"
+        //   · 用不到的权限：必须保持空字符串 —— 留空时 PlistDocument.AddPlistValue 会跳过写入，
+        //     该权限键根本不会出现在 Info.plist 里（Guidelines 5.1.1(iii) 数据最小化）。
+        //   · 切勿使用 “Your consent is required to access xxx” / “The app requires access to xxx”
+        //     这类占位文案，会被自动分析判为 placeholder 直接拒审。
+        [Tooltip("相册读取用途说明；不用相册请留空")]
+        public string PhotoLibraryUsageDescription = "";
 
-        public string UserTrackingUsageDescription = "Your data will be used to deliver personalized ads to you";
+        [Tooltip("广告标识符(IDFA)用途说明；不申请 ATT 数据收集请留空")]
+        public string UserTrackingUsageDescription = "";
+
+        [Tooltip("定位（使用期间）用途说明；不用定位请留空")]
+        public string LocationWhenInUseUsageDescription = "";
+
+        [Tooltip("定位（始终）用途说明；不用定位请留空")]
+        public string LocationAlwaysUsageDescription = "";
+
+        [Tooltip("定位（旧 iOS 键）用途说明；不用定位请留空")]
+        public string LocationUsageDescription = "";
+
+        [Tooltip("相机用途说明；不用相机请留空")]
+        public string CameraUsageDescription = "";
+
+        [Tooltip("麦克风用途说明；不用麦克风请留空")]
+        public string MicrophoneUsageDescription = "";
+
+        [Tooltip("日历用途说明；不用日历请留空")]
+        public string CalendarsUsageDescription = "";
+
+        [Tooltip("运动与健身用途说明；不用计步/摇一摇等能力请留空")]
+        public string MotionUsageDescription = "";
+
+        [Tooltip("蓝牙用途说明；不用蓝牙请留空")]
+        public string BluetoothPeripheralUsageDescription = "";
+
+        [Tooltip("媒体与 Apple Music 用途说明；不用媒体库请留空")]
+        public string AppleMusicUsageDescription = "";
+
+        [Tooltip("提醒事项用途说明；不用提醒事项请留空")]
+        public string RemindersUsageDescription = "";
 
         public IEnumerable<string> ProfileNames
         {
@@ -356,8 +379,11 @@ namespace PluginSet.Core.Editor
                 project.AddFrameworkToProject(project.UnityFramework, "AppTrackingTransparency.framework", true);
                 // project.PrivacyPlist.SetPlistValue("NSPrivacyTracking", true);
                 // 不设置NSPrivacyTracking = true, 容易与NSPrivacyTrackingDomains、NSPrivacyCollectedDataTypeTracking 等不一致，违反隐私清单准确性要求。
-                // 在Info.plist中添加App Transport Security Settings -> NSAllowsArbitraryLoads 为 YES
-                plist.AddDictElement("NSAppTransportSecurity", "NSAllowsArbitraryLoads", true);
+                // 在Info.plist中添加App Transport Security Settings -> NSAllowsArbitraryLoads 为 YES：
+                // 这是需要向审核说明的例外，改成显式开关，默认保持原有行为；
+                // 不需要访问明文 HTTP 接口的项目建议关掉，或改为按域名的 NSExceptionDomains 收敛。
+                if (buildParams.EnableAppTransportSecurityException)
+                    plist.AddDictElement("NSAppTransportSecurity", "NSAllowsArbitraryLoads", true);
 
 #if UNITY_IOS
                 // ATT 授权后可访问 IDFA，需在 PrivacyInfo.xcprivacy 声明相关收集类型（与 Firebase/AdMob 使用 OverrideBoolean 合并）

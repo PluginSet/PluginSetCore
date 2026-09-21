@@ -68,6 +68,11 @@ namespace PluginSet.Core.Editor
         {
 #if UNITY_IOS_API
             if (HasPlistValue(key)) return;
+            // 空值一律不写入：Info.plist 里的权限用途说明（purpose string）若写成空字符串，
+            // App Store 审核会按 Guidelines 5.1.1 判为 insufficient 并拒审。
+            // 对未使用的权限，正确做法是“该键根本不出现”，因此渠道配置里留空的项在这里直接跳过：
+            // 既不覆盖插件已写入的说明，也不会产生空说明。
+            if (string.IsNullOrEmpty(value)) return;
             Root.SetString(key, value);
 #endif
         }
