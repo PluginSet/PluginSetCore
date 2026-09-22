@@ -1,40 +1,10 @@
 #import "UnityAppController.h"
 #import "PluginListener.h"
 #import <UIKit/UIKit.h>
-#import <objc/runtime.h>
-#include <objc/message.h>
 
-// 与引擎 UnityInterface.h 中的声明保持一致（该头文件不在本插件的可见范围内，
-// 引擎自己的 UnityAppController.mm 也是靠隐式声明+链接期解析来用的）。
+// 与引擎 UnityInterface.h 中的声明保持一致（该头文件不在本插件可见范围内，
+// 引擎自己的 UnityAppController.mm 也是靠隐式声明 + 链接期解析来用的）。
 extern "C" void UnitySetAbsoluteURL(const char* url);
-
-// 显式分发到父类实现。
-//
-// 【为什么不用 [super xxx]】
-//   1) 本文件是 .mm（Objective-C++），在 block 内使用 super 会编译失败；
-//   2) 下面 scene delegate 的转发写在 Category 里，C++ 下 Category 中的 super 语义
-//      也不可靠。
-//   两次都用 objc_msgSendSuper 显式分发，语义明确且不依赖编译器扩展。
-//   （无需 objc_msgSendSuper2：本类与父类都不实现 +initialize，不涉及 isa 相关陷阱。）
-static inline void PluginSetSendToSuper(id self, SEL selector, id arg)
-{
-    Class superClass = class_getSuperclass(object_getClass(self));
-    struct objc_super sup = { self, superClass };
-    ((void (*)(struct objc_super*, SEL, id))objc_msgSendSuper)(&sup, selector, arg);
-}
-
-@interface PluginSetAppController : UnityAppController
-@end
-
-// 【兼容性】仅在 Info.plist 确实声明了 UIApplicationSceneManifest 时才延后。
-//   没有声明（旧工程、或未走本插件注入的构建）时保持引擎原有同步启动路径，
-//   避免出现「延后了但永远没有 scene 回调来唤醒」的黑屏。
-//   调用方：sceneDidBecomeActive: 会先转发，引擎内部已有幂等守卫，重复触发安全。
-static BOOL PluginSetHasSceneManifest(void)
-{
-    id value = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIApplicationSceneManifest"];
-    return value != nil;
-}
 
 // ============================================================================
 // UIScene 生命周期支持（iOS 27 启动崩溃修复）
@@ -45,22 +15,32 @@ static BOOL PluginSetHasSceneManifest(void)
 //   Unity 2021.3 的 iOS trampoline 不支持 scene，其建窗代码是：
 //       _window = [[UIWindow alloc] initWithWindowScene:
 //                    [self pickStartupWindowScene: application.connectedScenes]];
-//   在没有 scene manifest 时，系统不会建立 UIWindowSceneSession，
-//   connectedScenes 为空 → pickStartupWindowScene: 返回 nil → 传入 nil。
-//   而 initWithWindowScene: 收到 nil 时，iOS 26 及更早是静默降级，iOS 27 改为抛异常。
-//   API 没变，是「容错」变成了「强制」——这就是同一份二进制只有 iOS 27 崩的原因。
-//   崩溃点在启动链最前端（早于引擎初始化与 Lua），所以表现为立刻闪退。
+//   没有 scene manifest 时系统不建立 UIWindowSceneSession，connectedScenes 为空
+//   → pickStartupWindowScene: 返回 nil → 传入 nil。该 API 在 iOS 26 及更早是静默降级，
+//   iOS 27 起改为抛异常 —— 这就是同一份二进制只有 iOS 27 崩的原因。
 //
-// 【修复】两件事配合，均在本插件内完成，不需要改动 Unity 安装目录：
-//   1) Editor 侧 IosUISceneCompat.cs 往导出的 Info.plist 注入 UIApplicationSceneManifest
-//      （scene manifest 由此声明；本文件按类名字符串被系统查找，不需要 pbxproj 改动）。
-//   2) 本文件把 didFinishLaunchingWithOptions: 交给引擎的时机延后一轮主 RunLoop，
-//      等 UIWindowScene 挂载完成，引擎的 pickStartupWindowScene: 就能取到有效 scene，
-//      从而走 initWithWindowScene: 的正确路径。
+// 【修复做法】manifest 由 Editor 侧 IosUISceneCompat.cs 注入导出的 Info.plist，
+//   让系统建立 scene；本文件负责「等 scene 就绪后再让引擎建窗」，做法是：
+//     · 不覆写 didFinishLaunchingWithOptions:（保持引擎原有同步流程，不做任何转交）；
+//     · 覆写 applicationDidBecomeActive:，在 scene 已挂载时先确保引擎以 scene 建窗，
+//       然后原样交给引擎的既有实现。
 //
-// 【为什么不用 if (scene == nil) 守卫】守卫只让「没有 scene」不崩溃，但那个窗口
-//   没有绑定 scene，永远不会显示 —— 会从「启动闪退」变成「启动黑屏」，不是修复。
+// 【为什么不用 objc_msgSendSuper 手工分发】
+//   上一版曾用 if (startupScene == nil) 思路，通过 block + objc_msgSendSuper 延后调用
+//   引擎的 didFinishLaunchingWithOptions:，真机在 objc_retain 处 KERN_INVALID_ADDRESS 崩溃
+//   （参数被破坏）。手工拼 objc_super / 函数指针转型在 arm64e 上不可靠，已彻底移除。
+//   现在所有对父类的调用都是 [super ...]，由编译器生成分发。
+//
+// 【兼容性】
+//   · manifest 不存在（旧工程 / 未走本插件注入的构建）：系统不会创建 scene。
+//     引擎的 didFinishLaunchingWithOptions: 找不到 scene 时会退回 initWithFrame:，
+//     且没有 scene 回调来打扰，行为与改动前完全一致。
+//   · 引擎侧 _unityEngineInitialized 守卫保证不会重复初始化。
 // ============================================================================
+
+@interface PluginSetAppController : UnityAppController
+@end
+
 IMPL_APP_CONTROLLER_SUBCLASS (PluginSetAppController)
  
 @implementation PluginSetAppController
@@ -75,27 +55,69 @@ IMPL_APP_CONTROLLER_SUBCLASS (PluginSetAppController)
     NSMutableDictionary<NSString*, id>* notifData = [NSMutableDictionary dictionaryWithCapacity: 1];
     notifData[@"activity"] = userActivity;
     AppController_SendNotificationWithArg(kUnityOnContinueUserActivity, notifData);
-
+    
     return [super application:application continueUserActivity:userActivity restorationHandler:restorationHandler];
 }
 
-#pragma mark - UIScene 兼容
-
-// 延后一轮主 RunLoop 再把启动流程交回引擎：
-// didFinishLaunchingWithOptions: 返回后系统才把 UIWindowScene 挂到 UIApplication 上，
-// 所以必须等这一轮走完，引擎的 connectedScenes 才不为空。
-// 注意：仅在 manifest 存在时延后，否则保持同步启动（见 PluginSetHasSceneManifest 注释）。
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+// 由 scene 回调驱动（见下方 Category）。
+//
+// 为什么挂在 applicationDidBecomeActive: 而不是 didFinishLaunchingWithOptions:：
+//   采用 scene 生命周期后，didFinishLaunchingWithOptions: 返回之前 UIWindowScene 尚未挂载，
+//   此时调用引擎的初始化会拿到空 scene。sceneDidBecomeActive: 是「scene 已激活」的信号，
+//   这个时点引擎的 connectedScenes 一定非空，建窗走 initWithWindowScene: 正确路径。
+//
+// 为什么仍然要调 [super applicationDidBecomeActive:]：
+//   引擎实现内部自带「未就绪则初始化 / 已就绪则恢复」判断（_unityAppReady + _unityEngineInitialized
+//   守卫），此处先确保初始化，再原样交给它，避免丢失它的恢复/聚焦逻辑。
+- (void)applicationDidBecomeActive:(UIApplication *)application
 {
-    if (!PluginSetHasSceneManifest())
-        return [super application:application didFinishLaunchingWithOptions:launchOptions];
+    // 诊断日志：把关键事实写进真机日志，便于直接判断修复是否生效。
+    // （上一版缺这条信息，只能靠推测，走了弯路。）
+    [PluginSetAppController logSceneStateWithTag:@"didBecomeActive"];
 
-    __weak PluginSetAppController* weakSelf = self;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        PluginSetSendToSuper(weakSelf, @selector(application:didFinishLaunchingWithOptions:), launchOptions);
-    });
+    if ([self respondsToSelector:@selector(initUnityWithApplication:)])
+        [self initUnityWithApplication:application];
 
-    return YES;
+    [super applicationDidBecomeActive:application];
+}
+
+#pragma mark - 诊断
+
+// 打印 UIScene 关键事实：
+//   manifest=0 → Editor 侧注入没生效，iOS 27 上仍会因 nil scene 崩溃
+//   scenes=0   → manifest 在，但系统没建立 scene（scene 类名解析失败等）
+//   scenes>0   → scene 正常，修复处于预期状态
++ (void)logSceneStateWithTag:(NSString *)tag
+{
+    BOOL hasManifest = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIApplicationSceneManifest"] != nil;
+    NSUInteger sceneCount = [UIApplication sharedApplication].connectedScenes.count;
+
+    NSLog(@"[PluginSetUIScene][%@] manifest=%d connectedScenes=%lu",
+          tag, (int)hasManifest, (unsigned long)sceneCount);
+}
+
+#pragma mark - scene 回调转发目标
+// 这些方法定义在主 @implementation 中（而不是 Category），因此可以安心使用 [super ...]。
+// Category 里的 scene delegate 只做一次 [self sceneForwardXxx] 转调。
+
+- (void)sceneForwardDidBecomeActive
+{
+    [self applicationDidBecomeActive:[UIApplication sharedApplication]];
+}
+
+- (void)sceneForwardWillEnterForeground
+{
+    [super applicationWillEnterForeground:[UIApplication sharedApplication]];
+}
+
+- (void)sceneForwardWillResignActive
+{
+    [super applicationWillResignActive:[UIApplication sharedApplication]];
+}
+
+- (void)sceneForwardDidEnterBackground
+{
+    [super applicationDidEnterBackground:[UIApplication sharedApplication]];
 }
 
 @end
@@ -104,37 +126,40 @@ IMPL_APP_CONTROLLER_SUBCLASS (PluginSetAppController)
 // scene delegate
 //
 // 用 Category 而不是新建类：这样类名仍是 PluginSetAppController，与
-// IMPL_APP_CONTROLLER_SUBCLASS 注册的类一致，Editor 侧注入 manifest 时
-// 直接用这个类名即可，不需要再引入一个类。
-// Unity 6 自带的支持也是这个结构（UnityAppController + 独立的 UnityScene）。
+// IMPL_APP_CONTROLLER_SUBCLASS 注册的 AppController 类一致，Editor 侧注入 manifest 时
+// 直接写这个类名即可，既不用引入第二个类，也不需要改 project.pbxproj 加文件。
+// Unity 6 自带的支持也是同一结构（AppController + 独立 scene delegate）。
+//
+// Category 内不做任何父类分发：只把事件转回本类的既有实现（下面 sceneForward… 方法
+// 定义在主 @implementation 里），因此不存在 Category 中 super 的语义问题。
 // ---------------------------------------------------------------------------
-@interface PluginSetAppController (UISceneLifecycle) <UIWindowSceneDelegate>
+@interface PluginSetAppController (UISceneLifecycleForward)
+- (void)sceneForwardDidBecomeActive;
+- (void)sceneForwardWillEnterForeground;
+- (void)sceneForwardWillResignActive;
+- (void)sceneForwardDidEnterBackground;
 @end
 
-@implementation PluginSetAppController (UISceneLifecycle)
+@implementation PluginSetAppController (UISceneLifecycleForward)
 
-// 全部转发回引擎原有的 application* 实现，复用其暂停/恢复/渲染逻辑与内部状态守卫
-// （例如 applicationDidBecomeActive: 内部自带「未就绪则初始化、已就绪则恢复」的判断）。
-// 刻意不触碰引擎的内部静态变量（_unityEngineInitialized / _unityAppReady 等），
-// 那些符号在 UnityAppController.mm 内是文件级 static，本文件不可见。
 - (void)sceneDidBecomeActive:(UIScene *)scene
 {
-    PluginSetSendToSuper(self, @selector(applicationDidBecomeActive:), [UIApplication sharedApplication]);
+    [self sceneForwardDidBecomeActive];
 }
 
 - (void)sceneWillEnterForeground:(UIScene *)scene
 {
-    PluginSetSendToSuper(self, @selector(applicationWillEnterForeground:), [UIApplication sharedApplication]);
+    [self sceneForwardWillEnterForeground];
 }
 
 - (void)sceneWillResignActive:(UIScene *)scene
 {
-    PluginSetSendToSuper(self, @selector(applicationWillResignActive:), [UIApplication sharedApplication]);
+    [self sceneForwardWillResignActive];
 }
 
 - (void)sceneDidEnterBackground:(UIScene *)scene
 {
-    PluginSetSendToSuper(self, @selector(applicationDidEnterBackground:), [UIApplication sharedApplication]);
+    [self sceneForwardDidEnterBackground];
 }
 
 // 采用 scene 生命周期后，URL 不再走 application:openURL:options:，改由此回调送达。
