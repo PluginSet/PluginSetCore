@@ -1,6 +1,7 @@
 #if UNITY_IOS
 using System.IO;
 using System.Xml;
+using PluginSet.Core;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -19,9 +20,17 @@ namespace PluginSet.Core.Editor
     ///   会拿到 nil 并传入 initWithWindowScene:。该 API 在 iOS 26 及更早是静默降级，
     ///   iOS 27 起改为抛异常 —— 表现为「点开图标立刻闪退」，且只在 iOS 27 复现。
     ///
-    ///   运行时侧的配合在 Plugins/iOS/PluginSetAppController.mm（UnityScene 兼容层）。
+    ///   运行时侧的配合在 Plugins/iOS/PluginSetAppController.mm（scene delegate 转发 + 诊断日志）。
     ///   本类只负责把 manifest 写进导出工程，因此**不需要改动 Unity 安装目录**，
     ///   换打包机 / 重装 Unity / 升级 2021.3.x 都不会失效。
+    ///
+    /// 【两个写入点，互为兜底】
+    ///   1) [PostProcessBuild] 直接改磁盘上的 Info.plist —— 引擎导出后立刻生效；
+    ///   2) [iOSXCodeProjectModify] 在插件自己的 Xcode 工程改写阶段，对将要落盘的
+    ///      内存 plist 再确认一次（缺则补写）。因为最终落盘发生在 PBXProjectManager.Save()，
+    ///      只做第 1) 步会依赖「PostProcessBuild 与插件保存的先后顺序」，加上第 2) 步后
+    ///      不再依赖顺序。
+    ///   两处结构逐字段一致，且都以「键已存在则跳过」实现幂等。
     ///
     /// 【为什么用 XmlDocument 而不是 UnityEditor.iOS.Xcode.PlistDocument】
     ///   与项目里 IosAppHardening 的做法保持一致：Unity 导出的 Info.plist 是文本 plist，
@@ -31,6 +40,11 @@ namespace PluginSet.Core.Editor
     /// 【幂等】重复导出的工程不会重复写入；已有 UIApplicationSceneManifest（例如未来
     ///   升级到自带 UIScene 支持的 Unity 6）时只做日志提示，不覆盖引擎/其他人的设置。
     /// </summary>
+    // 【关键】必须带 [BuildTools]：PluginSetCore 的 Global.CallCustomOrderMethods 只在带该
+    // 特性的类型里查找 [iOSXCodeProjectModify] / [BuildProjectCompleted] 等方法。少了它，
+    // 下面的 OnIosXCodeProjectModify 永远不会被调用，而且构建日志里不会有任何提示。
+    // （与 IosBuildParams 的 [BuildTools] 用法一致。）
+    [BuildTools]
     public static class IosUISceneCompat
     {
         private const string PlistFileName = "Info.plist";
@@ -40,15 +54,14 @@ namespace PluginSet.Core.Editor
         /// <summary>
         /// scene delegate 类名。
         /// 必须与 Plugins/iOS/PluginSetAppController.mm 里注册的 AppController 类同名 ——
-        /// 该类用 IMPL_APP_CONTROLLER_SUBCLASS(PluginSetAppController) 注册，并通过
-        /// Category 实现了 UIWindowSceneDelegate，因此这里直接写这个类名即可。
+        /// 该类用 IMPL_APP_CONTROLLER_SUBCLASS(PluginSetAppController) 注册，并直接在类声明上
+        /// 采纳了 UIWindowSceneDelegate 协议，因此这里直接写这个类名即可。
         /// </summary>
         private const string SceneDelegateClassName = "PluginSetAppController";
 
         [PostProcessBuild(int.MaxValue - 2)]
         public static void OnPostProcessBuild(BuildTarget target, string buildPath)
-        {
-            if (target != BuildTarget.iOS)
+        {            if (target != BuildTarget.iOS)
                 return;
 
             var plistPath = Path.Combine(buildPath, PlistFileName);
@@ -87,8 +100,67 @@ namespace PluginSet.Core.Editor
             WriteManifest(document, rootDict);
             SavePlist(plistPath, document);
 
-            Debug.Log($"[IosUISceneCompat] 已写入 {ManifestKey}（scene delegate = {SceneDelegateClassName}），" +
-                      "用于修复 iOS 27 启动崩溃。");
+            // 写回后立刻读回校验，把「是否真的落盘」变成构建日志里可见的事实。
+            var written = new XmlDocument();
+            written.Load(plistPath);
+            var writtenRoot = FindRootDict(written);
+            var ok = writtenRoot != null && FindValueNode(writtenRoot, ManifestKey) != null;
+
+            if (ok)
+            {
+                Debug.Log($"[IosUISceneCompat] 已写入 {ManifestKey}（scene delegate = {SceneDelegateClassName}）" +
+                          "并读回校验通过，用于修复 iOS 27 启动崩溃。");
+            }
+            else
+            {
+                Debug.LogError($"[IosUISceneCompat] 写入 {ManifestKey} 后读回校验失败！" +
+                               "iOS 27 上会因缺少 UIScene 声明而启动崩溃，请人工检查 Info.plist。");
+            }
+        }
+
+        /// <summary>
+        /// 兜底闸口：在插件自己的 Xcode 工程改写阶段，对「将要落盘的 in-memory plist」
+        /// 再确认一次 manifest 是否存在。
+        ///
+        /// 【为什么需要这一层】
+        ///   Info.plist 的最终落盘发生在 PBXProjectManager.Save()（见 BuildModifyIOSProject），
+        ///   它写的是 ProjectCapabilityManager 内部持有的那份内存 plist。上面的
+        ///   [PostProcessBuild] 改的是磁盘文件，两者只要有一环不同步，注入就可能在导出末尾
+        ///   被覆盖。这里在 Save() 之前对内存文档做一次确认，缺了就补，因此不再依赖
+        ///   「PostProcessBuild 与插件保存的先后顺序」。
+        ///
+        /// 【幂等】已存在则只打印日志，不覆盖任何既有设置（升级到自带 UIScene 支持的
+        ///   Unity 6 后本方法自动变成空操作）。
+        /// </summary>
+        [iOSXCodeProjectModify(int.MaxValue)]
+        public static void OnIosXCodeProjectModify(BuildProcessorContext context, PBXProjectManager project)
+        {
+            if (context == null || context.BuildTarget != BuildTarget.iOS || project == null)
+                return;
+
+            var plist = project.PlistDocument;
+            if (plist == null)
+                return;
+
+            if (plist.HasPlistValue(ManifestKey))
+            {
+                Debug.Log($"[IosUISceneCompat] Xcode 工程 plist 已含 {ManifestKey}，无需补充。");
+                return;
+            }
+
+            // 组装 UIApplicationSceneManifest（与 [PostProcessBuild] 写入的结构逐字段一致）：
+            //   UISceneConfigurations → UIWindowSceneSessionRoleApplication → [ { 名字, delegate } ]
+            var manifest = plist.FindOrCreateDict(ManifestKey);
+            manifest.SetBoolean("UIApplicationSupportsMultipleScenes", false);
+
+            var configurations = manifest.CreateDict("UISceneConfigurations");
+            var roleArray = configurations.CreateArray("UIWindowSceneSessionRoleApplication");
+            var entry = roleArray.AddDict();
+            entry.SetString("UISceneConfigurationName", SceneConfigName);
+            entry.SetString("UISceneDelegateClassName", SceneDelegateClassName);
+            Debug.LogWarning($"[IosUISceneCompat] 磁盘 plist 缺少 {ManifestKey}，" +
+                             $"已在 Xcode 工程内存 plist 中补写（scene delegate = {SceneDelegateClassName}）。" +
+                             "这通常意味着 [PostProcessBuild] 的写入被后续步骤覆盖，请留意。");
         }
 
         /// <summary>
