@@ -888,9 +888,111 @@ def is_manual_sign_style(sign_style):
     return (sign_style or "").lower() == "manual"
 
 
+# ===== iOS 用途说明（purpose string）与 ATS 的构建期校验 =====
+# 依据：App Store 提审通用合规要求
+#   ① 二进制引用了系统 API 就必须声明用途说明，缺键会被上传校验拦下（ITMS-90683），
+#      空值/占位文案会被自动分析判 placeholder 直接拒审（Guidelines 5.1.1）；
+#   ② ATS 是否保留全量放行由各项目自行决策，可用环境变量 IOS_REQUIRE_ATS_ARBITRARY_LOADS 指定期望值。
+# 数据来源：Unity 导出工程里的 Info.plist（与归档内 app 的 plist 内容一致，早于归档即拦截）。
+# 关闭方式（仅限临时排查）：环境变量 SKIP_IOS_PURPOSE_STRING_CHECK=1
+# 默认清单可由环境变量 IOS_REQUIRED_USAGE_DESCRIPTIONS（逗号分隔）覆盖；
+# 未设置时使用下面这组常见合规键，其它项目请按自己的权限集合配置。
+IOS_REQUIRED_USAGE_DESCRIPTIONS = tuple(
+    x.strip() for x in os.environ.get(
+        "IOS_REQUIRED_USAGE_DESCRIPTIONS",
+        "NSPhotoLibraryUsageDescription,NSPhotoLibraryAddUsageDescription,"
+        "NSCameraUsageDescription,NSMicrophoneUsageDescription,"
+        "NSUserTrackingUsageDescription",
+    ).split(",") if x.strip()
+)
+
+PLACEHOLDER_PURPOSE_STRING_MARKERS = (
+    "your consent is required",
+    "xyz benefits",
+    "requires access to the photo library",   # 占位样本，出现即说明用了旧模板文案
+    "app would like to access",
+)
+
+
+def verify_ios_purpose_strings(ios_project_path):
+    if os.environ.get("SKIP_IOS_PURPOSE_STRING_CHECK") == "1":
+        print("[ios-check] SKIP_IOS_PURPOSE_STRING_CHECK=1，跳过用途说明校验")
+        return
+
+    plist_path = os.path.join(ios_project_path, "Info.plist")
+    if not os.path.exists(plist_path):
+        return FAILURE("iOS 用途说明校验失败：找不到 %s（Unity 导出工程异常？）" % plist_path)
+
+    with open(plist_path, "rb") as f:
+        plist = plistlib.load(f)
+
+    # ① 必需用途说明：必须存在且非空
+    missing = []
+    empty = []
+    placeholder = []
+    for key in IOS_REQUIRED_USAGE_DESCRIPTIONS:
+        value = plist.get(key)
+        if value is None:
+            missing.append(key)
+            continue
+        if not str(value).strip():
+            empty.append(key)
+            continue
+        lowered = str(value).lower()
+        for marker in PLACEHOLDER_PURPOSE_STRING_MARKERS:
+            if marker in lowered:
+                placeholder.append("%s=%s" % (key, value))
+                break
+
+    if missing or empty or placeholder:
+        return FAILURE(
+            "iOS 用途说明校验失败：缺少=%s 空值=%s 占位文案=%s\n"
+            "  修法：在 Unity 渠道配置的 iOS 用途说明字段里补齐文案，"
+            "并让 IOS_REQUIRED_USAGE_DESCRIPTIONS 与实际权限集合一致；"
+            "未申请权限的键应保持留空（留空不会写入 Info.plist）。"
+            % (missing, empty, placeholder))
+
+    # ② ATS 断言（可选）：IOS_REQUIRE_ATS_ARBITRARY_LOADS=1 要求放行；=0 要求收敛；不设则不校验
+    ats = plist.get("NSAppTransportSecurity") or {}
+    require_ats = os.environ.get("IOS_REQUIRE_ATS_ARBITRARY_LOADS")
+    if require_ats == "1" and ats.get("NSAllowsArbitraryLoads") is not True:
+        return FAILURE(
+            "iOS ATS 校验失败：IOS_REQUIRE_ATS_ARBITRARY_LOADS=1 要求 NSAllowsArbitraryLoads=true"
+            "（适用于依赖运营商一键登录等明文 HTTP 端点的项目，并需在 App Review Notes 说明例外）。"
+            "当前值为 %r" % ats.get("NSAllowsArbitraryLoads"))
+    if require_ats == "0" and ats.get("NSAllowsArbitraryLoads") is True:
+        return FAILURE("iOS ATS 校验失败：要求收敛（IOS_REQUIRE_ATS_ARBITRARY_LOADS=0），但 NSAllowsArbitraryLoads 仍为 true")
+
+    # ③ 校验器结果（项目侧 IosPurposeStringValidator 落盘，Debug.LogError 不会让构建失败，必须在此判定）
+    # 兼容两种校验器：项目自带（iosPurposeStringCheck.json）或核心包通用（iosPurposeStringGuard.json）
+    check_path_json = os.path.join(ios_project_path, "iosPurposeStringCheck.json")
+    if not os.path.exists(check_path_json):
+        check_path_json = os.path.join(ios_project_path, "iosPurposeStringGuard.json")
+    if not os.path.exists(check_path_json):
+        print("[ios-check] 未找到 %s —— 校验器未执行（请确认项目或核心包的 IosPurposeStringValidator 带 [PostProcessBuild]）"
+              % check_path_json)
+    else:
+        with open(check_path_json, "r", encoding="UTF-8") as f:
+            result = json.load(f)
+        print("[ios-check] 校验器结果：status=%s policySource=%s" % (result.get("status"), result.get("policySource")))
+        if result.get("status") != "pass":
+            return FAILURE("iOS 用途说明校验器判定未通过：%s" % result.get("errors"))
+        if "代码内兜底清单" in str(result.get("policySource", "")):
+            print("[ios-check] 警告：校验/加固正在使用代码内兜底值 —— 渠道配置条目读取失败，"
+                  "面板上的开关不会生效，请修复该条目（MonoScript/子资产）")
+
+    # ④ 打印实际生效的用途说明，便于从构建日志直接核对
+    print("[ios-check] 用途说明与 ATS 校验通过：")
+    for key in IOS_REQUIRED_USAGE_DESCRIPTIONS:
+        print("    %s = %s" % (key, plist.get(key)))
+    print("    NSAllowsArbitraryLoads = %s" % ats.get("NSAllowsArbitraryLoads"))
+
+
 def generateIpa(ios_project_path:str, version_name:str, build_number:str, debug:bool, buildType="adHoc"
     , apple_id=None, apple_password=None, api_key_id=None, api_issuer_id=None, api_key_path=None):
     project = podInstall(ios_project_path)
+    # 归档前做合规校验：用途说明齐备非空 + 可选 ATS 断言（失败即中止）
+    verify_ios_purpose_strings(ios_project_path)
     configuration = "debug" if debug else "release"
     build_config = BuildConfig()
     build_config.set_config(project, normalize_ios_build_type(buildType), configuration, version_name, build_number, build_number)
@@ -1708,6 +1810,8 @@ def build_ios_archive_only(channel, channelId, version_name, build_number, temp_
         return FAILURE("Cannot get ios project path")
 
     project = podInstall(ios_project_path)
+    # 归档前做合规校验：用途说明齐备非空 + 可选 ATS 断言（失败即中止）
+    verify_ios_purpose_strings(ios_project_path)
     configuration = "debug" if debug else "release"
     build_config = BuildConfig()
     build_config.set_config(project, "appstore", configuration, version_name, build_number, build_number)
@@ -1730,6 +1834,8 @@ def build_ios_appstore(channel, channelId, version_name, build_number, temp_path
         return FAILURE("Cannot get ios project path")
 
     project = podInstall(ios_project_path)
+    # 归档前做合规校验：用途说明齐备非空 + 可选 ATS 断言（失败即中止）
+    verify_ios_purpose_strings(ios_project_path)
     configuration = "debug" if debug else "release"
     build_config = BuildConfig()
     build_config.set_config(project, "appstore", configuration, version_name, build_number, build_number)

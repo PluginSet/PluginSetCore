@@ -102,6 +102,17 @@ namespace PluginSet.Core.Editor
         [Tooltip("提醒事项用途说明；不用提醒事项请留空")]
         public string RemindersUsageDescription = "";
 
+        // ===== 用途说明校验（IosPurposeStringValidator）=====
+        // 机制在插件、政策在项目：这里只声明“哪些键必须存在/禁止出现”，
+        // 具体文案仍由上面各 UsageDescription 字段与各项目渠道配置提供。
+        [Tooltip("校验：必须存在且非空的用途说明键（每行一个，也支持逗号分隔）。\n" +
+                 "留空 = 只校验空值与占位文案，不校验“必须存在哪些键”")]
+        public string RequiredUsageDescriptions = "";
+
+        [Tooltip("校验：禁止出现的用途说明键（每行一个，也支持逗号分隔）。\n" +
+                 "留空 = 不校验“禁止出现哪些键”。用于确保未申请权限的键不会意外进包")]
+        public string ForbiddenUsageDescriptions = "";
+
         public IEnumerable<string> ProfileNames
         {
             get
